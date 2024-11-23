@@ -1,0 +1,49 @@
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { Provider, useDispatch } from 'react-redux';
+import store from './redux/store';
+import { setUserToken } from './redux/actions';
+
+import Navbar from "./components/Navbar";  
+import Home from "./pages/Home";           
+import Login from "./pages/Login";         
+import Register from "./pages/Register"; 
+import User from "./pages/User";            
+
+// Zmiana - Provider teraz obejmuje cały komponent App
+function App() {
+  const dispatch = useDispatch();
+
+  // Sprawdzenie tokena w sessionStorage przy załadowaniu aplikacji
+  useEffect(() => {
+    const token = sessionStorage.getItem('authToken');
+    if (token) {
+      dispatch(setUserToken(token));  // Ustawiamy token w Redux
+    }
+  }, [dispatch]);
+
+  return (
+    <div>
+      <Navbar />  {/* Navbar jest teraz widoczny dla wszystkich komponentów */}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} /> 
+        <Route path="/user" element={<User />} /> 
+      </Routes>
+    </div>
+  );
+}
+
+// Cała aplikacja w Provider
+function AppWrapper() {
+  return (
+    <Provider store={store}>
+      <Router>
+        <App />
+      </Router>
+    </Provider>
+  );
+}
+
+export default AppWrapper;
