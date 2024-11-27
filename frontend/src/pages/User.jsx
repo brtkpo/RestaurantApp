@@ -61,7 +61,7 @@ const User = () => {
         if (!response.ok) {
           throw new Error('Błąd podczas pobierania danych użytkownika');
         }
-  
+
         const data = await response.json();
         setUserData(data);
       } catch (error) {
@@ -71,7 +71,9 @@ const User = () => {
         navigate('/login');
       }
     };
-  
+    
+
+    
     fetchUserData();
     fetchAddresses();
   }, [dispatch, navigate]);

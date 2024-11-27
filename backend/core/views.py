@@ -59,7 +59,7 @@ class UserProfileView(APIView):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'email': user.email,
-            'phone_number': user.profile.phone_number if hasattr(user, 'profile') else None
+            'phone_number': user.phone_number if user.phone_number else None
         }
         return Response(user_data)
     
@@ -129,3 +129,14 @@ class DeleteAddressView(APIView):
             return Response({"message": "Adres usunięty pomyślnie!"}, status=status.HTTP_204_NO_CONTENT)
         except Address.DoesNotExist:
             return Response({"error": "Adres nie znaleziony."}, status=status.HTTP_404_NOT_FOUND)
+        
+class RestaurateurRegistrationView(APIView):
+    def post(self, request):
+        serializer = RestaurateurRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()  # Zapisujemy nowego użytkownika i restaurację
+            return Response(
+                {"message": "Restaurateur and restaurant created successfully."},
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

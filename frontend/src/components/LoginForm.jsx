@@ -42,7 +42,7 @@ const LoginForm = () => {
   return (
     <form onSubmit={handleSubmit}>
       <div>
-        <label htmlFor="username">Nazwa użytkownika:</label>
+        <label htmlFor="username">Email:</label>
         <input
           type="text"
           id="username"
