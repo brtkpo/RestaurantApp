@@ -34,5 +34,7 @@ urlpatterns = [
     path('api/add-address/', AddAddressView.as_view(), name='add_address'),
     path('api/delete-address/<int:pk>/', DeleteAddressView.as_view(), name='delete_address'),
     
-    path('api/restaurateur/register/', RestaurateurRegistrationView.as_view(), name='register_restaurateur'),
+    #Restaurant
+    path('api/restaurant/register/', RestaurantRegistrationView.as_view(), name='register_restaurateur'),
+    path('api/restaurant/list', RestaurantListView.as_view(), name='restaurant-list'),
 ]

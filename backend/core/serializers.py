@@ -28,10 +28,19 @@ class AddressSerializer(serializers.ModelSerializer):
         fields = ['id', 'first_name', 'last_name', 'phone_number', 'street', 'building_number', 'apartment_number', 'postal_code', 'city', 'user']
         
 class RestaurantSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Restaurant
-        fields = ['name', 'phone_number', 'description']
+        fields = ['name', 'phone_number', 'description', 'image', 'image_url']
         #fields = ['name', 'address', 'phone_number', 'description']
+        
+    def get_image_url(self, obj):
+        # Jeśli obrazek jest obecny, zwróć pełny URL, w przeciwnym razie zwróć None
+        if obj.image:
+            return f'https://res.cloudinary.com/dljau5sfr/{obj.image}'
+            #return f'{obj.image}'
+        return None
 
 class RestaurateurRegistrationSerializer(serializers.ModelSerializer):
     restaurant = RestaurantSerializer()

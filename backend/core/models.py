@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from cloudinary.models import CloudinaryField
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -62,6 +63,7 @@ class Restaurant(models.Model):
     #address = models.TextField()
     phone_number = models.CharField(max_length=15)
     description = models.TextField(null=True, blank=True)
+    image = CloudinaryField('image', null=True, blank=True)
     #created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
