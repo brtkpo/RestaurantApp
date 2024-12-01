@@ -7,6 +7,7 @@ const UploadImage = ({ onUploadSuccess }) => {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const cropperRef = useRef(null);
+  const fileInputRef = useRef(null); // Referencja do pola input typu file
 
   // Obsługa wczytywania pliku
   const handleFileChange = (event) => {
@@ -63,10 +64,21 @@ const UploadImage = ({ onUploadSuccess }) => {
     });
   };
 
+  // Funkcja do anulowania załadowanego zdjęcia
+  const handleCancel = () => {
+    setFile(null);
+    setImageUrl(null);
+
+    // Resetuje wartość pola input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div>
       <h2>Upload Image</h2>
-      <input type="file" onChange={handleFileChange} />
+      <input type="file" onChange={handleFileChange} ref={fileInputRef} />
       {imageUrl && (
         <div>
           <Cropper
@@ -77,9 +89,14 @@ const UploadImage = ({ onUploadSuccess }) => {
             guides={false}
             ref={cropperRef}
           />
-          <button onClick={handleUpload} disabled={loading}>
-            {loading ? "Uploading..." : "Upload Cropped Image"}
-          </button>
+          <div>
+            <button onClick={handleUpload} disabled={loading}>
+              {loading ? "Uploading..." : "Upload Cropped Image"}
+            </button>
+            <button onClick={handleCancel} disabled={loading} style={{ marginLeft: "10px" }}>
+              Anuluj
+            </button>
+          </div>
         </div>
       )}
     </div>
