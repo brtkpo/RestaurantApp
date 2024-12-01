@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 
 const Navbar = () => {
   const token = useSelector((state) => state.token);  // Pobieramy token z Redux
-  console.log('Token in Navbar:', token);
+  //console.log('Token in Navbar:', token);
 
   return (
     <nav style={styles.navbar}>

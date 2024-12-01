@@ -75,7 +75,7 @@ class Address(models.Model):
         ('restaurateur', 'Restaurateur'),
     ]
     
-    owner_role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    owner_role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='client')
     
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 

@@ -7,6 +7,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.decorators import api_view
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.generics import ListAPIView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
@@ -60,7 +61,8 @@ class UserProfileView(APIView):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'email': user.email,
-            'phone_number': user.phone_number if user.phone_number else None
+            'phone_number': user.phone_number if user.phone_number else None,
+            'role': user.role,
         }
         return Response(user_data)
     
@@ -149,8 +151,7 @@ class RestaurantRegistrationView(APIView):
 #        restaurants = Restaurant.objects.all()
 #        serializer = RestaurantSerializer(restaurants, many=True)
 #        return Response(serializer.data)
-from rest_framework.generics import ListAPIView
- 
+
 class RestaurantListView(ListAPIView):
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer

@@ -64,6 +64,12 @@ const User = () => {
 
         const data = await response.json();
         setUserData(data);
+        console.log(data);
+        console.log(data.role);
+        if (data.role === 'restaurateur') {
+          console.log('Bober');
+          navigate('/restaurant/user'); // Przekierowanie do strony restauratora
+        }
       } catch (error) {
         dispatch(setUserToken(null));
         sessionStorage.removeItem('authToken');

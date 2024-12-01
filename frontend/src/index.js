@@ -14,7 +14,7 @@ root.render(
     <AuthProvider> {/* Zajmuje się synchronizacją tokena */}
       <App />
     </AuthProvider>
-  </Provider>,
+  </Provider>
   </React.StrictMode>
 );
 

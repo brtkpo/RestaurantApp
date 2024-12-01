@@ -4,7 +4,7 @@ from .models import *
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = AppUser
-        fields = ['email', 'password', 'first_name', 'last_name', 'phone_number']
+        fields = ['email', 'password', 'first_name', 'last_name', 'phone_number', 'role']
         extra_kwargs = {
             'password': {'write_only': True}  # Hasło będzie tylko do zapisu, nie do odczytu
         }

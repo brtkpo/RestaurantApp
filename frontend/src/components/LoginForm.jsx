@@ -67,6 +67,9 @@ const LoginForm = () => {
         <p>
           Nie masz konta? <Link to="/register">Zarejestruj się</Link>
         </p>
+        <p>
+          Jesteś Restauratorem? <Link to="/restaurant/register">Zarejestruj restaurację</Link>
+        </p>
       </div>
     </form>
   );
