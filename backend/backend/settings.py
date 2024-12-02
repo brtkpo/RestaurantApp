@@ -174,3 +174,9 @@ CLOUDINARY_STORAGE = {
     'API_KEY': '821576891229945',#'twoj_api_key',
     'API_SECRET': '6O7xkl8CZXlz9qSff0LS5ynAy78',#'twoj_api_secret',
 }
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+    api_key=CLOUDINARY_STORAGE['API_KEY'],
+    api_secret=CLOUDINARY_STORAGE['API_SECRET']
+)

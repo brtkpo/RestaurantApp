@@ -30,8 +30,8 @@ const LoginForm = () => {
       console.log(token);
       sessionStorage.setItem('authToken', token);
       dispatch(setUserToken(token));
-
-      navigate('/user');
+      data.role === 'client' ? navigate('/user') : navigate('/restaurant/user');
+      //navigate('/user');
       // Zalogowany - możesz np. przekierować użytkownika
       alert('Zalogowano pomyślnie!');
     } else {

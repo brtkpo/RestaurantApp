@@ -37,4 +37,9 @@ urlpatterns = [
     #Restaurant
     path('api/restaurant/register/', RestaurantRegistrationView.as_view(), name='register_restaurateur'),
     path('api/restaurant/list', RestaurantListView.as_view(), name='restaurant-list'),
+    path('api/restaurant/user', RestaurantProfileView.as_view(), name='restaurant_user'),
+    path('api/restaurant/update/<int:pk>/', RestaurantUpdateView.as_view(), name='restaurant-detail'),
+    
+    #Cloudinary
+    path('api/generate-signature/', generateUploadSignature, name='generate_upload_signature'),
 ]

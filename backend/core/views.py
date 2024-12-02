@@ -7,11 +7,18 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.decorators import api_view
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
 from .models import *
+from django.http import JsonResponse
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+from django.utils.crypto import get_random_string
+import time
+import hashlib
 
 #User
 class LoginView(APIView):
@@ -27,7 +34,8 @@ class LoginView(APIView):
             return Response({
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
-                "message": "Zalogowano pomyślnie!"
+                "message": "Zalogowano pomyślnie!",
+                "role": user.role,
             }, status=status.HTTP_200_OK)
         return Response({"message": "Błąd logowania!"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -156,3 +164,48 @@ class RestaurantListView(ListAPIView):
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
 
+
+class RestaurantProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Używamy serializera do zebrania danych użytkownika i jego restauracji
+        serializer = RestaurantProfileSerializer(request.user)
+        return Response(serializer.data)
+
+class RestaurantUpdateView(UpdateAPIView):
+    queryset = Restaurant.objects.all()
+    serializer_class = RestaurantSerializer
+    
+#Cloudinary
+def generateUploadSignature(request):
+    # Pobranie public_id z query params lub wygenerowanie domyślnego
+    public_id = request.GET.get('public_id', get_random_string(10))  # Jeśli brak public_id, generujemy losowe
+    timestamp = str(int(time.time()))  # Timestamp w sekundach
+    upload_preset = 'ml_default'  # Twój upload preset (możesz go zmienić w zależności od konfiguracji Cloudinary)
+
+    # Pobieramy konfigurację Cloudinary
+    api_key = cloudinary.config().api_key
+    api_secret = cloudinary.config().api_secret
+
+    # Logowanie: Sprawdzamy, czy api_key i api_secret są poprawne
+    print("Cloudinary Config:", api_key, api_secret)
+
+    if not api_key or not api_secret:
+        return JsonResponse({"error": "Cloudinary API key or secret not found in configuration."}, status=400)
+
+    # Parametry do podpisu - uwzględniamy `upload_preset`
+    signature_string = f"public_id={public_id}&timestamp={timestamp}&upload_preset={upload_preset}{api_secret}"
+
+    # Tworzymy podpis
+    signature = hashlib.sha1(signature_string.encode('utf-8')).hexdigest()
+
+    # Zwracamy dane do frontend (API key, timestamp, signature, public_id)
+    response_data = {
+        'api_key': api_key,
+        'timestamp': timestamp,
+        'signature': signature,
+        'public_id': public_id,
+    }
+
+    return JsonResponse(response_data)

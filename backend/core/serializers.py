@@ -32,7 +32,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Restaurant
-        fields = ['name', 'phone_number', 'description', 'image', 'image_url']
+        fields = ['id', 'name', 'phone_number', 'description', 'image', 'image_url']
         #fields = ['name', 'address', 'phone_number', 'description']
         
     def get_image_url(self, obj):
@@ -66,3 +66,10 @@ class RestaurateurRegistrationSerializer(serializers.ModelSerializer):
         # Tworzymy restaurację
         Restaurant.objects.create(owner=user, **restaurant_data)
         return user
+
+class RestaurantProfileSerializer(serializers.ModelSerializer):
+    restaurant = RestaurantSerializer(read_only=True)  # Dodajemy dane restauracji
+
+    class Meta:
+        model = AppUser
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'role', 'restaurant']
