@@ -209,3 +209,95 @@ def generateUploadSignature(request):
     }
 
     return JsonResponse(response_data)
+
+# Widok listy tagów
+class TagListView(APIView):
+    """
+    GET: Zwraca listę wszystkich tagów
+    """
+    def get(self, request):
+        tags = Tag.objects.all()
+        serializer = TagSerializer(tags, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# Widok tworzenia tagu
+class TagCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        # Sprawdzenie, czy tag o takiej nazwie już istnieje
+        existing_tag = Tag.objects.filter(name=request.data.get('name')).first()
+        if existing_tag:
+            return Response(
+                {"error": "Tag o takiej nazwie już istnieje."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        serializer = TagSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
+class RestaurantTagListView(APIView):
+    def get(self, request, pk):
+        try:
+            # Pobranie restauracji
+            restaurant = Restaurant.objects.get(pk=pk)
+        except Restaurant.DoesNotExist:
+            return Response({"error": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serializowanie przypisanych tagów
+        tags = restaurant.tags.all()
+        serializer = TagSerializer(tags, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class FilterRestaurantsByTagsView(APIView):
+    def get(self, request):
+        # Pobranie tagów z parametrów zapytania
+        tag_names = request.query_params.getlist('tags')
+
+        if not tag_names:
+            return Response({"error": "No tags provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Filtrowanie restauracji według tagów
+        restaurants = Restaurant.objects.filter(tags__name__in=tag_names).distinct()
+
+        # Serializowanie wyników
+        serializer = RestaurantSerializer(restaurants, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class RestaurantTagUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, pk):
+        try:
+            restaurant = Restaurant.objects.get(pk=pk)
+        except Restaurant.DoesNotExist:
+            return Response({"error": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        tag_ids = request.data.get('tag_ids', [])
+        tags = Tag.objects.filter(id__in=tag_ids)
+        
+        # Dodanie tagów do restauracji
+        restaurant.tags.set(tags)
+        restaurant.save()
+        
+        # Serializowanie zaktualizowanych tagów
+        serializer = TagSerializer(tags, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk):
+        try:
+            restaurant = Restaurant.objects.get(pk=pk)
+        except Restaurant.DoesNotExist:
+            return Response({"error": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        tag_ids = request.data.get('tag_ids', [])
+        tags = Tag.objects.filter(id__in=tag_ids)
+        
+        # Usunięcie tagów z restauracji
+        restaurant.tags.remove(*tags)
+        restaurant.save()
+        
+        return Response({"message": "Tags removed successfully"}, status=status.HTTP_200_OK)

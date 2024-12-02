@@ -26,13 +26,23 @@ class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = ['id', 'first_name', 'last_name', 'phone_number', 'street', 'building_number', 'apartment_number', 'postal_code', 'city', 'user']
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id', 'name']
         
 class RestaurantSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     
+    tags = TagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tag.objects.all(), write_only=True
+    )
+    
     class Meta:
         model = Restaurant
-        fields = ['id', 'name', 'phone_number', 'description', 'image', 'image_url']
+        fields = ['id', 'name', 'phone_number', 'description', 'image', 'image_url', 'tags', 'tag_ids']
         #fields = ['name', 'address', 'phone_number', 'description']
         
     def get_image_url(self, obj):

@@ -42,4 +42,13 @@ urlpatterns = [
     
     #Cloudinary
     path('api/generate-signature/', generateUploadSignature, name='generate_upload_signature'),
+    
+    # Tag
+    path('api/tags/', TagListView.as_view(), name='tag-list'),
+    path('api/tag/add/', TagCreateView.as_view(), name='tag-add'),
+    path('api/restaurant/<int:pk>/tags/list', RestaurantTagListView.as_view(), name='restaurant-tag-list'),
+    path('api/restaurants/filter-by-tags/', FilterRestaurantsByTagsView.as_view(), name='filter-restaurants-by-tags'),
+    path('api/restaurant/<int:pk>/tags/update', RestaurantTagUpdateView.as_view(), name='restaurant-tag-update'),
+    #path('api/restaurant/<int:pk>/tags/update', RestaurantTagUpdateView.as_view(), name='restaurant-tag-update'),
+
 ]

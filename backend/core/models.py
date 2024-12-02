@@ -57,6 +57,12 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, app_label):
         return True  # Dostosuj do swoich potrzeb
 
+class Tag(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+    
 class Restaurant(models.Model):
     owner = models.OneToOneField(AppUser, on_delete=models.CASCADE, limit_choices_to={'role': 'restaurateur'})
     name = models.CharField(max_length=255)
@@ -64,6 +70,7 @@ class Restaurant(models.Model):
     phone_number = models.CharField(max_length=15)
     description = models.TextField(null=True, blank=True)
     image = CloudinaryField('image', null=True, blank=True)
+    tags = models.ManyToManyField(Tag, related_name='restaurants', blank=True)  # Dodano relację
     #created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
