@@ -49,6 +49,26 @@ const Home = () => {
                 style={{ width: "300px", height: "auto" }}
               />
             )}
+
+            {/* Wyświetlanie tagów */}
+            {restaurant.tags && restaurant.tags.length > 0 && (
+              <div style={{ marginTop: "10px" }}>
+                {/*<h3>Tags:</h3>*/}
+                <ul>
+                  {restaurant.tags.map((tag) => (
+                    <li key={tag.id} style={{ display: "inline", marginRight: "10px" }}>
+                      <span style={{ 
+                        backgroundColor: "#f0f0f0", 
+                        padding: "5px 10px", 
+                        borderRadius: "5px" 
+                      }}>
+                        {tag.name}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </li>
         ))}
       </ul>
