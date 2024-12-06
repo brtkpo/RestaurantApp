@@ -1,48 +1,6 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 
-const UserListProducts = ({ restaurantId, onRendered }) => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8000/api/restaurant/${restaurantId}/products/`
-        );
-        setProducts(response.data);
-      } catch (err) {
-        console.error(err);
-        setError("Nie udało się załadować produktów.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [restaurantId]);
-
-  useEffect(() => {
-    if (!loading && onRendered) {
-      // Wywołanie callbacku po załadowaniu i pierwszym renderze
-      onRendered();
-    }
-  }, [loading, onRendered]);
-
-  if (loading) {
-    //return <div>Ładowanie produktów...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  if (products.length === 0) {
-    return <div>Brak produktów do wyświetlenia.</div>;
-  }
-
+const UserListProducts = ({ products }) => {
   return (
     <div>
       <h1>Lista produktów</h1>

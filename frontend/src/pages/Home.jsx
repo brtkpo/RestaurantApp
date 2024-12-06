@@ -7,6 +7,8 @@ const Home = () => {
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isRendered, setIsRendered] = useState(false); //userlist
+  const [products, setProducts] = useState(null);
+  const [error, setError] = useState(null);
 
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
@@ -45,6 +47,7 @@ const Home = () => {
   //}, [selectedRestaurant]); //scrollPosition
 
   const handleRestaurantClick = (restaurant) => {
+    console.log("handleRestaurantClick");
     //const currentScroll = window.scrollY;
     //console.log("Zapisuję pozycję scrolla:", currentScroll);
     // Zapisz aktualną pozycję scrolla przed przejściem
@@ -54,10 +57,25 @@ const Home = () => {
   };
 
   const handleBackClick = () => {
+    console.log("handleBackClick");
     //console.log("Przywracam pozycję scrolla:", scrollPosition);
     setSelectedRestaurant(null);
     setScrollPosition(window.scrollY);
     
+    console.log("scrollFun");
+    if (scrollPosition > 0) {
+      const scrollToPosition = () => {
+        const currentScrollY = window.scrollY;
+        const difference = scrollPosition - currentScrollY;
+        const increment = Math.sign(difference) * Math.min(Math.abs(difference), 1000); // 10
+        window.scrollTo(0, currentScrollY + increment);
+
+        if (Math.abs(difference) > 0) {
+          requestAnimationFrame(scrollToPosition);
+        }
+      };
+      requestAnimationFrame(scrollToPosition);
+    }
     //setSelectedRestaurant(null);
     // Przywróć pozycję scrolla
     //setTimeout(() => {
@@ -65,28 +83,30 @@ const Home = () => {
     //}, 0); // Używamy timeoutu, aby upewnić się, że scrollowanie nastąpi po renderze
   };
 
-  useEffect(() => {
-    if (scrollPosition > 0) {
-      const scrollToPosition = () => {
-        const currentScrollY = window.scrollY;
-        const difference = scrollPosition - currentScrollY;
-        const increment = Math.sign(difference) * Math.min(Math.abs(difference), 100); // 10
-        window.scrollTo(0, currentScrollY + increment);
+  //useEffect(() => {
+  //  console.log("useEffectScrollPosition");
+  //  if (scrollPosition > 0) {
+  //    const scrollToPosition = () => {
+  //      const currentScrollY = window.scrollY;
+  //      const difference = scrollPosition - currentScrollY;
+  //      const increment = Math.sign(difference) * Math.min(Math.abs(difference), 100); // 10
+  //      window.scrollTo(0, currentScrollY + increment);
 
-        if (Math.abs(difference) > 0) {
-          requestAnimationFrame(scrollToPosition);
-        }
-      };
+  //      if (Math.abs(difference) > 0) {
+  //        requestAnimationFrame(scrollToPosition);
+  //      }
+  //    };
 
-      requestAnimationFrame(scrollToPosition);
-    }
-  }, [scrollPosition]); // Update scroll only when scrollPosition changes
+  //    requestAnimationFrame(scrollToPosition);
+  //  }
+  //}, [scrollPosition]); // Update scroll only when scrollPosition changes
 
-  if (loading) {
+  //if (loading) {
     //return <p>Błąd połączenia, przepraszamy.</p>;
-  }
+  //}
 
   useEffect(() => {
+    setIsRendered(true);
     if (selectedRestaurant) {
       const fetchProducts = async () => {
         try {
@@ -102,7 +122,7 @@ const Home = () => {
           console.error(err);
           setError(err.message || "Nieoczekiwany błąd.");
         } finally {
-          setLoading(false);
+          setIsRendered(false);
         }
       };
 
@@ -112,14 +132,23 @@ const Home = () => {
 
   const handleRendered = () => {
     setIsRendered(true);
-    console.log("Komponent został w pełni załadowany i zrenderowany.");
   };
 
-  if (selectedRestaurant) {
+
+  if (selectedRestaurant && isRendered === false) {
+    if (products && products.length === 0) {
+      return (
+        <div onRendered={handleRendered}>
+          <h1>{selectedRestaurant.name}</h1>
+          <div>Brak produktów do wyświetlenia.</div>
+          <button onClick={handleBackClick}>Wróć</button>
+        </div>
+      );
+    }
     return (
       <div>
         <h1>{selectedRestaurant.name}</h1>
-        {products && <UserListProducts products={products} />}{/*<UserListProducts restaurantId={selectedRestaurant.id} onRendered={handleRendered}/>*/}
+        {products && <UserListProducts products={products} onRendered={handleRendered} />}{/*<UserListProducts restaurantId={selectedRestaurant.id} onRendered={handleRendered}/>*/}
         <button onClick={handleBackClick}>Wróć</button>
       </div>
     );
@@ -133,7 +162,7 @@ const Home = () => {
         {restaurants.map((restaurant) => (
           <li
             key={restaurant.id}
-            onClick={() => handleRestaurantClick(restaurant)}
+            onClick={() => {handleRestaurantClick(restaurant); setIsRendered(true);}}
             style={{
               cursor: "pointer",
               border: "1px solid #ddd",
