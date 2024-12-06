@@ -31,32 +31,54 @@ const Home = () => {
       });
   }, []); //[restaurants]
 
-  useEffect(() => {
-    if (selectedRestaurant === null) {
-      // Przywróć scroll po renderze
-      setTimeout(() => {
-        window.scrollTo(0, scrollPosition);
-      }, 0);
-    }
-  }, [selectedRestaurant]);
+  //useEffect(() => {
+  //  if (selectedRestaurant !== null) {
+  //    setScrollPosition(window.scrollY);
+  //  }
+    //if (selectedRestaurant === null) {
+    //  setTimeout(() => {
+    //    window.scrollTo(0, scrollPosition);
+    //  }, 0);
+    //}
+  //}, [selectedRestaurant]); //scrollPosition
 
   const handleRestaurantClick = (restaurant) => {
-    const currentScroll = window.scrollY;
-    console.log("Zapisuję pozycję scrolla:", currentScroll);
+    //const currentScroll = window.scrollY;
+    //console.log("Zapisuję pozycję scrolla:", currentScroll);
     // Zapisz aktualną pozycję scrolla przed przejściem
-    setScrollPosition(window.scrollY);
+    //setScrollPosition(window.scrollY);
     setSelectedRestaurant(restaurant);
+    setScrollPosition(window.scrollY);
   };
 
   const handleBackClick = () => {
-    console.log("Przywracam pozycję scrolla:", scrollPosition);
+    //console.log("Przywracam pozycję scrolla:", scrollPosition);
     setSelectedRestaurant(null);
+    setScrollPosition(window.scrollY);
+    
     //setSelectedRestaurant(null);
     // Przywróć pozycję scrolla
     //setTimeout(() => {
     //  window.scrollTo(0, scrollPosition);
     //}, 0); // Używamy timeoutu, aby upewnić się, że scrollowanie nastąpi po renderze
   };
+
+  useEffect(() => {
+    if (scrollPosition > 0) {
+      const scrollToPosition = () => {
+        const currentScrollY = window.scrollY;
+        const difference = scrollPosition - currentScrollY;
+        const increment = Math.sign(difference) * Math.min(Math.abs(difference), 100); // 10
+        window.scrollTo(0, currentScrollY + increment);
+
+        if (Math.abs(difference) > 0) {
+          requestAnimationFrame(scrollToPosition);
+        }
+      };
+
+      requestAnimationFrame(scrollToPosition);
+    }
+  }, [scrollPosition]); // Update scroll only when scrollPosition changes
 
   if (loading) {
     //return <p>Błąd połączenia, przepraszamy.</p>;
