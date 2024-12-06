@@ -33,7 +33,7 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
         
 class RestaurantSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
+    #image_url = serializers.SerializerMethodField()
     
     tags = TagSerializer(many=True, read_only=True)
     tag_ids = serializers.PrimaryKeyRelatedField(
@@ -42,15 +42,15 @@ class RestaurantSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Restaurant
-        fields = ['id', 'name', 'phone_number', 'description', 'image', 'image_url', 'tags', 'tag_ids']
+        fields = ['id', 'name', 'phone_number', 'description', 'image', 'tags', 'tag_ids']#'image_url', 'tags', 'tag_ids']
         #fields = ['name', 'address', 'phone_number', 'description']
         
-    def get_image_url(self, obj):
-        # Jeśli obrazek jest obecny, zwróć pełny URL, w przeciwnym razie zwróć None
-        if obj.image:
-            return f'https://res.cloudinary.com/dljau5sfr/{obj.image}'
-            #return f'{obj.image}'
-        return None
+    #def get_image_url(self, obj):
+    #    # Jeśli obrazek jest obecny, zwróć pełny URL, w przeciwnym razie zwróć None
+    #    if obj.image:
+    #        return f'https://res.cloudinary.com/dljau5sfr/{obj.image}'
+    #        #return f'{obj.image}'
+    #    return None
 
 class RestaurateurRegistrationSerializer(serializers.ModelSerializer):
     restaurant = RestaurantSerializer()

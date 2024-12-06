@@ -210,7 +210,7 @@ def generateUploadSignature(request):
 
     return JsonResponse(response_data)
 
-# Widok listy tagów
+#Tags
 class TagListView(APIView):
     """
     GET: Zwraca listę wszystkich tagów
@@ -220,7 +220,6 @@ class TagListView(APIView):
         serializer = TagSerializer(tags, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-# Widok tworzenia tagu
 class TagCreateView(APIView):
     permission_classes = [IsAuthenticated]
     

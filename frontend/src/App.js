@@ -26,7 +26,7 @@ function App() {
 
   return (
     <div>
-      <Navbar />  {/* Navbar jest teraz widoczny dla wszystkich komponentów */}
+      <Navbar />   {/* Navbar jest teraz widoczny dla wszystkich komponentów */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
