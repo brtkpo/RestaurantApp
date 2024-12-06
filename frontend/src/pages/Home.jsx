@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import UserListProducts from "../components/UserListProducts.jsx";
 
 const Home = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [isRendered, setIsRendered] = useState(false); //userlist
 
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
@@ -84,10 +86,40 @@ const Home = () => {
     //return <p>Błąd połączenia, przepraszamy.</p>;
   }
 
+  useEffect(() => {
+    if (selectedRestaurant) {
+      const fetchProducts = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:8000/api/restaurant/${selectedRestaurant.id}/products/`
+          );
+          if (!response.ok) {
+            throw new Error("Nie udało się załadować produktów.");
+          }
+          const data = await response.json();
+          setProducts(data);
+        } catch (err) {
+          console.error(err);
+          setError(err.message || "Nieoczekiwany błąd.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchProducts();
+    }
+  }, [selectedRestaurant]);
+
+  const handleRendered = () => {
+    setIsRendered(true);
+    console.log("Komponent został w pełni załadowany i zrenderowany.");
+  };
+
   if (selectedRestaurant) {
     return (
       <div>
         <h1>{selectedRestaurant.name}</h1>
+        {products && <UserListProducts products={products} />}{/*<UserListProducts restaurantId={selectedRestaurant.id} onRendered={handleRendered}/>*/}
         <button onClick={handleBackClick}>Wróć</button>
       </div>
     );

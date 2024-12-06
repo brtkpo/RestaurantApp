@@ -83,3 +83,10 @@ class RestaurantProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = AppUser
         fields = ['first_name', 'last_name', 'email', 'phone_number', 'role', 'restaurant']
+        
+#Product
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'restaurant', 'name', 'description', 'price', 'is_available']
+        

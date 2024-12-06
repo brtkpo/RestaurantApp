@@ -50,5 +50,9 @@ urlpatterns = [
     path('api/restaurants/filter-by-tags/', FilterRestaurantsByTagsView.as_view(), name='filter-restaurants-by-tags'),
     path('api/restaurant/<int:pk>/tags/update', RestaurantTagUpdateView.as_view(), name='restaurant-tag-update'),
     #path('api/restaurant/<int:pk>/tags/update', RestaurantTagUpdateView.as_view(), name='restaurant-tag-update'),
-
+    
+    #Product
+    path('api/restaurant/add-product/', ProductCreateView.as_view(), name='add-product'),
+    path('api/restaurant/<int:restaurant_id>/products/', ProductListView.as_view(), name='product-list'),
+    
 ]

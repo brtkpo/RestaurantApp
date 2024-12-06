@@ -5,6 +5,7 @@ import axios from 'axios';
 import { setUserToken } from '../redux/actions';
 import UploadImage from '../components/UploadImage';
 import ManageTags from '../components/ManageTags';
+import AddProduct from '../components/AddProduct';
 
 const RestaurantProfile = () => {
   const dispatch = useDispatch();
@@ -123,6 +124,7 @@ const RestaurantProfile = () => {
 
       <br />
       <ManageTags restaurantId={restaurant.id} />
+      <AddProduct restaurantId={restaurant.id} />
       <button onClick={handleLogout}>Wyloguj</button>
     </div>
   );

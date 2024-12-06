@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.decorators import api_view
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.generics import ListAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
@@ -300,3 +300,33 @@ class RestaurantTagUpdateView(APIView):
         restaurant.save()
         
         return Response({"message": "Tags removed successfully"}, status=status.HTTP_200_OK)
+
+#Product
+class ProductCreateView(CreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Dodajemy restaurację do produktu podczas zapisywania
+        restaurant_id = self.request.data.get('restaurant')
+        try:
+            restaurant = Restaurant.objects.get(id=restaurant_id)
+        except Restaurant.DoesNotExist:
+            raise serializers.ValidationError('Restaurant not found')
+
+        serializer.save(restaurant=restaurant)
+        
+class ProductListView(ListAPIView):
+    serializer_class = ProductSerializer
+    #permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        restaurant_id = self.kwargs.get('restaurant_id')
+
+        try:
+            restaurant = Restaurant.objects.get(id=restaurant_id)
+        except Restaurant.DoesNotExist:
+            raise NotFound('Restauracja nie została znaleziona.')
+
+        return Product.objects.filter(restaurant=restaurant)
