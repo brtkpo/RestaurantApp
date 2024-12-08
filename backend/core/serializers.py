@@ -89,4 +89,26 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'restaurant', 'name', 'description', 'price', 'is_available']
-        
+
+#Cart
+class CartItemSerializer(serializers.ModelSerializer):
+    #product = serializers.StringRelatedField()
+    product = ProductSerializer()
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'product', 'quantity']
+    
+    #def get_product(self, obj):
+    #    return {
+    #        'name': obj.product.name,
+    #        'restaurant': obj.product.restaurant.name,
+    #        'price': obj.product.price,
+    #    }
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'session_id', 'created_at', 'items']

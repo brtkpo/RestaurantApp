@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const UserListProducts = ({ products }) => {
   return (
@@ -36,10 +37,27 @@ const AddToCartButton = ({ productId }) => {
     }
   };
 
-  const handleAddToCart = () => {
-    alert(`Dodano do koszyka: Produkt ID ${productId}, Ilość: ${quantity}`);
-  };
+  const handleAddToCart = async () => {
+    let sessionId = sessionStorage.getItem('session_id');
+    if (!sessionId) {
+      sessionId = Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem('session_id', sessionId);
+    }
 
+    try {
+      const response = await axios.post(`http://localhost:8000/api/cart/${sessionId}/items/`, {
+        product_id: productId,
+        quantity: quantity,
+      });
+      console.log('Product added to cart:', response.data);
+      alert(`Dodano do koszyka: Produkt ID ${productId}, Ilość: ${quantity}`);
+    } catch (error) {
+      console.error('Error adding product to cart:', error);
+      if (error.response && error.response.data) {
+        console.error('Error details:', error.response.data);
+      }
+    }
+  };
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
       <button onClick={handleDecrease} disabled={quantity === 1}>

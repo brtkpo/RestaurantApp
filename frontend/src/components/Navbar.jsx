@@ -1,10 +1,49 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from 'react-redux'; 
+import axios from "axios";
 
 const Navbar = () => {
   const token = useSelector((state) => state.token);  // Pobieramy token z Redux
-  //console.log('Token in Navbar:', token);
+  const [cartItems, setCartItems] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      const sessionId = sessionStorage.getItem('session_id');
+      console.log('session Id:', sessionId); // Debugging
+      if (sessionId) {
+        try {
+          const response = await axios.get(`http://localhost:8000/api/cart/${sessionId}/`);
+          console.log('response:', response);
+          console.log('Fetched cart:', response.data[0].items); // Debugging
+          setCartItems(response.data[0].items);
+        } catch (error) {
+          console.error('Error fetching cart:', error);
+        }
+      }
+    };
+
+    fetchCart();
+  }, []);
+
+  const toggleCart = () => {
+    setIsCartOpen(!isCartOpen);
+  };
+
+  const groupedCartItems = cartItems ? cartItems.reduce((acc, item) => {
+    const { name, restaurant, price } = item.product;
+    if (!acc[restaurant]) {
+      acc[restaurant] = [];
+    }
+    acc[restaurant].push({ ...item, name, price });
+    return acc;
+  }, {}) : {};
+
+  const totalSum = cartItems.reduce((sum, item) => {
+    const price = parseFloat(item.product.price);
+    return sum + (price * item.quantity);
+  }, 0);
 
   return (
     <>
@@ -20,7 +59,29 @@ const Navbar = () => {
               <Link to="/login" style={styles.link}>Login</Link>  // Jeśli nie, pokazujemy "Login"
             )}
           </li>
+          <li style={styles.li}>
+            <button onClick={toggleCart} style={styles.link}>Koszyk</button>
+          </li>
         </ul>
+        {isCartOpen && (
+          <div style={styles.cartDropdown}>
+            {Object.keys(groupedCartItems).map((restaurantName) => (
+              <div key={restaurantName}>
+                <h3>{restaurantName}</h3>
+                <ul>
+                  {groupedCartItems[restaurantName].map((item) => (
+                    <li key={item.id}>
+                      {item.name} - {item.quantity} szt. - {item.price} PLN
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <div style={styles.totalSum}>
+              <strong>Suma: {totalSum.toFixed(2)} PLN</strong>
+            </div>
+          </div>
+        )}
       </nav>
       <div style={styles.spacer} /> {/* Element odstępu */}
     </>
@@ -53,6 +114,21 @@ const styles = {
     color: 'white',
     textDecoration: 'none',
     fontSize: '18px',
+  },
+  cartDropdown: {
+    position: 'absolute',
+    right: 0,
+    top: '50px',
+    backgroundColor: 'white',
+    border: '1px solid #ddd',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+    width: '300px',
+    zIndex: 1000,
+  },
+  totalSum: {
+    padding: '10px',
+    borderTop: '1px solid #ddd',
+    textAlign: 'right',
   },
 };
 

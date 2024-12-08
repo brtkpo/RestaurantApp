@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.decorators import api_view
 #from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView, RetrieveAPIView, ListCreateAPIView, RetrieveDestroyAPIView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
@@ -369,3 +369,56 @@ class ProductDetailView(RetrieveAPIView):
         except Product.DoesNotExist:
             raise NotFound('Produkt nie został znaleziony.')
         return product
+    
+#Cart
+class CartListCreateView(ListCreateAPIView):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+
+    def get_queryset(self):
+        session_id = self.kwargs['session_id']
+        #cart = Cart.objects.filter(session_id=session_id)
+        #print(cart)  # Debugging
+        return Cart.objects.filter(session_id=session_id)
+
+    def perform_create(self, serializer):
+        session_id = self.kwargs['session_id']
+        serializer.save(session_id=session_id)
+
+class CartItemListCreateView(ListCreateAPIView):
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer
+
+    def get_queryset(self):
+        session_id = self.kwargs['session_id']
+        cart = Cart.objects.get(session_id=session_id)
+        return CartItem.objects.filter(cart=cart)
+
+    def perform_create(self, serializer):
+        session_id = self.kwargs['session_id']
+        product_id = self.request.data.get('product_id')
+        quantity = self.request.data.get('quantity', 1)
+        
+        print(f"Received data: product_id={product_id}, quantity={quantity}")  # Dodajemy logowanie
+
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            raise serializers.ValidationError("Product not found")
+
+        cart, created = Cart.objects.get_or_create(session_id=session_id)
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+        if not created:
+            cart_item.quantity += quantity
+        else:
+            cart_item.quantity = quantity
+        cart_item.save()
+
+class CartItemRetrieveDestroyView(RetrieveDestroyAPIView):
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer
+
+    def get_queryset(self):
+        session_id = self.kwargs['session_id']
+        cart = Cart.objects.get(session_id=session_id)
+        return CartItem.objects.filter(cart=cart)
