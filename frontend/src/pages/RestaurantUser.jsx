@@ -13,6 +13,7 @@ const RestaurantProfile = () => {
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [productsUpdated, setProductsUpdated] = useState(false);
 
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
@@ -40,6 +41,28 @@ const RestaurantProfile = () => {
 
     fetchProfileData();
   }, [navigate]);
+
+  const fetchProducts = async () => {
+    console.log("fetchProducts");
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/restaurant/${profileData.restaurant.id}/products/`
+      );
+      setProfileData((prevData) => ({
+        ...prevData,
+        restaurant: {
+          ...prevData.restaurant,
+          products: response.data,
+        },
+      }));
+    } catch (err) {
+      setError(err.message || "Nieoczekiwany błąd.");
+    }
+  };
+
+  const handleProductsUpdated = () => {
+    setProductsUpdated(!productsUpdated);
+  };
 
   // Jeśli wystąpił błąd podczas ładowania danych
   if (error) {
@@ -125,8 +148,8 @@ const RestaurantProfile = () => {
 
       <br />
       <ManageTags restaurantId={restaurant.id} />
-      <RestaurantProducts restaurantId={restaurant.id} />
-      <AddProduct restaurantId={restaurant.id} />
+      <RestaurantProducts restaurantId={restaurant.id} key={productsUpdated} />
+      <AddProduct restaurantId={restaurant.id} onProductAdded={handleProductsUpdated} />
       <button onClick={handleLogout}>Wyloguj</button>
     </div>
   );

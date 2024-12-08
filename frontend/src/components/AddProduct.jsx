@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const AddProduct = ({ restaurantId }) => {
+const AddProduct = ({ restaurantId , onProductAdded}) => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -46,8 +46,9 @@ const AddProduct = ({ restaurantId }) => {
       );
 
       if (response.status === 201) {
-        setSuccess("Produkt został dodany pomyślnie!");
+        //setSuccess("Produkt został dodany pomyślnie!");
         setFormData({ name: "", description: "", price: "", is_available: true });
+        onProductAdded();
       }
     } catch (error) {
       console.error(error);

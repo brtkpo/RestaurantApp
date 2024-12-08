@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import EditProduct from "./EditProduct";
 
 const RestaurantProducts = ({ restaurantId }) => {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
 
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/restaurant/${restaurantId}/products/`
+      );
+      setProducts(response.data);
+    } catch (err) {
+      setError(err.message || "Nieoczekiwany błąd.");
+    }
+  };
+    
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8000/api/restaurant/${restaurantId}/products/`
-        );
-        setProducts(response.data);
-      } catch (err) {
-        setError(err.message || "Nieoczekiwany błąd.");
-      }
-    };
+    
 
     fetchProducts();
   }, [restaurantId]);
@@ -38,6 +42,16 @@ const RestaurantProducts = ({ restaurantId }) => {
     }
   };
 
+  const handleEdit = (productId) => {
+    setEditingProduct(productId);
+  };
+
+  const handleUpdate = () => {
+    setEditingProduct(null);
+    // Fetch products again to update the list
+    fetchProducts();
+  };
+
   if (error) {
     return <div>Błąd: {error}</div>;
   }
@@ -53,9 +67,17 @@ const RestaurantProducts = ({ restaurantId }) => {
               <p>Cena: {product.price} PLN</p>
               <p>{product.is_available ? "Dostępny" : "Niedostępny"}</p>
               <button onClick={() => deleteProduct(product.id)}>Usuń</button>
+              <button onClick={() => handleEdit(product.id)}>Edytuj</button>
           </li>
         ))}
       </ul>
+      {editingProduct && (
+        <EditProduct
+          productId={editingProduct}
+          onClose={() => setEditingProduct(null)}
+          onUpdate={handleUpdate}
+        />
+      )}
     </div>
   );
 };
