@@ -3,11 +3,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.authentication import TokenAuthentication
+#from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.decorators import api_view
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView
+#from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
@@ -330,3 +330,16 @@ class ProductListView(ListAPIView):
             raise NotFound('Restauracja nie została znaleziona.')
 
         return Product.objects.filter(restaurant=restaurant)
+
+class ProductDeleteView(DestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        product_id = self.kwargs.get('pk')
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            raise NotFound('Produkt nie został znaleziony.')
+        return product

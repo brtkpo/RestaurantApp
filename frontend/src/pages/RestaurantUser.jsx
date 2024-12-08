@@ -6,6 +6,7 @@ import { setUserToken } from '../redux/actions';
 import UploadImage from '../components/UploadImage';
 import ManageTags from '../components/ManageTags';
 import AddProduct from '../components/AddProduct';
+import RestaurantProducts from "../components/RestaurantProducts";
 
 const RestaurantProfile = () => {
   const dispatch = useDispatch();
@@ -124,6 +125,7 @@ const RestaurantProfile = () => {
 
       <br />
       <ManageTags restaurantId={restaurant.id} />
+      <RestaurantProducts restaurantId={restaurant.id} />
       <AddProduct restaurantId={restaurant.id} />
       <button onClick={handleLogout}>Wyloguj</button>
     </div>
