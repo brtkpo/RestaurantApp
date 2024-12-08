@@ -393,19 +393,25 @@ class CartItemListCreateView(ListCreateAPIView):
         session_id = self.kwargs['session_id']
         cart = Cart.objects.get(session_id=session_id)
         return CartItem.objects.filter(cart=cart)
+    
+    #def perform_create(self, serializer):
+    #    session_id = self.kwargs['session_id']
+    #    cart, created = Cart.objects.get_or_create(session_id=session_id)
+    #    serializer.save(cart=cart)
 
     def perform_create(self, serializer):
         session_id = self.kwargs['session_id']
-        product_id = self.request.data.get('product_id')
+        product_id = self.request.data.get('product')
         quantity = self.request.data.get('quantity', 1)
-        
-        print(f"Received data: product_id={product_id}, quantity={quantity}")  # Dodajemy logowanie
 
+        print(f"Creating cart item: session_id={session_id}, product_id={product_id}, quantity={quantity}")
+        
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
+            print(f"Product with ID {product_id} not found")
             raise serializers.ValidationError("Product not found")
-
+        
         cart, created = Cart.objects.get_or_create(session_id=session_id)
         cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
         if not created:

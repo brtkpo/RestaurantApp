@@ -93,11 +93,13 @@ class ProductSerializer(serializers.ModelSerializer):
 #Cart
 class CartItemSerializer(serializers.ModelSerializer):
     #product = serializers.StringRelatedField()
-    product = ProductSerializer()
+    #product = ProductSerializer()
+    #product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), source='product', write_only=True)
+    product = ProductSerializer(read_only=True)
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'quantity']
+        fields = ['id', 'product', 'quantity']#,'product_id'
     
     #def get_product(self, obj):
     #    return {

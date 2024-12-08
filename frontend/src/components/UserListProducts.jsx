@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
+import { CartContext } from './CartContext';
 
 const UserListProducts = ({ products }) => {
+  const { refreshCart } = useContext(CartContext);
+
   return (
     <div>
       <h1>Lista produktów</h1>
@@ -14,7 +17,7 @@ const UserListProducts = ({ products }) => {
               <p>Cena: {product.price} PLN</p>
               <p>{product.is_available ? "Dostępny" : "Niedostępny"}</p>
             </div>
-            <AddToCartButton productId={product.id} />
+            <AddToCartButton product={product} refreshCart={refreshCart} />
           </li>
         ))}
       </ul>
@@ -22,7 +25,7 @@ const UserListProducts = ({ products }) => {
   );
 };
 
-const AddToCartButton = ({ productId }) => {
+const AddToCartButton = ({ product, refreshCart }) => {
   const [quantity, setQuantity] = useState(1);
 
   const handleIncrease = () => {
@@ -43,14 +46,22 @@ const AddToCartButton = ({ productId }) => {
       sessionId = Math.random().toString(36).substr(2, 9);
       sessionStorage.setItem('session_id', sessionId);
     }
-
+  
     try {
-      const response = await axios.post(`http://localhost:8000/api/cart/${sessionId}/items/`, {
-        product_id: productId,
-        quantity: quantity,
-      });
+      const requestData = {
+        product: product.id, // Zamiast `product_id`, użyj `product`
+        quantity,
+      };
+  
+      console.log("Sending data:", requestData);
+  
+      const response = await axios.post(
+        `http://localhost:8000/api/cart/${sessionId}/items/`,
+        requestData
+      );
       console.log('Product added to cart:', response.data);
-      alert(`Dodano do koszyka: Produkt ID ${productId}, Ilość: ${quantity}`);
+      alert(`Dodano do koszyka: Produkt ${product.name}, Ilość: ${quantity}`);
+      refreshCart();
     } catch (error) {
       console.error('Error adding product to cart:', error);
       if (error.response && error.response.data) {
@@ -58,6 +69,7 @@ const AddToCartButton = ({ productId }) => {
       }
     }
   };
+
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
       <button onClick={handleDecrease} disabled={quantity === 1}>
