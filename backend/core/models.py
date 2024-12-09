@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -139,10 +140,14 @@ class Product(models.Model):
 #Cart
 class Cart(models.Model):
     session_id = models.CharField(max_length=100, unique=True, default=get_random_string)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.session_id
+    
+    def update_timestamp(self):
+        self.created_at = timezone.now()
+        self.save()
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)

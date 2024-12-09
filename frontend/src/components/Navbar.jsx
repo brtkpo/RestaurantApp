@@ -15,8 +15,8 @@ const Navbar = () => {
     if (sessionId) {
       try {
         const response = await axios.get(`http://localhost:8000/api/cart/${sessionId}/`);
-        console.log('response:', response);
-        console.log('Fetched cart:', response.data[0].items); // Debugging
+        //console.log('response:', response);
+        //console.log('Fetched cart:', response.data[0].items); // Debugging
         setCartItems(response.data[0].items);
       } catch (error) {
         console.error('Error fetching cart:', error);
@@ -77,7 +77,7 @@ const Navbar = () => {
                 <ul>
                   {groupedCartItems[restaurantName].map((item) => (
                     <li key={item.id}>
-                      {item.productName} - {item.quantity} szt. - {item.price} PLN
+                      {item.name} - {item.quantity} szt. x {item.price} PLN
                     </li>
                   ))}
                 </ul>

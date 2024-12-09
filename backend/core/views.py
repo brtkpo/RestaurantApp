@@ -13,6 +13,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
 from .models import *
 from django.http import JsonResponse
+from django.utils import timezone
+from datetime import timedelta
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -379,6 +381,12 @@ class CartListCreateView(ListCreateAPIView):
         session_id = self.kwargs['session_id']
         #cart = Cart.objects.filter(session_id=session_id)
         #print(cart)  # Debugging
+        stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24))
+        for stale_cart in stale_carts:
+            CartItem.objects.filter(cart=stale_cart).delete()
+            stale_cart.delete()
+            #stale_cart.update_timestamp() 
+            
         return Cart.objects.filter(session_id=session_id)
 
     def perform_create(self, serializer):
@@ -392,6 +400,14 @@ class CartItemListCreateView(ListCreateAPIView):
     def get_queryset(self):
         session_id = self.kwargs['session_id']
         cart = Cart.objects.get(session_id=session_id)
+        
+        # Sprawdzenie i czyszczenie wszystkich koszyków, które nie były aktualizowane w ciągu ostatnich 24 godzin
+        stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24))
+        for stale_cart in stale_carts:
+            CartItem.objects.filter(cart=stale_cart).delete()
+            stale_cart.delete()
+            #stale_cart.update_timestamp()  # Zaktualizuj timestamp koszyka
+        
         return CartItem.objects.filter(cart=cart)
     
     #def perform_create(self, serializer):
@@ -413,6 +429,7 @@ class CartItemListCreateView(ListCreateAPIView):
             raise serializers.ValidationError("Product not found")
         
         cart, created = Cart.objects.get_or_create(session_id=session_id)
+        cart.update_timestamp() 
         cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
         if not created:
             cart_item.quantity += quantity
