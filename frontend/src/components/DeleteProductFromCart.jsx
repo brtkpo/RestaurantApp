@@ -54,7 +54,7 @@ const DeleteProductFromCart = ({ productId, cartItemId, quantity, refreshCart })
     <div>
         <button onClick={handleDecrease} disabled={quantity === 1}>-</button>
         <span>{quantity}</span>
-        <button onClick={handleIncrease} disabled={quantity === 9}>+</button>
+        <button onClick={handleIncrease} disabled={quantity === 99}>+</button>
         <button onClick={handleDelete}>Usuń</button>
     </div>
     );

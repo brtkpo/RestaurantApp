@@ -76,7 +76,7 @@ const AddToCartButton = ({ product, refreshCart }) => {
         -
       </button>
       <span>{quantity}</span>
-      <button onClick={handleIncrease} disabled={quantity === 9}>
+      <button onClick={handleIncrease} disabled={quantity === 99}>
         +
       </button>
       <button onClick={handleAddToCart}>Dodaj do koszyka</button>
