@@ -60,6 +60,6 @@ urlpatterns = [
     #Cart
     path('api/cart/<str:session_id>/', CartListCreateView.as_view(), name='cart-detail'),
     path('api/cart/<str:session_id>/items/', CartItemListCreateView.as_view(), name='cartitem-list-create'),
-    path('api/cart/<str:session_id>/items/<int:pk>/', CartItemRetrieveDestroyView.as_view(), name='cartitem-detail'),
+    path('api/cart/<str:session_id>/items/<int:pk>/', CartItemRetrieveUpdateDestroyView.as_view(), name='cartitem-detail'),
     
 ]

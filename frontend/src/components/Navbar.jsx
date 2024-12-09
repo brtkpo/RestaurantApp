@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from 'react-redux'; 
 import { CartContext } from './CartContext';
 import axios from "axios";
+import DeleteProductFromCart from './DeleteProductFromCart';
 
 const Navbar = () => {
   const token = useSelector((state) => state.token);  // Pobieramy token z Redux
@@ -78,6 +79,12 @@ const Navbar = () => {
                   {groupedCartItems[restaurantName].map((item) => (
                     <li key={item.id}>
                       {item.name} - {item.quantity} szt. x {item.price} PLN
+                      <DeleteProductFromCart 
+                        productId={item.product.id} 
+                        cartItemId={item.id} 
+                        quantity={item.quantity}
+                        refreshCart={refreshCart} 
+                      />
                     </li>
                   ))}
                 </ul>
@@ -128,7 +135,7 @@ const styles = {
     backgroundColor: 'white',
     border: '1px solid #ddd',
     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-    width: '300px',
+    width: '400px',
     zIndex: 1000,
   },
 };

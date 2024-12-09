@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.decorators import api_view
 #from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView, RetrieveAPIView, ListCreateAPIView, RetrieveDestroyAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView, RetrieveAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
@@ -437,7 +437,7 @@ class CartItemListCreateView(ListCreateAPIView):
             cart_item.quantity = quantity
         cart_item.save()
 
-class CartItemRetrieveDestroyView(RetrieveDestroyAPIView):
+class CartItemRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
 
