@@ -34,10 +34,6 @@ const Navbar = () => {
     setIsCartOpen(!isCartOpen);
   };
 
-  //const refreshCart = () => {
-  //  fetchCart();
-  //};
-
   const groupedCartItems = cartItems ? cartItems.reduce((acc, item) => {
     const { name, restaurant, price } = item.product;
     if (!acc[restaurant]) {
@@ -90,9 +86,22 @@ const Navbar = () => {
                 </ul>
               </div>
             ))}
-            <div style={styles.totalSum}>
-              <strong>Suma: {totalSum.toFixed(2)} PLN</strong>
-            </div>
+            { totalSum > 0 ? (
+              <div style={styles.totalSum}>
+                <strong>Suma: {totalSum.toFixed(2)} PLN</strong>
+                <li style={styles.li}>
+                  {token  ? (
+                    <Link to="/order" style={styles.link2}>Złóż zamówinenie</Link>  // Jeśli zalogowany, pokazujemy "User"
+                  ) : (
+                    <Link to="/login" style={styles.link2}>Zaloguj się, by złożyć zamówienie</Link>  // Jeśli nie, pokazujemy "Login"
+                  )}
+                </li>
+              </div>
+            ) : (
+              <p>Twój koszyk jest pusty.</p>
+            )}
+            
+            
           </div>
         )}
       </nav>
@@ -125,6 +134,11 @@ const styles = {
   },
   link: {
     color: 'white',
+    textDecoration: 'none',
+    fontSize: '18px',
+  },
+  link2: {
+    color: 'black',
     textDecoration: 'none',
     fontSize: '18px',
   },

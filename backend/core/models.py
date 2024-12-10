@@ -156,3 +156,55 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
+
+#Order
+class Order(models.Model):
+    PAYMENT_CHOICES = [
+        ('card', 'Card'),
+        ('cash', 'Cash'),
+        ('online', 'Online'),
+    ]
+
+    DELIVERY_CHOICES = [
+        ('pickup', 'Pickup'),
+        ('delivery', 'Delivery'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+        ('ready_for_pickup', 'Ready for Pickup'),
+        ('picked_up', 'Picked Up'),
+    ]
+
+    order_id = models.AutoField(primary_key=True)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+    address = models.ForeignKey(Address, on_delete=models.CASCADE)#, null=True, blank=True)
+    is_paid = models.BooleanField(default=False)
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
+    delivery_type = models.CharField(max_length=20, choices=DELIVERY_CHOICES)
+    order_notes = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Order {self.order_id} - {self.status}"
+    
+    def update_status(self, new_status, description=""):
+        self.status = new_status
+        OrderHistory.objects.create(order=self, status=new_status, description=description)
+        self.save()
+    
+class OrderHistory(models.Model):
+    order = models.ForeignKey('Order', related_name='history', on_delete=models.CASCADE)
+    status = models.CharField(max_length=20)
+    timestamp = models.DateTimeField(default=timezone.now)
+    description = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Order {self.order.id} - {self.status} at {self.timestamp}"

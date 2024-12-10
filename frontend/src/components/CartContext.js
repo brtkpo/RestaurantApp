@@ -12,6 +12,7 @@ export const CartProvider = ({ children }) => {
     if (sessionId) {
       try {
         const response = await axios.get(`http://localhost:8000/api/cart/${sessionId}/`);
+        console.log(response);
         setCartItems(response.data[0].items);
         //console.log('response:', response);
         //console.log('Fetched cart:', response.data[0].items);

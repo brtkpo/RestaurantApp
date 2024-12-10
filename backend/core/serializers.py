@@ -114,3 +114,16 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['id', 'session_id', 'created_at', 'items']
+        
+#Order
+class OrderHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderHistory
+        fields = ['id', 'status', 'timestamp', 'description']
+
+class OrderSerializer(serializers.ModelSerializer):
+    history = OrderHistorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['order_id', 'cart', 'restaurant', 'address', 'is_paid', 'payment_type', 'delivery_type', 'order_notes', 'status', 'history', 'created_at', 'updated_at']
