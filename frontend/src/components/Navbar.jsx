@@ -91,7 +91,7 @@ const Navbar = () => {
                 <strong>Suma: {totalSum.toFixed(2)} PLN</strong>
                 <li style={styles.li}>
                   {token  ? (
-                    <Link to="/order" style={styles.link2}>Złóż zamówinenie</Link>  // Jeśli zalogowany, pokazujemy "User"
+                    <Link to="/order" style={styles.link2}>Złóż zamówinenie</Link>  // Jeśli zalogowany, pokazujemy "Złóż zamówienie"s
                   ) : (
                     <Link to="/login" style={styles.link2}>Zaloguj się, by złożyć zamówienie</Link>  // Jeśli nie, pokazujemy "Login"
                   )}

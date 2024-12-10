@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AddAddressForm = () => {
@@ -12,27 +12,98 @@ const AddAddressForm = () => {
     postal_code: '',
     city: '',
   });
-  const [error, setError] = useState(null);
+
+  const [error, setError] = useState(''); // Jeden błąd do wyświetlenia
+  const [globalError, setGlobalError] = useState(null); // Błąd globalny (np. serwerowy)
+  const [typingTimeout, setTypingTimeout] = useState(null); // Timeout dla debouncingu
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'first_name':
+        if (!/^[a-zA-Z\s]+$/.test(value)) {
+          return 'Imię powinno zawierać tylko litery.';
+        }
+        break;
+      case 'last_name':
+        if (!/^[a-zA-Z\s]+$/.test(value)) {
+          return 'Nazwisko powinno zawierać tylko litery.';
+        }
+        break;
+      case 'phone_number':
+        if (value.length !== 9 || isNaN(value)) {
+          return 'Numer telefonu powinien zawierać dokładnie 9 cyfr.';
+        }
+        break;
+      case 'postal_code':
+        if (!/^\d{2}-\d{3}$/.test(value)) {
+          return 'Kod pocztowy powinien mieć format XX-XXX.';
+        }
+        break;
+      case 'street':
+        if (!/^[a-zA-Z\s]+$/.test(value)) {
+          return 'Ulica powinna zawierać tylko litery.';
+        }
+        break;
+      case 'building_number':
+        if (isNaN(value) || value <= 0) {
+          return 'Numer budynku powinien być liczbą większą od 0.';
+        }
+        break;
+      case 'city':
+        if (!/^[a-zA-Z\s]+$/.test(value)) {
+          return 'Miasto powinno zawierać tylko litery.';
+        }
+        break;
+      default:
+        break;
+    }
+    return ''; // Brak błędów
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Aktualizuj dane formularza
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
+
+    // Anuluj poprzedni timeout i ustaw nowy
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+
+    const newTimeout = setTimeout(() => {
+      const validationError = validateField(name, value);
+      setError(validationError); // Wyświetl tylko jeden błąd
+    }, 500); // Wywołaj walidację po 500ms od zakończenia pisania
+
+    setTypingTimeout(newTimeout);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Sprawdzanie, czy są błędy
+    const hasError = Object.entries(formData).some(
+      ([key, value]) => validateField(key, value) !== ''
+    );
+
+    if (hasError) {
+      setError('Popraw wszystkie błędy przed wysłaniem formularza.');
+      return;
+    }
+
     try {
       const token = sessionStorage.getItem('authToken');
-      const response = await axios.post('http://localhost:8000/api/add-address/', formData, {
+      await axios.post('http://localhost:8000/api/add-address/', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       alert('Adres dodany pomyślnie!');
-      setFormData({  // Resetowanie formularza po udanym dodaniu adresu
+      setFormData({
         first_name: '',
         last_name: '',
         phone_number: '',
@@ -42,15 +113,20 @@ const AddAddressForm = () => {
         postal_code: '',
         city: '',
       });
+      setError('');
+      setGlobalError(null);
     } catch (err) {
-      setError('Błąd podczas dodawania adresu');
+      setGlobalError('Błąd podczas dodawania adresu. Spróbuj ponownie później.');
     }
   };
 
   return (
     <div>
       <h3>Dodaj nowy adres</h3>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {/* Wyświetlanie błędu */}
+      {error && <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
+      {globalError && <p style={{ color: 'red' }}>{globalError}</p>}
+
       <form onSubmit={handleSubmit}>
         <input
           type="text"

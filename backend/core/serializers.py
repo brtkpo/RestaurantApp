@@ -27,6 +27,15 @@ class AddressSerializer(serializers.ModelSerializer):
         model = Address
         fields = ['id', 'first_name', 'last_name', 'phone_number', 'street', 'building_number', 'apartment_number', 'postal_code', 'city', 'user']
 
+    extra_kwargs = {
+            'apartment_number': {'required': False, 'allow_null': True},
+    }
+    
+    def validate_apartment_number(self, value):
+        if value is not None and (value <= 0 or value > 999):
+            raise serializers.ValidationError("Numer mieszkania musi być liczbą od 1 do 999 lub pusty.")
+        return value
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag

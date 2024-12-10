@@ -55,8 +55,14 @@ def clientRegister(request):
         
         serializer = ClientSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()  # Tworzymy użytkownika
-            return Response({'message': 'Account created successfully!'}, status=status.HTTP_201_CREATED)
+            user = serializer.save()  # Tworzymy użytkownika
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "message": "Account created successfully!",
+                "role": user.role,
+            }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
       
@@ -118,6 +124,9 @@ class AddAddressView(APIView):
         data = request.data
         # Dodajemy usera automatycznie, bazując na aktualnie zalogowanym użytkowniku
         data['user'] = request.user.id  
+        
+        if data.get('apartment_number') == '':
+            data['apartment_number'] = None
         
         serializer = AddressSerializer(data=data)
         if serializer.is_valid():
