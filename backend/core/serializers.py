@@ -46,7 +46,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
     
     tags = TagSerializer(many=True, read_only=True)
     tag_ids = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Tag.objects.all(), write_only=True
+        many=True, queryset=Tag.objects.all(), write_only=True, required=False
     )
     
     class Meta:
@@ -72,6 +72,7 @@ class RestaurateurRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Wyciągamy dane restauracji
         restaurant_data = validated_data.pop('restaurant')
+        tags = restaurant_data.pop('tags', [])
         validated_data['role'] = 'restaurateur'  # Ustawiamy rolę na restaurator
         # Tworzymy użytkownika
         user = AppUser.objects.create_user(
@@ -83,7 +84,9 @@ class RestaurateurRegistrationSerializer(serializers.ModelSerializer):
             role='restaurateur'
         )
         # Tworzymy restaurację
-        Restaurant.objects.create(owner=user, **restaurant_data)
+        restaurant = Restaurant.objects.create(owner=user, **restaurant_data)
+        if tags:
+            restaurant.tags.set(tags)
         return user
 
 class RestaurantProfileSerializer(serializers.ModelSerializer):

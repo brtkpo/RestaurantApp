@@ -44,6 +44,7 @@ function RegisterRestaurant() {
       const response = await axios.post("http://localhost:8000/api/restaurant/register/", formData);
       setSuccess("Restauracja została zarejestrowana pomyślnie!");
       setError(null);
+      console.log(response.data);
     } catch (err) {
       if (err.response && err.response.data) {
         const errors = err.response.data;

@@ -153,9 +153,13 @@ class DeleteAddressView(APIView):
         except Address.DoesNotExist:
             return Response({"error": "Adres nie znaleziony."}, status=status.HTTP_404_NOT_FOUND)
 
+#import logging
+#logger = logging.getLogger(__name__)
+
 #Restaurant
 class RestaurantRegistrationView(APIView):
     def post(self, request):
+        #logger.info(f"Received data: {request.data}")
         serializer = RestaurateurRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()  # Zapisujemy nowego użytkownika i restaurację
@@ -163,6 +167,7 @@ class RestaurantRegistrationView(APIView):
                 {"message": "Restaurateur and restaurant created successfully."},
                 status=status.HTTP_201_CREATED
             )
+        #logger.error(f"Validation errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 #class RestaurantListView(APIView):
