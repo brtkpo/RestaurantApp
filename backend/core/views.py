@@ -389,6 +389,11 @@ class CartListCreateView(ListCreateAPIView):
         session_id = self.kwargs['session_id']
         #cart = Cart.objects.filter(session_id=session_id)
         #print(cart)  # Debugging
+        cart = Cart.objects.filter(session_id=session_id).first()
+        if cart:
+            # Usuń produkty, które nie są dostępne
+            CartItem.objects.filter(cart=cart, product__is_available=False).delete()
+        
         stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24))
         for stale_cart in stale_carts:
             CartItem.objects.filter(cart=stale_cart).delete()
