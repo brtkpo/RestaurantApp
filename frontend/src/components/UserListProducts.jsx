@@ -5,11 +5,13 @@ import { CartContext } from './CartContext';
 const UserListProducts = ({ products }) => {
   const { refreshCart } = useContext(CartContext);
 
+  const availableProducts = products.filter(product => product.is_available);
+
   return (
     <div>
       <h1>Lista produktów</h1>
       <ul>
-        {products.map((product) => (
+        {availableProducts.map((product) => (
           <li key={product.id} style={{ marginBottom: "20px" }}>
             <div>
               <h3>{product.name}</h3>

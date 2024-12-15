@@ -167,12 +167,11 @@ const User = () => {
         <p>Ładowanie danych...</p>
       )}
       <button onClick={handleLogout}>Wyloguj</button>
-      <button onClick={handleDeleteAccount} style={{ color: 'red', marginLeft: '10px' }}>
-        Usuń konto
-      </button>
       <AddressList key={addresses.map(address => address.id).join('-')} addresses={addresses} onDeleteAddress={handleDeleteAddress} />
       <AddAddressForm onAddAddress={handleAddAddress} />
-
+      <button onClick={handleDeleteAccount} style={{ color: 'red', marginTop: '30px' }}>
+        Usuń konto
+      </button>
     </div>
   );
 };

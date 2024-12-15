@@ -170,12 +170,6 @@ class RestaurantRegistrationView(APIView):
         #logger.error(f"Validation errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-#class RestaurantListView(APIView):
-#    def get(self, request):
-#        restaurants = Restaurant.objects.all()
-#        serializer = RestaurantSerializer(restaurants, many=True)
-#        return Response(serializer.data)
-
 class RestaurantListView(ListAPIView):
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
@@ -345,7 +339,7 @@ class ProductListView(ListAPIView):
         except Restaurant.DoesNotExist:
             raise NotFound('Restauracja nie została znaleziona.')
 
-        return Product.objects.filter(restaurant=restaurant)
+        return Product.objects.filter(restaurant=restaurant, is_available=True)
 
 class ProductDeleteView(DestroyAPIView):
     queryset = Product.objects.all()
