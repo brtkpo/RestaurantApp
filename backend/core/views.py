@@ -340,6 +340,21 @@ class ProductListView(ListAPIView):
             raise NotFound('Restauracja nie została znaleziona.')
 
         return Product.objects.filter(restaurant=restaurant, is_available=True)
+    
+class AllProductListView(ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        restaurant_id = self.kwargs.get('restaurant_id')
+
+        try:
+            restaurant = Restaurant.objects.get(id=restaurant_id)
+        except Restaurant.DoesNotExist:
+            raise NotFound('Restauracja nie została znaleziona.')
+
+        return Product.objects.filter(restaurant=restaurant)
+
 
 class ProductDeleteView(DestroyAPIView):
     queryset = Product.objects.all()

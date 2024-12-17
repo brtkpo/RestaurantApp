@@ -6,12 +6,16 @@ const RestaurantProducts = ({ restaurantId }) => {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const token = sessionStorage.getItem('authToken');
 
   const fetchProducts = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/restaurant/${restaurantId}/products/`
-      );
+        `http://localhost:8000/api/restaurant/${restaurantId}/all-products/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
       setProducts(response.data);
     } catch (err) {
       setError(err.message || "Nieoczekiwany błąd.");

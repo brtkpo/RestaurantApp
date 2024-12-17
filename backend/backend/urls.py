@@ -53,6 +53,7 @@ urlpatterns = [
     #Product
     path('api/restaurant/add-product/', ProductCreateView.as_view(), name='add-product'),
     path('api/restaurant/<int:restaurant_id>/products/', ProductListView.as_view(), name='product-list'),
+    path('api/restaurant/<int:restaurant_id>/all-products/', AllProductListView.as_view(), name='product-list'),
     path('api/restaurant/delete-product/<int:pk>/', ProductDeleteView.as_view(), name='product-delete'),
     path('api/restaurant/update-product/<int:pk>/', ProductUpdateView.as_view(), name='update-product'),
     path('api/restaurant/product/<int:pk>/', ProductDetailView.as_view(), name='product-detail'),

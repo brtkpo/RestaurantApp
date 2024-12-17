@@ -100,7 +100,7 @@ class RestaurantProfileSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'restaurant', 'name', 'description', 'price', 'is_available']
+        fields = ['id', 'restaurant', 'name', 'description', 'price', 'is_available', 'image']
 
 #Cart
 class CartItemSerializer(serializers.ModelSerializer):
