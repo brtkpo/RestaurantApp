@@ -553,12 +553,14 @@ class CreateCheckoutSessionView(APIView):
         try:
             # Tworzenie sesji Stripe Checkout
             session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
+                customer_email = request.data.get('email', 'bober@bober.com'),
+                
+                payment_method_types=['card', 'blik', 'p24'], 
                 line_items=[{
                     'price_data': {
                         'currency': 'pln',
-                        'product_data': {'name': 'Test Product'},
-                        'unit_amount': 2137,  # Kwota w centach, 1000 to 10 USD
+                        'product_data': {'name': 'Cegrid Golec - zamówienie nr. 16'},
+                        'unit_amount': 3000,  # Kwota w groszach, 1000 to 10 PLN
                     },
                     'quantity': 1,
                 }],
