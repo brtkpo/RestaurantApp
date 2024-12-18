@@ -65,6 +65,7 @@ urlpatterns = [
     path('api/cart/<str:session_id>/clear/<int:restaurant_id>/', ClearCartItemsFromOtherRestaurantsView.as_view(), name='clear-cart-items'),
     
     #Order
-    path('orders/', OrderListCreateView.as_view(), name='order-list-create'),
-    path('orders/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
+    path('api/orders/', OrderListCreateView.as_view(), name='order-list-create'),
+    path('api/orders/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
+    path('api/user/orders/', UserOrderListView.as_view(), name='user-order-list'),
 ]

@@ -76,7 +76,7 @@ const Order = () => {
 
 
     try {
-      const response = await axios.post("http://localhost:8000/orders/", orderData, {
+      const response = await axios.post("http://localhost:8000/api/orders/", orderData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -495,8 +495,18 @@ class ClearCartItemsFromOtherRestaurantsView(DestroyAPIView):
 class OrderListCreateView(ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
     
     def perform_create(self, serializer):
+        user = self.request.user
+        address_id = self.request.data.get('address')
+        if address_id:
+            try:
+                address = Address.objects.get(id=address_id)
+                user = address.user  # Uzyskujemy użytkownika z adresu
+            except Address.DoesNotExist:
+                return Response({"error": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+            
         order = serializer.save()
         cart_id = self.request.data.get('cart')
         
@@ -526,3 +536,11 @@ class OrderDetailView(RetrieveUpdateAPIView):
         self.perform_update(serializer)
 
         return Response(serializer.data)
+
+class UserOrderListView(ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Order.objects.filter(user=user).order_by('-created_at')

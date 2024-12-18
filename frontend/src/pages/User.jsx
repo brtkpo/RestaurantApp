@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { setUserToken } from '../redux/actions';
 import AddressList from '../components/AddressList';  
 import AddAddressForm from '../components/AddAddressForm';
+import UserOrders from '../components/UserOrders';
 import axios from 'axios';
 
 
@@ -166,9 +167,11 @@ const User = () => {
       ) : (
         <p>Ładowanie danych...</p>
       )}
+      <UserOrders />
       <button onClick={handleLogout}>Wyloguj</button>
       <AddressList key={addresses.map(address => address.id).join('-')} addresses={addresses} onDeleteAddress={handleDeleteAddress} />
       <AddAddressForm onAddAddress={handleAddAddress} />
+      <br/>
       <button onClick={handleDeleteAccount} style={{ color: 'red', marginTop: '30px' }}>
         Usuń konto
       </button>

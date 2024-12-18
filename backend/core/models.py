@@ -194,6 +194,7 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    #todo: bool archived
 
     def __str__(self):
         return f"Order {self.order_id} - {self.status}"

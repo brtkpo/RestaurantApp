@@ -135,7 +135,8 @@ class OrderHistorySerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     history = OrderHistorySerializer(many=True, read_only=True)
+    items = CartItemSerializer(many=True, read_only=True, source='cart.items')
 
     class Meta:
         model = Order
-        fields = ['order_id', 'cart', 'restaurant', 'address', 'user', 'is_paid', 'payment_type', 'delivery_type', 'order_notes', 'status', 'history', 'created_at', 'updated_at']
+        fields = ['order_id', 'cart', 'items', 'restaurant', 'address', 'user', 'is_paid', 'payment_type', 'delivery_type', 'order_notes', 'status', 'history', 'created_at', 'updated_at']
