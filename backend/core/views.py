@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.decorators import api_view
 #from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView, RetrieveAPIView, ListCreateAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView, RetrieveAPIView, ListCreateAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView, GenericAPIView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
@@ -21,6 +21,7 @@ import cloudinary.api
 from django.utils.crypto import get_random_string
 import time
 import hashlib
+import stripe
 
 #User
 class LoginView(APIView):
@@ -544,3 +545,30 @@ class UserOrderListView(ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Order.objects.filter(user=user).order_by('-created_at')
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+class CreateCheckoutSessionView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            # Tworzenie sesji Stripe Checkout
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'pln',
+                        'product_data': {'name': 'Test Product'},
+                        'unit_amount': 2137,  # Kwota w centach, 1000 to 10 USD
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url='http://localhost:8000/success',  # Zmienna adresu sukcesu
+                cancel_url='http://localhost:8000/cancel',    # Zmienna adresu anulowania
+            )
+
+            # Zwrócenie odpowiedzi z ID sesji
+            return Response({'id': session.id}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

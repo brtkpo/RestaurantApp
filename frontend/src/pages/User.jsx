@@ -7,7 +7,7 @@ import AddAddressForm from '../components/AddAddressForm';
 import UserOrders from '../components/UserOrders';
 import axios from 'axios';
 
-
+import CheckoutButton from '../components/CheckoutButton';
 
 const User = () => {
   const dispatch = useDispatch();
@@ -168,6 +168,7 @@ const User = () => {
         <p>Ładowanie danych...</p>
       )}
       <UserOrders />
+      <CheckoutButton />
       <button onClick={handleLogout}>Wyloguj</button>
       <AddressList key={addresses.map(address => address.id).join('-')} addresses={addresses} onDeleteAddress={handleDeleteAddress} />
       <AddAddressForm onAddAddress={handleAddAddress} />

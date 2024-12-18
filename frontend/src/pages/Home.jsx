@@ -158,6 +158,7 @@ const Home = () => {
   return (
     <div>
       {/*<h1>Welcome to the Home Page!</h1>*/}
+      
       <h2>Restaurant List</h2>
       <ul style={{ listStyleType: "none", padding: 0 }}>
         {restaurants.map((restaurant) => (

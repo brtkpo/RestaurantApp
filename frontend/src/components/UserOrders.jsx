@@ -39,7 +39,7 @@ const UserOrders = () => {
               <p>Typ płatności: {order.payment_type}</p>
               <p>Typ dostawy: {order.delivery_type}</p>
               <p>Notatki: {order.order_notes}</p>
-              <p>Adres: {order.address.street}, {order.address.city}</p>
+              <p>Adres: {order.address}, {order.address.city}</p>
               <p>Restauracja: {order.restaurant.name}</p>
               <p>Produkty:</p>
               <ul>
