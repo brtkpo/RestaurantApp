@@ -185,6 +185,7 @@ class Order(models.Model):
     order_id = models.AutoField(primary_key=True)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     address = models.ForeignKey(Address, on_delete=models.CASCADE)#, null=True, blank=True)
     is_paid = models.BooleanField(default=False)
     payment_type = models.CharField(max_length=20, choices=PAYMENT_CHOICES)

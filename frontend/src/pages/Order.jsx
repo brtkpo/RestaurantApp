@@ -17,6 +17,7 @@ const Order = () => {
   const [paymentType, setPaymentType] = useState('online');
   const [deliveryType, setDeliveryType] = useState('delivery');
   const [orderNotes, setOrderNotes] = useState('');
+  const [user, setUser] = useState('');
 
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
@@ -28,6 +29,7 @@ const Order = () => {
 
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
+    setUser(address.user);
   };
 
   const handleAddAddress = async (newAddress) => {
@@ -63,6 +65,7 @@ const Order = () => {
       address: selectedAddress ? selectedAddress.id : null,
       cart: cartId,
       //items: orderItems,
+      user: user,
       restaurant: cartItems[0].product.restaurant,
       payment_type: paymentType,
       delivery_type: deliveryType,
