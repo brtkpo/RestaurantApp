@@ -140,8 +140,9 @@ class Product(models.Model):
     
 #Cart
 class Cart(models.Model):
-    session_id = models.CharField(max_length=100, unique=True, default=get_random_string)
+    session_id = models.CharField(max_length=100, unique=True, null=True ,default=get_random_string)
     created_at = models.DateTimeField(auto_now=True)
+    order_id = models.PositiveIntegerField(unique=True, null=True, default=None) 
 
     def __str__(self):
         return self.session_id

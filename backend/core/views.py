@@ -414,7 +414,7 @@ class CartListCreateView(ListCreateAPIView):
             # Usuń produkty, które nie są dostępne
             CartItem.objects.filter(cart=cart, product__is_available=False).delete()
         
-        stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24))
+        stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24), order_id__isnull=True)
         for stale_cart in stale_carts:
             CartItem.objects.filter(cart=stale_cart).delete()
             stale_cart.delete()
@@ -435,7 +435,7 @@ class CartItemListCreateView(ListCreateAPIView):
         cart = Cart.objects.get(session_id=session_id)
         
         # Sprawdzenie i czyszczenie wszystkich koszyków, które nie były aktualizowane w ciągu ostatnich 24 godzin
-        stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24))
+        stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24), order_id__isnull=True)
         for stale_cart in stale_carts:
             CartItem.objects.filter(cart=stale_cart).delete()
             stale_cart.delete()
@@ -479,10 +479,35 @@ class CartItemRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
         cart = Cart.objects.get(session_id=session_id)
         return CartItem.objects.filter(cart=cart)
     
+class ClearCartItemsFromOtherRestaurantsView(DestroyAPIView):
+    def delete(self, request, session_id, restaurant_id, *args, **kwargs):
+        try:
+            cart = Cart.objects.get(session_id=session_id)
+        except Cart.DoesNotExist:
+            return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Usuń produkty z koszyka, które nie należą do podanej restauracji
+        CartItem.objects.filter(cart=cart).exclude(product__restaurant_id=restaurant_id).delete()
+
+        return Response({"message": "Produkty z innych restauracji zostały usunięte z koszyka."}, status=status.HTTP_200_OK)
+    
 #Order
 class OrderListCreateView(ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    
+    def perform_create(self, serializer):
+        order = serializer.save()
+        cart_id = self.request.data.get('cart')
+        
+        if cart_id:
+            try:
+                cart = Cart.objects.get(id=cart_id)
+                cart.order_id = order.order_id
+                cart.session_id = None
+                cart.save()
+            except Cart.DoesNotExist:
+                return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class OrderDetailView(RetrieveUpdateAPIView):
     queryset = Order.objects.all()

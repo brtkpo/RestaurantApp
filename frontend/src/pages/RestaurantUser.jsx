@@ -39,7 +39,6 @@ const RestaurantProfile = () => {
         console.error(error);
       }
     };
-
     fetchProfileData();
   }, [navigate]);
 

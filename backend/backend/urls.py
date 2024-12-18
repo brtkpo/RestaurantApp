@@ -62,6 +62,7 @@ urlpatterns = [
     path('api/cart/<str:session_id>/', CartListCreateView.as_view(), name='cart-detail'),
     path('api/cart/<str:session_id>/items/', CartItemListCreateView.as_view(), name='cartitem-list-create'),
     path('api/cart/<str:session_id>/items/<int:pk>/', CartItemRetrieveUpdateDestroyView.as_view(), name='cartitem-detail'),
+    path('api/cart/<str:session_id>/clear/<int:restaurant_id>/', ClearCartItemsFromOtherRestaurantsView.as_view(), name='clear-cart-items'),
     
     #Order
     path('orders/', OrderListCreateView.as_view(), name='order-list-create'),

@@ -5,6 +5,7 @@ export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
+  const [cartId, setCartId] = useState([]);
 
   const fetchCart = async () => {
     const sessionId = sessionStorage.getItem('session_id');
@@ -12,7 +13,8 @@ export const CartProvider = ({ children }) => {
     if (sessionId) {
       try {
         const response = await axios.get(`http://localhost:8000/api/cart/${sessionId}/`);
-        console.log(response);
+        //console.log(response);
+        setCartId(response.data[0].id);
         setCartItems(response.data[0].items);
         //console.log('response:', response);
         //console.log('Fetched cart:', response.data[0].items);
@@ -31,7 +33,7 @@ export const CartProvider = ({ children }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, refreshCart }}>
+    <CartContext.Provider value={{ cartId, cartItems, refreshCart }}>
       {children}
     </CartContext.Provider>
   );
