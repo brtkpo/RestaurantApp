@@ -326,6 +326,11 @@ class ProductCreateView(CreateAPIView):
             raise serializers.ValidationError('Restaurant not found')
 
         serializer.save(restaurant=restaurant)
+    
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        product_id = response.data['id']
+        return Response({'id': product_id, 'message': 'Produkt dodany pomyślnie!'}, status=response.status_code)
         
 class ProductListView(ListAPIView):
     serializer_class = ProductSerializer

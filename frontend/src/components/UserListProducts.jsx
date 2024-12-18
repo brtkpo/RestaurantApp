@@ -1,12 +1,16 @@
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import { CartContext } from './CartContext';
+import placeholderImage from '../assets/Placeholder.png';
 
 const UserListProducts = ({ products }) => {
   const { refreshCart } = useContext(CartContext);
 
-  const availableProducts = products.filter(product => product.is_available);
+  const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
+
+  const availableProducts = products.filter(product => product.is_available);
+  console.log('availableProducts:', availableProducts);
   return (
     <div>
       <h1>Lista produktów</h1>
@@ -18,6 +22,11 @@ const UserListProducts = ({ products }) => {
               <p>{product.description || "Brak opisu"}</p>
               <p>Cena: {product.price} PLN</p>
               <p>{product.is_available ? "Dostępny" : "Niedostępny"}</p>
+              <img
+              src={product.image !== null ? `${cloudinaryBaseUrl}${product.image}` : placeholderImage}
+              alt={product.name}
+              style={{ width: "300px", height: "auto" }}
+              />
             </div>
             <AddToCartButton product={product} refreshCart={refreshCart} />
           </li>

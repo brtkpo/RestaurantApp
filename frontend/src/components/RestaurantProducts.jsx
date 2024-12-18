@@ -77,6 +77,7 @@ const RestaurantProducts = ({ restaurantId }) => {
       </ul>
       {editingProduct && (
         <EditProduct
+          restaurantId={restaurantId}
           productId={editingProduct}
           onClose={() => setEditingProduct(null)}
           onUpdate={handleUpdate}

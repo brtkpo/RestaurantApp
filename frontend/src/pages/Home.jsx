@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import UserListProducts from "../components/UserListProducts.jsx";
+import placeholderImage from '../assets/Placeholder.png';
 
 const Home = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -156,7 +157,7 @@ const Home = () => {
 
   return (
     <div>
-      <h1>Welcome to the Home Page!</h1>
+      {/*<h1>Welcome to the Home Page!</h1>*/}
       <h2>Restaurant List</h2>
       <ul style={{ listStyleType: "none", padding: 0 }}>
         {restaurants.map((restaurant) => (
@@ -179,13 +180,13 @@ const Home = () => {
             <p>{restaurant.address}</p>
 
             {/* Sprawdzamy, czy jest dostępne zdjęcie */}
-            {restaurant.image && (
-              <img
-                src={`${cloudinaryBaseUrl}${restaurant.image}`}
-                alt={restaurant.name}
-                style={{ width: "300px", height: "auto" }}
-              />
-            )}
+
+            <img
+              src={restaurant.image !== null ? `${cloudinaryBaseUrl}${restaurant.image}` : placeholderImage}
+              alt={restaurant.name}
+              style={{ width: "300px", height: "auto" }}
+            />
+
 
             {/* Wyświetlanie tagów */}
             {restaurant.tags && restaurant.tags.length > 0 && (

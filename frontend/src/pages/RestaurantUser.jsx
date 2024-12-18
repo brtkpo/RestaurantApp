@@ -7,6 +7,7 @@ import UploadImage from '../components/UploadImage';
 import ManageTags from '../components/ManageTags';
 import AddProduct from '../components/AddProduct';
 import RestaurantProducts from "../components/RestaurantProducts";
+import placeholderImage from '../assets/Placeholder.png';
 
 const RestaurantProfile = () => {
   const dispatch = useDispatch();
@@ -133,6 +134,7 @@ const RestaurantProfile = () => {
             style={{ width: '300px', height: 'auto' }}
           />
           <br />
+          <h2>Upload Image</h2>
           <UploadImage
             onUploadSuccess={handleUploadSuccess}
             metadata={{ id: restaurant.id, name: 'main' }}
@@ -140,10 +142,19 @@ const RestaurantProfile = () => {
         </div>
       ) : (
         // Jeśli nie ma zdjęcia, umożliwiamy załadowanie nowego
-        <UploadImage
-          onUploadSuccess={handleUploadSuccess}
-          metadata={{ id: restaurant.id, name: 'main' }}
-        />
+        <div>
+          <img
+            src={placeholderImage}
+            alt={restaurant.name}
+            style={{ width: '300px', height: 'auto' }}
+          />
+          <br />
+          <h2>Upload Image</h2>
+          <UploadImage
+            onUploadSuccess={handleUploadSuccess}
+            metadata={{ id: restaurant.id, name: 'main' }}
+          />
+        </div>
       )}
 
       <br />

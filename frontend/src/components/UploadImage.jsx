@@ -100,7 +100,7 @@ const UploadImage = ({ onUploadSuccess, metadata }) => {
 
   return (
     <div>
-      <h2>Upload Image</h2>
+      {/*<h2>Upload Image</h2>*/}
       <input type="file" onChange={handleFileChange} ref={fileInputRef} />
       {imageUrl && (
         <div>
@@ -110,6 +110,7 @@ const UploadImage = ({ onUploadSuccess, metadata }) => {
             initialAspectRatio={4 / 3} // Proporcje obrazu
             aspectRatio={4 / 3} // Proporcje obrazu
             guides={false}
+            viewMode={1} 
             ref={cropperRef}
           />
           <div>

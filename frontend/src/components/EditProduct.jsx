@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import UploadImage from './UploadImage';
 
-const EditProduct = ({ productId, onClose, onUpdate }) => {
+const EditProduct = ({ restaurantId, productId, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
     is_available: true,
+    image: "",
   });
   const [error, setError] = useState(null);
+  const [imageBlob, setImageBlob] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -58,6 +61,13 @@ const EditProduct = ({ productId, onClose, onUpdate }) => {
     }
   };
 
+  const handleUploadSuccess = (uploadedImageData) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      image: uploadedImageData.path
+    }));
+  };
+
   if (error) {
     return <div>Błąd: {error}</div>;
   }
@@ -103,6 +113,10 @@ const EditProduct = ({ productId, onClose, onUpdate }) => {
             onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
           />
         </div>
+        <UploadImage
+            onUploadSuccess={handleUploadSuccess}
+            metadata={{ id: restaurantId, name: productId + "_" + formData.name }}
+          />
         <button type="submit">Zapisz</button>
         <button type="button" onClick={onClose}>Anuluj</button>
       </form>
