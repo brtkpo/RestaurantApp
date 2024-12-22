@@ -140,3 +140,13 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['order_id', 'cart', 'items', 'restaurant', 'address', 'user', 'is_paid', 'payment_type', 'delivery_type', 'order_notes', 'status', 'history', 'created_at', 'updated_at']
+
+class OrderViewSerializer(serializers.ModelSerializer):
+    history = OrderHistorySerializer(many=True, read_only=True)
+    items = CartItemSerializer(many=True, read_only=True, source='cart.items')
+    address = AddressSerializer(read_only=True)
+    restaurant = RestaurantSerializer(read_only=True)  
+
+    class Meta:
+        model = Order
+        fields = ['order_id', 'cart', 'items', 'restaurant', 'address', 'user', 'is_paid', 'payment_type', 'delivery_type', 'order_notes', 'status', 'history', 'created_at', 'updated_at']

@@ -33,13 +33,13 @@ const UserOrders = () => {
         <ul>
           {orders.map((order) => (
             <li key={order.order_id}>
-              <h3>Zamówienie {order.order_id}</h3>
+              <h3>Zamówienie nr.{order.order_id}</h3>
               <p>Status: {order.status}</p>
               <p>Data: {new Date(order.created_at).toLocaleString()}</p>
               <p>Typ płatności: {order.payment_type}</p>
               <p>Typ dostawy: {order.delivery_type}</p>
               <p>Notatki: {order.order_notes}</p>
-              <p>Adres: {order.address}, {order.address.city}</p>
+              <p>Adres: {order.address.first_name} {order.address.last_name}, {order.address.street} {order.address.building_number} {order.address.apartment_number}, {order.address.postal_code} {order.address.city}</p>
               <p>Restauracja: {order.restaurant.name}</p>
               <p>Produkty:</p>
               <ul>

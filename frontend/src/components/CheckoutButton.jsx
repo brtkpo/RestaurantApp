@@ -30,7 +30,7 @@ const CheckoutButton = () => {
         }
     };
 
-    return <button onClick={handleCheckout}>Proceed to Payment</button>;
+    return <button onClick={handleCheckout}>Zapłać Online</button>;
 };
 
 export default CheckoutButton;

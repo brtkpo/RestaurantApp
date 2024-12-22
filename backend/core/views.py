@@ -539,7 +539,7 @@ class OrderDetailView(RetrieveUpdateAPIView):
         return Response(serializer.data)
 
 class UserOrderListView(ListAPIView):
-    serializer_class = OrderSerializer
+    serializer_class = OrderViewSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -553,7 +553,7 @@ class CreateCheckoutSessionView(APIView):
         try:
             # Tworzenie sesji Stripe Checkout
             session = stripe.checkout.Session.create(
-                customer_email = request.data.get('email', 'bober@bober.com'),
+                customer_email = request.data.get('email', 'ziober@bober.com'),
                 
                 payment_method_types=['card', 'blik', 'p24'], 
                 line_items=[{
