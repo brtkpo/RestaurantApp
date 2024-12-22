@@ -143,6 +143,7 @@ class Cart(models.Model):
     session_id = models.CharField(max_length=100, unique=True, null=True ,default=get_random_string)
     created_at = models.DateTimeField(auto_now=True)
     order_id = models.PositiveIntegerField(unique=True, null=True, default=None) 
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Dodajemy pole total_price
 
     def __str__(self):
         return self.session_id
@@ -150,11 +151,20 @@ class Cart(models.Model):
     def update_timestamp(self):
         self.created_at = timezone.now()
         self.save()
+    
+    def update_total_price(self):
+        self.total_price = sum(item.price * item.quantity for item in self.items.all())
+        self.save()
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)  
+    
+    def save(self, *args, **kwargs):
+        self.price = self.product.price 
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"

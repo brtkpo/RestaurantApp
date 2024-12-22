@@ -71,5 +71,5 @@ urlpatterns = [
     
     #Payment
     path('api/create-checkout-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
-
+    path('api/success/', SuccessPaymentView.as_view(), name='success'),
 ]

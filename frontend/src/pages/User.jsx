@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { setUserToken } from '../redux/actions';
 import AddressList from '../components/AddressList';  
 import AddAddressForm from '../components/AddAddressForm';
@@ -17,6 +17,16 @@ const User = () => {
   const [addresses, setAddresses] = useState([]);
   const [noAddresses, setNoAddresses] = useState(false);
   const [error, setError] = useState(null);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+
+  const location = useLocation();
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    if (query.get('payment') === 'success') {
+      setShowPaymentSuccess(true);
+      setTimeout(() => setShowPaymentSuccess(false), 5000); // Ukryj popup po 5 sekundach
+    }
+  }, [location]);
 
   const fetchAddresses = async () => {
     const token = sessionStorage.getItem('authToken'); // Pobierz token z sessionStorage
@@ -158,6 +168,7 @@ const User = () => {
   return (
     <div>
       <h1>Panel użytkownika</h1>
+      {showPaymentSuccess && <div style={styles.popup}>Płatność zakończona sukcesem!</div>}
       {userData ? (
         <div>
           <h2>Witaj, {userData.first_name} {userData.last_name}</h2>
@@ -168,7 +179,6 @@ const User = () => {
         <p>Ładowanie danych...</p>
       )}
       <UserOrders />
-      <CheckoutButton />
       <button onClick={handleLogout}>Wyloguj</button>
       <AddressList key={addresses.map(address => address.id).join('-')} addresses={addresses} onDeleteAddress={handleDeleteAddress} />
       <AddAddressForm onAddAddress={handleAddAddress} />
@@ -178,6 +188,20 @@ const User = () => {
       </button>
     </div>
   );
+};
+
+const styles = {
+  popup: {
+    position: 'fixed',
+    top: '20px',
+    right: '20px',
+    backgroundColor: '#4caf50',
+    color: 'white',
+    padding: '10px',
+    borderRadius: '5px',
+    boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+    zIndex: 1000,
+  }
 };
 
 export default User;

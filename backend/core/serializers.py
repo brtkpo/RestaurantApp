@@ -23,9 +23,10 @@ class ClientSerializer(serializers.ModelSerializer):
         return user
 
 class AddressSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', read_only=True)
     class Meta:
         model = Address
-        fields = ['id', 'first_name', 'last_name', 'phone_number', 'street', 'building_number', 'apartment_number', 'postal_code', 'city', 'user']
+        fields = ['id', 'first_name', 'last_name', 'phone_number', 'street', 'building_number', 'apartment_number', 'postal_code', 'city', 'user', 'email']
 
     extra_kwargs = {
             'apartment_number': {'required': False, 'allow_null': True},
@@ -108,24 +109,22 @@ class CartItemSerializer(serializers.ModelSerializer):
     #product = ProductSerializer()
     #product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), source='product', write_only=True)
     product = ProductSerializer(read_only=True)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)  # Ustawiamy pole price jako read_only
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'quantity']#,'product_id'
+        fields = ['id', 'product', 'quantity', 'price']#,'product_id'
     
-    #def get_product(self, obj):
-    #    return {
-    #        'name': obj.product.name,
-    #        'restaurant': obj.product.restaurant.name,
-    #        'price': obj.product.price,
-    #    }
+    def validate(self, data):
+        print('Validating data:', data)  # Logowanie danych podczas walidacji
+        return data
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Cart
-        fields = ['id', 'session_id', 'created_at', 'items']
+        fields = ['id', 'session_id', 'created_at', 'total_price', 'items']
         
 #Order
 class OrderHistorySerializer(serializers.ModelSerializer):
@@ -146,7 +145,8 @@ class OrderViewSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True, source='cart.items')
     address = AddressSerializer(read_only=True)
     restaurant = RestaurantSerializer(read_only=True)  
+    total_price = serializers.DecimalField(source='cart.total_price', max_digits=10, decimal_places=2, read_only=True)  # Dodajemy pole total_price
 
     class Meta:
         model = Order
-        fields = ['order_id', 'cart', 'items', 'restaurant', 'address', 'user', 'is_paid', 'payment_type', 'delivery_type', 'order_notes', 'status', 'history', 'created_at', 'updated_at']
+        fields = ['order_id', 'cart', 'items', 'restaurant', 'address', 'user', 'is_paid', 'payment_type', 'delivery_type', 'order_notes', 'status', 'history', 'created_at', 'updated_at', 'total_price']

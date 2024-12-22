@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import CheckoutButton from './CheckoutButton';
 
 const UserOrders = () => {
   const token = useSelector((state) => state.token); // Pobieramy token z Redux
@@ -49,6 +50,18 @@ const UserOrders = () => {
                   </li>
                 ))}
               </ul>
+              <p>Suma: {order.total_price} PLN</p>
+              {order.payment_type === "online" && !order.is_paid && (
+                <CheckoutButton
+                  email={order.address.email}
+                  orderId={order.order_id}
+                  restaurant={order.restaurant.name}
+                  totalAmount={order.total_price}
+                />
+              )}
+              {order.payment_type === "online" && order.is_paid && (
+                <p>Zapłacono online</p>
+              )}
             </li>
           ))}
         </ul>

@@ -470,6 +470,7 @@ class CartItemListCreateView(ListCreateAPIView):
         else:
             cart_item.quantity = quantity
         cart_item.save()
+        cart.update_total_price()
 
 class CartItemRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = CartItem.objects.all()
@@ -479,6 +480,21 @@ class CartItemRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
         session_id = self.kwargs['session_id']
         cart = Cart.objects.get(session_id=session_id)
         return CartItem.objects.filter(cart=cart)
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        print('Received data:', request.data) 
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        if not serializer.is_valid():
+            print('Validation errors:', serializer.errors)  # Logowanie błędów walidacji
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        cart = instance.cart
+        cart.update_total_price()  # Aktualizujemy wartość koszyka po zmianie ilości produktu
+
+        return Response(serializer.data)
     
 class ClearCartItemsFromOtherRestaurantsView(DestroyAPIView):
     def delete(self, request, session_id, restaurant_id, *args, **kwargs):
@@ -551,26 +567,59 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 class CreateCheckoutSessionView(APIView):
     def post(self, request, *args, **kwargs):
         try:
+            email = request.data.get('email')
+            order_id = request.data.get('orderId')
+            restaurant = request.data.get('restaurant')
+            total_amount = request.data.get('totalAmount')
+            
+            print('Received data:', request.data)  # Logowanie danych odbieranych przez serwer
+            total_amount_cents = int(float(total_amount) * 100)
             # Tworzenie sesji Stripe Checkout
             session = stripe.checkout.Session.create(
-                customer_email = request.data.get('email', 'ziober@bober.com'),
+                customer_email = email,
                 
                 payment_method_types=['card', 'blik', 'p24'], 
                 line_items=[{
                     'price_data': {
                         'currency': 'pln',
-                        'product_data': {'name': 'Cegrid Golec - zamówienie nr. 16'},
-                        'unit_amount': 3000,  # Kwota w groszach, 1000 to 10 PLN
+                        'product_data': {'name': f'{restaurant} - zamówienie nr. {order_id}'},
+                        'unit_amount': total_amount_cents,  # Kwota w groszach, 1000 to 10 PLN
                     },
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url='http://localhost:8000/success',  # Zmienna adresu sukcesu
-                cancel_url='http://localhost:8000/cancel',    # Zmienna adresu anulowania
+                success_url=f'http://localhost:8000/api/success?session_id={{CHECKOUT_SESSION_ID}}&order_id={order_id}',
+                #success_url='http://localhost:3000/user',
+                cancel_url='http://localhost:8000/cancel', 
+                metadata={'order_id': order_id},# Zmienna adresu anulowania
             )
 
             # Zwrócenie odpowiedzi z ID sesji
             return Response({'id': session.id}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
+            print('Error:', str(e))
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+from django.http import HttpResponseRedirect
+
+class SuccessPaymentView(APIView):
+    def get(self, request, *args, **kwargs):
+        session_id = request.GET.get('session_id')
+        order_id = request.GET.get('order_id')
+
+        try:
+            order = Order.objects.get(order_id=order_id)
+            order.is_paid = True
+            order.save()
+
+            # Dodanie wpisu do OrderHistory
+            OrderHistory.objects.create(
+                order=order,
+                status=order.status,
+                description="zapłacone"
+            )
+
+            return HttpResponseRedirect('http://localhost:3000/user?payment=success')
+        except Order.DoesNotExist:
+            return JsonResponse({'error': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)

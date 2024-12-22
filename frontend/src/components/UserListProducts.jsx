@@ -68,6 +68,7 @@ const UserListProducts = ({ products }) => {
       const requestData = {
         product: product.id,
         quantity: quantity,
+        price: product.price,
       };
   
       console.log("Sending data:", requestData);
@@ -97,7 +98,7 @@ const UserListProducts = ({ products }) => {
               <h3>{product.name}</h3>
               <p>{product.description || "Brak opisu"}</p>
               <p>Cena: {product.price} PLN</p>
-              <p>{product.is_available ? "Dostępny" : "Niedostępny"}</p>
+              {/*<p>{product.is_available ? "Dostępny" : "Niedostępny"}</p>*/}
               <img
                 src={product.image ? `${cloudinaryBaseUrl}${product.image}` : placeholderImage}
                 alt={product.name}

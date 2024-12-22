@@ -41,9 +41,11 @@ const DeleteProductFromCart = ({ productId, cartItemId, quantity, refreshCart })
         }
     
         try {
-            await axios.put(`http://localhost:8000/api/cart/${sessionId}/items/${cartItemId}/`, {
+            console.log('Updating quantity:', newQuantity); 
+            const response = await axios.put(`http://localhost:8000/api/cart/${sessionId}/items/${cartItemId}/`, {
                 quantity: newQuantity
             });
+            console.log('Response:', response.data);
             refreshCart();  // Odświeżenie koszyka po zmianie ilości produktu
         } catch (error) {
             console.error('Error updating product quantity in cart:', error);
