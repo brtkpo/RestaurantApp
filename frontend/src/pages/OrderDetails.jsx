@@ -21,7 +21,6 @@ const OrderDetails = () => {
           },
         });
         setOrder(response.data);
-        console.log('Fetched order:', response.data);
         setStatus(response.data.status);
         setLoading(false);
       } catch (err) {
@@ -49,6 +48,27 @@ const OrderDetails = () => {
     } catch (err) {
       setError('Błąd podczas aktualizacji statusu zamówienia');
     }
+  };
+
+  const getStatusOptions = () => {
+    if (order.delivery_type === 'delivery') {
+      return [
+        { value: 'pending', label: 'Złożone' },
+        { value: 'confirmed', label: 'Potwierdzone' },
+        { value: 'shipped', label: 'Wydane do dostarczenia' },
+        { value: 'delivered', label: 'Dostarczone' },
+        { value: 'cancelled', label: 'Anulowane' },
+      ];
+    } else if (order.delivery_type === 'pickup') {
+      return [
+        { value: 'pending', label: 'Złożone' },
+        { value: 'confirmed', label: 'Potwierdzone' },
+        { value: 'ready_for_pickup', label: 'Gotowe do odbiory' },
+        { value: 'picked_up', label: 'Odebrane' },
+        { value: 'cancelled', label: 'Anulowane' },
+      ];
+    }
+    return [];
   };
 
   if (loading) {
@@ -81,10 +101,9 @@ const OrderDetails = () => {
         <label>
           Status:
           <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
+            {getStatusOptions().map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
           </select>
         </label>
       </div>

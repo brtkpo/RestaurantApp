@@ -7,6 +7,16 @@ const UserOrders = () => {
   const token = useSelector((state) => state.token); // Pobieramy token z Redux
   const [orders, setOrders] = useState([]);
 
+  const statusLabels = {
+    pending: 'Złożone',
+    confirmed: 'Potwierdzone',
+    shipped: 'Wydane do dostarczenia',
+    delivered: 'Dostarczone',
+    cancelled: 'Anulowane',
+    ready_for_pickup: 'Gotowe do odbiory',
+    picked_up: 'Odebrane',
+  };
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -35,7 +45,7 @@ const UserOrders = () => {
           {orders.map((order) => (
             <li key={order.order_id}>
               <h3>Zamówienie nr.{order.order_id}</h3>
-              <p>Status: {order.status}</p>
+              <p>Status: {statusLabels[order.status]}</p>
               <p>Data: {new Date(order.created_at).toLocaleString()}</p>
               <p>Typ płatności: {order.payment_type}</p>
               <p>Typ dostawy: {order.delivery_type}</p>

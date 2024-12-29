@@ -540,6 +540,7 @@ class OrderListCreateView(ListCreateAPIView):
 class OrderDetailView(RetrieveUpdateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderViewSerializer
+    permission_classes = [IsAuthenticated]
 
     def update(self, request, *args, **kwargs):
         order = self.get_object()
