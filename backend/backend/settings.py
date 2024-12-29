@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'core',
     'cloudinary',
     'cloudinary_storage',
+    'channels',
 ]
 
 
@@ -220,3 +221,5 @@ SIMPLE_JWT = {
 #STRIPE_PUBLISHABLE_KEY = os.getenv('pk_test_51QXLuJGugFGFgbLMyn8AWC8qBVTPEqJLfVP6UaVzBoo5A4JEaX0fkMOtXPUxtO5oXgrYffico8r3eBZ8ZWHZ2FA000UeHqshND')
 STRIPE_SECRET_KEY = 'sk_test_51QXLuJGugFGFgbLMIVz1Z6yKA2KNvcxtwcsEeZvbX9f4H923aY8XmQY9SdMrH09Cygzm2bAOqmLsYm9pGJi1L1fR00g1mklHwk'
 STRIPE_PUBLISHABLE_KEY = 'pk_test_51QXLuJGugFGFgbLMyn8AWC8qBVTPEqJLfVP6UaVzBoo5A4JEaX0fkMOtXPUxtO5oXgrYffico8r3eBZ8ZWHZ2FA000UeHqshND'
+
+ASGI_APPLICATION = 'backend.asgi.application'

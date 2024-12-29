@@ -109,7 +109,7 @@ const OrderDetails = () => {
       <ul>
         {order.items.map((item) => (
           <li key={item.id}>
-            {item.product.name} - {item.quantity} szt.
+            {item.product.name} - {item.quantity} szt. x {item.product.price} PLN
           </li>
         ))}
       </ul>

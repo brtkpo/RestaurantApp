@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import CheckoutButton from './CheckoutButton';
 
 const UserOrders = () => {
@@ -56,11 +57,12 @@ const UserOrders = () => {
               <ul>
                 {order.items.map((item) => (
                   <li key={item.id}>
-                    {item.product.name} - {item.quantity} szt.
+                    {item.product.name} - {item.quantity} szt. x {item.product.price} PLN
                   </li>
                 ))}
               </ul>
               <p>Suma: {order.total_price} PLN</p>
+              <Link to={`/user/orders/${order.order_id}`}>Szczegóły zamówienia</Link>
               {order.payment_type === "online" && !order.is_paid && (
                 <CheckoutButton
                   email={order.address.email}

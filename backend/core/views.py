@@ -539,8 +539,9 @@ class OrderListCreateView(ListCreateAPIView):
                 cart.save()
             except Cart.DoesNotExist:
                 return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
-#import logging
-#logger = logging.getLogger('django')
+
+import logging
+logger = logging.getLogger('django')
 
 class OrderDetailView(RetrieveUpdateAPIView):
     queryset = Order.objects.all()
@@ -581,6 +582,14 @@ class UserOrderListView(ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Order.objects.filter(user=user).order_by('-created_at')
+
+class UserOrderDetailView(RetrieveAPIView):
+    serializer_class = OrderViewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Order.objects.filter(user=user)
 
 class RestaurantOrdersView(ListAPIView):
     #serializer_class = OrderSerializer
