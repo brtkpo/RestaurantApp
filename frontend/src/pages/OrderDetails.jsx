@@ -11,6 +11,16 @@ const OrderDetails = () => {
   const [description, setDescription] = useState('');
   const navigate = useNavigate();
 
+  const statusLabels = {
+    pending: 'Złożone',
+    confirmed: 'Potwierdzone',
+    shipped: 'Wydane do dostarczenia',
+    delivered: 'Dostarczone',
+    cancelled: 'Anulowane',
+    ready_for_pickup: 'Gotowe do odbioru',
+    picked_up: 'Odebrane',
+  };
+
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
@@ -23,6 +33,7 @@ const OrderDetails = () => {
         setOrder(response.data);
         setStatus(response.data.status);
         setLoading(false);
+        console.log(response.data);
       } catch (err) {
         setError('Błąd podczas ładowania szczegółów zamówienia');
         setLoading(false);
@@ -33,6 +44,12 @@ const OrderDetails = () => {
   }, [orderId]);
 
   const handleStatusChange = async () => {
+    if (status === 'cancelled' && !description.trim()) {
+        alert('Podaj w opisie powód anulowania zamówienia.');
+        //setError('Opis jest wymagany przy anulowaniu zamówienia.');
+        return;
+    }
+
     try {
       const token = sessionStorage.getItem('authToken');
       await axios.patch(`http://localhost:8000/api/orders/${orderId}/`, {
@@ -44,7 +61,7 @@ const OrderDetails = () => {
         },
       });
       alert('Status zamówienia został zaktualizowany');
-      navigate('/restaurant/user');
+      //navigate('/restaurant/user');
     } catch (err) {
       setError('Błąd podczas aktualizacji statusu zamówienia');
     }
@@ -63,7 +80,7 @@ const OrderDetails = () => {
       return [
         { value: 'pending', label: 'Złożone' },
         { value: 'confirmed', label: 'Potwierdzone' },
-        { value: 'ready_for_pickup', label: 'Gotowe do odbiory' },
+        { value: 'ready_for_pickup', label: 'Gotowe do odbioru' },
         { value: 'picked_up', label: 'Odebrane' },
         { value: 'cancelled', label: 'Anulowane' },
       ];
@@ -82,7 +99,7 @@ const OrderDetails = () => {
   return (
     <div>
       <h2>Szczegóły zamówienia nr.{order.order_id}</h2>
-      <p>Status: {order.status}</p>
+      <p>Status: {statusLabels[order.status]}</p>
       <p>Data: {new Date(order.created_at).toLocaleString()}</p>
       <p>Typ płatności: {order.payment_type}</p>
       <p>Typ dostawy: {order.delivery_type}</p>
@@ -97,7 +114,9 @@ const OrderDetails = () => {
         ))}
       </ul>
       <p>Suma: {order.total_price} PLN</p>
+      <button onClick={() => navigate('/restaurant/user')}>Powrót</button>
       <div>
+        <h2>Aktualizuj status:</h2>
         <label>
           Status:
           <select value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -114,6 +133,17 @@ const OrderDetails = () => {
         </label>
       </div>
       <button onClick={handleStatusChange}>Zaktualizuj status</button>
+      <h3>Historia zamówienia</h3>
+      <ul>
+        {order.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((entry) => (
+          <li key={entry.id}>
+            <p>Status: {statusLabels[entry.status]}</p>
+            <p>Data: {new Date(entry.timestamp).toLocaleString()}</p>
+            {entry.description && <p>Opis: {entry.description}</p>}
+          </li>
+        ))}
+      </ul>
+      <button onClick={() => navigate('/restaurant/user')}>Powrót</button>
     </div>
   );
 };

@@ -360,7 +360,7 @@ class AllProductListView(ListAPIView):
         except Restaurant.DoesNotExist:
             raise NotFound('Restauracja nie została znaleziona.')
 
-        return Product.objects.filter(restaurant=restaurant)
+        return Product.objects.filter(restaurant=restaurant, archived=False)
 
 
 class ProductDeleteView(DestroyAPIView):
@@ -375,6 +375,9 @@ class ProductDeleteView(DestroyAPIView):
         except Product.DoesNotExist:
             raise NotFound('Produkt nie został znaleziony.')
         return product
+
+    def perform_destroy(self, instance):
+        instance.archive()
     
 class ProductUpdateView(UpdateAPIView):
     queryset = Product.objects.all()
@@ -536,16 +539,31 @@ class OrderListCreateView(ListCreateAPIView):
                 cart.save()
             except Cart.DoesNotExist:
                 return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
+#import logging
+#logger = logging.getLogger('django')
 
 class OrderDetailView(RetrieveUpdateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderViewSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        order = self.get_object()
+        if request.user.restaurant.id != order.restaurant.id:
+            return Response({'error': 'Nie masz uprawnień do przeglądania tego zamówienia.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = self.get_serializer(order)
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         order = self.get_object()
         data = request.data
+        #logger.warning(f"restaurant User {request.user.restaurant.id} order {order.order_id}")
+        #logger.warning(order.restaurant.id)
 
+        if request.user.restaurant.id != order.restaurant.id:
+            #logger.warning(f"User {request.user.restaurant.id} does not have permission to update order {order.order_id}")
+            return Response({'error': 'Nie masz uprawnień do modyfikacji tego zamówienia.'}, status=status.HTTP_403_FORBIDDEN)
         # Update order status and history
         if 'status' in data:
             order.update_status(data['status'], data.get('description', ""))

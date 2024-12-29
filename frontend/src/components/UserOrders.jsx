@@ -13,7 +13,7 @@ const UserOrders = () => {
     shipped: 'Wydane do dostarczenia',
     delivered: 'Dostarczone',
     cancelled: 'Anulowane',
-    ready_for_pickup: 'Gotowe do odbiory',
+    ready_for_pickup: 'Gotowe do odbioru',
     picked_up: 'Odebrane',
   };
 

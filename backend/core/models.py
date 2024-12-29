@@ -134,9 +134,15 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_available = models.BooleanField(default=True)
     image = CloudinaryField('image', null=True, blank=True)
+    archived = models.BooleanField(default=False)  # Dodajemy pole archived
 
     def __str__(self):
         return f"{self.name} - {self.restaurant.name}"
+
+    def archive(self):
+        self.archived = True
+        self.is_available = False
+        self.save()
     
 #Cart
 class Cart(models.Model):
