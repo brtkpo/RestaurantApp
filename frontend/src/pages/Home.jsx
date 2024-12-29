@@ -55,6 +55,7 @@ const Home = () => {
     //setScrollPosition(window.scrollY);
     setSelectedRestaurant(restaurant);
     setScrollPosition(window.scrollY);
+    window.scrollTo(0, 0);
   };
 
   const handleBackClick = () => {

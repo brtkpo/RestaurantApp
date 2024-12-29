@@ -18,49 +18,53 @@ const User = () => {
   const [noAddresses, setNoAddresses] = useState(false);
   const [error, setError] = useState(null);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showPaymentFail, setShowPaymentFail] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(true); // Dodano flagę isLoading
 
   const location = useLocation();
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     if (query.get('payment') === 'success') {
       setShowPaymentSuccess(true);
-      setTimeout(() => setShowPaymentSuccess(false), 5000); // Ukryj popup po 5 sekundach
+      setTimeout(() => setShowPaymentSuccess(false), 3000);
+    } else if (query.get('payment') === 'fail') {
+      setShowPaymentFail(true);
+      setTimeout(() => setShowPaymentFail(false), 3000);
     }
   }, [location]);
 
   const fetchAddresses = async () => {
-    const token = sessionStorage.getItem('authToken'); // Pobierz token z sessionStorage
+    const token = sessionStorage.getItem('authToken');
     try {
       const response = await axios.get('http://localhost:8000/api/addresses/', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      //console.log(response);
       if (response.data.length === 0) {
-        setNoAddresses(true); // Brak adresów
+        setNoAddresses(true);
         setError('Brak adresów');
       } else {
-        setAddresses(response.data); // Ustawiamy adresy, jeśli są
+        setAddresses(response.data);
       }
     } catch (error) {
       setError('Błąd podczas ładowania adresów');
     }
   };
 
-  // Funkcja do pobrania danych użytkownika
   useEffect(() => {
-    const token = sessionStorage.getItem('authToken'); // Pobierz token z sessionStorage
+    const token = sessionStorage.getItem('authToken');
     if (token) {
-      dispatch(setUserToken(token)); // Ustaw token w Reduxie po załadowaniu strony
+      dispatch(setUserToken(token));
     }
-  
+
     const fetchUserData = async () => {
       if (!token) {
         navigate('/login');
         return;
       }
-  
+
       try {
         const response = await fetch('http://localhost:8000/api/user/', {
           method: 'GET',
@@ -75,11 +79,8 @@ const User = () => {
 
         const data = await response.json();
         setUserData(data);
-        console.log(data);
-        console.log(data.role);
         if (data.role === 'restaurateur') {
-          console.log('Bober');
-          navigate('/restaurant/user'); // Przekierowanie do strony restauratora
+          navigate('/restaurant/user');
         }
       } catch (error) {
         dispatch(setUserToken(null));
@@ -88,30 +89,32 @@ const User = () => {
         navigate('/login');
       }
     };
-    
 
-    
-    fetchUserData();
-    fetchAddresses();
+    const fetchAllData = async () => {
+      await fetchUserData();
+      await fetchAddresses();
+      setIsLoading(false); // Dane załadowane
+    };
+
+    fetchAllData();
   }, [dispatch, navigate]);
-  // Funkcja wylogowania
+
   const handleLogout = () => {
-    dispatch(setUserToken(null)); // Usuwamy token z Redux
-    sessionStorage.removeItem('authToken'); // Usuwamy token z sessionStorage
-    navigate('/login'); // Przekierowanie na stronę logowania
+    dispatch(setUserToken(null));
+    sessionStorage.removeItem('authToken');
+    navigate('/login');
   };
 
-  // Funkcja usuwania konta
   const handleDeleteAccount = async () => {
-    const confirm = window.confirm('Czy na pewno chcesz usunąć swoje konto?'); // Alert z potwierdzeniem
-    if (!confirm) return; // Jeśli użytkownik kliknie "Nie", przerywamy
-    
+    const confirm = window.confirm('Czy na pewno chcesz usunąć swoje konto?');
+    if (!confirm) return;
+
     try {
       const response = await fetch('http://localhost:8000/api/delete-user/', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, // Przesyłanie tokena w nagłówkach
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -119,11 +122,10 @@ const User = () => {
         throw new Error('Nie udało się usunąć konta');
       }
 
-      // Po pomyślnym usunięciu konta
       alert('Konto zostało pomyślnie usunięte');
-      handleLogout(); // Wylogowanie użytkownika
+      handleLogout();
     } catch (error) {
-      alert(`Błąd: ${error.message}`); // Wyświetlenie błędu
+      alert(`Błąd: ${error.message}`);
     }
   };
 
@@ -138,14 +140,12 @@ const User = () => {
       if (response.status === 201) {
         setAddresses([...addresses, response.data]);
         alert('Adres dodany pomyślnie!');
-        //fetchAddresses();
       }
     } catch (error) {
       alert('Błąd podczas dodawania adresu');
     }
   };
 
-  // Funkcja do usuwania adresu
   const handleDeleteAddress = async (addressId) => {
     const confirmDelete = window.confirm('Czy na pewno chcesz usunąć ten adres?');
     if (confirmDelete) {
@@ -165,10 +165,15 @@ const User = () => {
     }
   };
 
+  if (isLoading) {
+    return <p>Ładowanie danych...</p>; // Wyświetl komunikat, dopóki dane się ładują
+  }
+
   return (
     <div>
       <h1>Panel użytkownika</h1>
-      {showPaymentSuccess && <div style={styles.popup}>Płatność zakończona sukcesem!</div>}
+      {showPaymentSuccess && <div style={styles.popup_success}>Płatność zakończona sukcesem!</div>}
+      {showPaymentFail && <div style={styles.popup_fail}>Płatność nie powiodła się!</div>}
       {userData ? (
         <div>
           <h2>Witaj, {userData.first_name} {userData.last_name}</h2>
@@ -182,7 +187,7 @@ const User = () => {
       <button onClick={handleLogout}>Wyloguj</button>
       <AddressList key={addresses.map(address => address.id).join('-')} addresses={addresses} onDeleteAddress={handleDeleteAddress} />
       <AddAddressForm onAddAddress={handleAddAddress} />
-      <br/>
+      <br />
       <button onClick={handleDeleteAccount} style={{ color: 'red', marginTop: '30px' }}>
         Usuń konto
       </button>
@@ -191,11 +196,23 @@ const User = () => {
 };
 
 const styles = {
-  popup: {
+  popup_success: {
     position: 'fixed',
     top: '20px',
     right: '20px',
     backgroundColor: '#4caf50',
+    color: 'white',
+    padding: '10px',
+    borderRadius: '5px',
+    boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+    zIndex: 1000,
+  },
+
+  popup_fail: {
+    position: 'fixed',
+    top: '20px',
+    right: '20px',
+    backgroundColor: '#ed4337',
     color: 'white',
     padding: '10px',
     borderRadius: '5px',

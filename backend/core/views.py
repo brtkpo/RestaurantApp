@@ -590,7 +590,7 @@ class CreateCheckoutSessionView(APIView):
                 mode='payment',
                 success_url=f'http://localhost:8000/api/success?session_id={{CHECKOUT_SESSION_ID}}&order_id={order_id}',
                 #success_url='http://localhost:3000/user',
-                cancel_url='http://localhost:8000/cancel', 
+                cancel_url='http://localhost:3000/user?payment=fail', 
                 metadata={'order_id': order_id},# Zmienna adresu anulowania
             )
 
