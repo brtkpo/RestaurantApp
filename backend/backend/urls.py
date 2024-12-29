@@ -68,6 +68,7 @@ urlpatterns = [
     path('api/orders/', OrderListCreateView.as_view(), name='order-list-create'),
     path('api/orders/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
     path('api/user/orders/', UserOrderListView.as_view(), name='user-order-list'),
+    path('api/restaurant/<int:restaurant_id>/orders/', RestaurantOrdersView.as_view(), name='restaurant-orders'),
     
     #Payment
     path('api/create-checkout-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),

@@ -22,6 +22,7 @@ from django.utils.crypto import get_random_string
 import time
 import hashlib
 import stripe
+from django.http import HttpResponseRedirect
 
 #User
 class LoginView(APIView):
@@ -538,7 +539,7 @@ class OrderListCreateView(ListCreateAPIView):
 
 class OrderDetailView(RetrieveUpdateAPIView):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = OrderViewSerializer
 
     def update(self, request, *args, **kwargs):
         order = self.get_object()
@@ -562,6 +563,16 @@ class UserOrderListView(ListAPIView):
         user = self.request.user
         return Order.objects.filter(user=user).order_by('-created_at')
 
+class RestaurantOrdersView(ListAPIView):
+    #serializer_class = OrderSerializer
+    serializer_class = OrderViewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        restaurant_id = self.kwargs['restaurant_id']
+        return Order.objects.filter(restaurant_id=restaurant_id)
+
+#Payment
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class CreateCheckoutSessionView(APIView):
@@ -600,8 +611,6 @@ class CreateCheckoutSessionView(APIView):
         except Exception as e:
             print('Error:', str(e))
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-from django.http import HttpResponseRedirect
 
 class SuccessPaymentView(APIView):
     def get(self, request, *args, **kwargs):

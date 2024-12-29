@@ -12,6 +12,7 @@ import User from "./pages/User";
 import RestaurantUser from "./pages/RestaurantUser";  
 import RestaurantRegister from "./pages/RestaurantRegister";    
 import Order from "./pages/Order"; 
+import OrderDetails from "./pages/OrderDetails";
 import { CartProvider } from './components/CartContext';  
 
 // Zmiana - Provider teraz obejmuje cały komponent App
@@ -38,6 +39,7 @@ function App() {
           <Route path="/restaurant/user" element={<RestaurantUser />} /> 
           <Route path="/restaurant/register" element={<RestaurantRegister />} /> 
           <Route path="/order" element={<Order />} />
+          <Route path="/order/:orderId" element={<OrderDetails />} />
         </Routes>
       </div>
     </CartProvider>

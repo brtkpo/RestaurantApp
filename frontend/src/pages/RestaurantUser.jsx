@@ -7,6 +7,7 @@ import UploadImage from '../components/UploadImage';
 import ManageTags from '../components/ManageTags';
 import AddProduct from '../components/AddProduct';
 import RestaurantProducts from "../components/RestaurantProducts";
+import RestaurantOrders from "../components/RestaurantOrders";
 import placeholderImage from '../assets/Placeholder.png';
 
 const RestaurantProfile = () => {
@@ -157,6 +158,7 @@ const RestaurantProfile = () => {
       )}
 
       <br />
+      <RestaurantOrders restaurantId={profileData.restaurant.id} /> 
       <ManageTags restaurantId={restaurant.id} />
       <RestaurantProducts restaurantId={restaurant.id} key={productsUpdated} />
       <AddProduct restaurantId={restaurant.id} onProductAdded={handleProductsUpdated} />
