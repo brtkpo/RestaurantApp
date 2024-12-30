@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Chat from '../components/Chat';
 
 const OrderDetails = () => {
   const { orderId } = useParams();
@@ -133,6 +134,7 @@ const OrderDetails = () => {
         </label>
       </div>
       <button onClick={handleStatusChange}>Zaktualizuj status</button>
+      <Chat roomName={order.order_id} />
       <h3>Historia zamówienia</h3>
       <ul>
         {order.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((entry) => (

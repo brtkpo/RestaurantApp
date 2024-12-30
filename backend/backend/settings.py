@@ -65,6 +65,11 @@ CORS_ALLOW_HEADERS = [
     'authorization',
     'content-type',
     'x-requested-with',
+    
+    'content-disposition',
+    'accept',
+    'origin',
+    'x-csrftoken',
 ]
 
 CORS_ALLOW_ALL_ORIGINS=True #
@@ -223,3 +228,41 @@ STRIPE_SECRET_KEY = 'sk_test_51QXLuJGugFGFgbLMIVz1Z6yKA2KNvcxtwcsEeZvbX9f4H923aY
 STRIPE_PUBLISHABLE_KEY = 'pk_test_51QXLuJGugFGFgbLMyn8AWC8qBVTPEqJLfVP6UaVzBoo5A4JEaX0fkMOtXPUxtO5oXgrYffico8r3eBZ8ZWHZ2FA000UeHqshND'
 
 ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
+STATIC_URL = '/static/rest_framework/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",  # Adres Twojej aplikacji React
+]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("redis", 6379)],  # Zakładając, że Redis działa w kontenerze Dockera.
+        },
+    },
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']

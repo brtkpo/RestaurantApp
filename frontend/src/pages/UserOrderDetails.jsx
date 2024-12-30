@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CheckoutButton from '../components/CheckoutButton';
+import Chat from '../components/Chat';
 
 const UserOrderDetails = () => {
   const { orderId } = useParams();
@@ -83,6 +84,7 @@ const UserOrderDetails = () => {
         </div>
       )}
       <button onClick={() => navigate('/user')}>Powrót</button>
+      <Chat roomName={order.order_id} />
       <h3>Historia zamówienia</h3>
       <ul>
         {order.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((entry) => (

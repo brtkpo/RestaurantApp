@@ -75,3 +75,7 @@ urlpatterns = [
     path('api/create-checkout-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
     path('api/success/', SuccessPaymentView.as_view(), name='success'),
 ]
+
+from django.conf.urls.static import static
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -38,8 +38,10 @@ services:
     depends_on:
       - db
     command: >
-      sh -c "wait-for-it db:5432 --timeout=60 -- python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+      sh -c "wait-for-it db:5432 --timeout=60 -- python manage.py migrate --noinput && daphne -b 0.0.0.0 -p 8000 backend.asgi:application"
 
+  #sh -c "wait-for-it db:5432 --timeout=60 -- python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+  #sh -c "wait-for-it db:5432 --timeout=60 -- python manage.py migrate --noinput && daphne -b 0.0.0.0 -p 8000 backend.asgi:application"
   pgadmin:
     image: dpage/pgadmin4
     environment:
@@ -50,3 +52,7 @@ services:
     depends_on:
       - db
   
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
