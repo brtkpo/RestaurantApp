@@ -539,6 +539,12 @@ class OrderListCreateView(ListCreateAPIView):
                 cart.save()
             except Cart.DoesNotExist:
                 return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+        OrderHistory.objects.create(
+            order=order,
+            status=order.status,
+            description="Złożono zamówienie"
+        )
 
 import logging
 logger = logging.getLogger('django')
@@ -669,3 +675,19 @@ class ChatMessageListView(ListAPIView):
     def get_queryset(self):
         room_name = self.kwargs['room_name']
         return ChatMessage.objects.filter(room=room_name).order_by('timestamp')
+    
+#Notifications
+class NotificationListView(ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user).order_by('-timestamp')
+
+class NotificationDeleteView(DestroyAPIView):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)

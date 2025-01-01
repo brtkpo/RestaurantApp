@@ -7,8 +7,10 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from rest_framework_simplejwt.tokens import AccessToken  # Jeśli używasz JWT
-from core.models import ChatMessage, AppUser  # Użyj AppUser, jeśli to Twój model użytkownika
+from core.models import ChatMessage, AppUser, Notification, OrderHistory  
 from django.contrib.auth import get_user_model
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 logger.info(f"User {self.user.email} is a client.")
             else:
                 logger.info(f"User {self.user.email} has an unknown role: {user_role}")
+                
         except Exception as e:
             logger.error(f"Token verification failed: {e}")
             await self.close()
@@ -59,8 +62,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             user = await self.get_user(id=self.user.id) # todo
             # Wywołanie funkcji zapisu w bazie danych
             chat_message = await self.save_message(message, user)
-            
-            logger.info(f"chat_message: {chat_message}") 
 
             # Wysyłamy wiadomość do wszystkich użytkowników w grupie
             await self.channel_layer.group_send(
@@ -75,6 +76,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     }
                 }
             )
+            
+            await self.create_notification(chat_message.user, f"Nowa wiadomość w zamówieniu nr. {self.room_name}: {chat_message.message}")
+            
         except json.JSONDecodeError:
             logger.error("Received invalid JSON")
             
@@ -88,7 +92,60 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Zapisz wiadomość w bazie danych
         chat_message = ChatMessage.objects.create(room=self.room_name, user=user, message=message)
         return chat_message
+    
+    @database_sync_to_async
+    def create_notification(self, user, message):
+        Notification.objects.create(user=user, message=message)
 
     async def chat_message(self, event):
         message = event['message']
         await self.send(text_data=json.dumps(message))
+        
+    async def notification(self, event):
+        message = event['message']
+        await self.send(text_data=json.dumps(message))
+        
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        token = self.scope['query_string'].decode().split('=')[1]
+        try:
+            access_token = AccessToken(token)
+            self.user = await sync_to_async(AppUser.objects.get)(id=access_token['user_id'])
+        except Exception as e:
+            logger.error(f"Token verification failed: {e}")
+            await self.close()
+            return
+
+        self.group_name = f'user_{self.user.id}'
+
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name
+        )
+
+    async def notification(self, event):
+        message = event['message']
+        await self.send(text_data=json.dumps(message))
+
+    @database_sync_to_async
+    def create_notification(self, user, message):
+        notification = Notification.objects.create(user=user, message=message)
+        async_to_sync(self.channel_layer.group_send)(
+            f'user_{user.id}',
+            {
+                'type': 'notification',
+                'message': {
+                    'id': notification.id,
+                    'message': notification.message,
+                    'timestamp': notification.timestamp.isoformat()
+                }
+            }
+        )

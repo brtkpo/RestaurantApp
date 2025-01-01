@@ -4,11 +4,74 @@ import { useSelector } from 'react-redux';
 import { CartContext } from './CartContext';
 import axios from "axios";
 import DeleteProductFromCart from './DeleteProductFromCart';
+import Notifications from './Notifications';
 
 const Navbar = () => {
   const token = useSelector((state) => state.token);  // Pobieramy token z Redux
   const { cartItems, setCartItems, refreshCart } = useContext(CartContext);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
+  let ws; // Define the ws variable in the appropriate scope
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = sessionStorage.getItem('authToken');
+        const response = await axios.get('http://localhost:8000/api/notifications/', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        setNotificationCount(response.data.length);
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  const connectWebSocket = (url) => {
+    return new Promise((resolve, reject) => {
+      ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        console.log('WebSocket connection established');
+        resolve(ws);
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        reject(error);
+      };
+
+      ws.onclose = (event) => {
+        console.warn('WebSocket connection closed:', event.code, event.reason);
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        setNotificationCount((prevCount) => prevCount + 1);
+      };
+    });
+  };
+
+  useEffect(() => {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) return;
+
+    const wsUrl = `ws://localhost:8000/ws/notifications/?token=${token}`;
+    connectWebSocket(wsUrl).catch((error) => {
+      console.error('Failed to establish WebSocket connection:', error);
+    });
+
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, []);
 
   const fetchCart = async () => {
     const sessionId = sessionStorage.getItem('session_id');
@@ -16,8 +79,6 @@ const Navbar = () => {
     if (sessionId) {
       try {
         const response = await axios.get(`http://localhost:8000/api/cart/${sessionId}/`);
-        //console.log('response:', response);
-        //console.log('Fetched cart:', response.data[0].items); // Debugging
         setCartItems(response.data[0].items);
       } catch (error) {
         console.error('Error fetching cart:', error);
@@ -27,11 +88,18 @@ const Navbar = () => {
 
   useEffect(() => {
     refreshCart();
-    //fetchCart();
   }, []);
 
   const toggleCart = () => {
     setIsCartOpen(!isCartOpen);
+  };
+
+  const toggleNotifications = () => {
+    setIsNotificationsOpen(!isNotificationsOpen);
+  };
+
+  const handleNotificationCountChange = (count) => {
+    setNotificationCount(count);
   };
 
   const groupedCartItems = cartItems ? cartItems.reduce((acc, item) => {
@@ -63,93 +131,102 @@ const Navbar = () => {
             )}
           </li>
           <li style={styles.li}>
-            <button onClick={toggleCart} style={styles.link}>Koszyk</button>
+            <div style={styles.notificationIcon} onClick={toggleNotifications}>
+              Notifications {notificationCount > 0 && <span style={styles.notificationBadge}>{notificationCount}</span>}
+            </div>
+            {isNotificationsOpen && (
+              <div style={styles.notificationsDropdown}>
+                <Notifications onNotificationCountChange={handleNotificationCountChange} />
+              </div>
+            )}
+          </li>
+          <li style={styles.li}>
+            <div style={styles.cartIcon} onClick={toggleCart}>
+              Cart
+            </div>
+            {isCartOpen && (
+              <div style={styles.cartDropdown}>
+                {Object.keys(groupedCartItems).map(restaurant => (
+                  <div key={restaurant}>
+                    <h3>{restaurant}</h3>
+                    <ul>
+                      {groupedCartItems[restaurant].map(item => (
+                        <li key={item.id}>
+                          {item.name} - {item.quantity} szt. x {item.price} PLN
+                          <DeleteProductFromCart itemId={item.id} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+                <div>Total: {totalSum} PLN</div>
+              </div>
+            )}
           </li>
         </ul>
-        {isCartOpen && (
-          <div style={styles.cartDropdown}>
-            {Object.keys(groupedCartItems).map((restaurantName) => (
-              <div key={restaurantName}>
-                <h3>{restaurantName}</h3>
-                <ul>
-                  {groupedCartItems[restaurantName].map((item) => (
-                    <li key={item.id}>
-                      {item.name} - {item.quantity} szt. x {item.price} PLN
-                      <DeleteProductFromCart 
-                        productId={item.product.id} 
-                        cartItemId={item.id} 
-                        quantity={item.quantity}
-                        refreshCart={refreshCart} 
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-            { totalSum > 0 ? (
-              <div style={styles.totalSum}>
-                <strong>Suma: {totalSum.toFixed(2)} PLN</strong>
-                <li style={styles.li}>
-                  {token  ? (
-                    <Link to="/order" style={styles.link2}>Złóż zamówinenie</Link>  // Jeśli zalogowany, pokazujemy "Złóż zamówienie"s
-                  ) : (
-                    <Link to="/login" style={styles.link2}>Zaloguj się, by złożyć zamówienie</Link>  // Jeśli nie, pokazujemy "Login"
-                  )}
-                </li>
-              </div>
-            ) : (
-              <p>Twój koszyk jest pusty.</p>
-            )}
-            
-            
-          </div>
-        )}
       </nav>
-      <div style={styles.spacer} /> {/* Element odstępu */}
     </>
   );
 };
 
 const styles = {
   navbar: {
-    backgroundColor: '#333',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: '10px',
-    position: "fixed", // Navbar "przyklejony" do okna przeglądarki
-    top: 0, // Pozycja od góry
-    width: "100%", // Rozciąga się na całą szerokość
-    zIndex: 1000, // Ustawia z-index, by navbar był nad innymi elementami
-  },
-  spacer: {
-    height: "30px", // Wysokość dopasowana do navbaru
+    backgroundColor: '#333',
+    color: '#fff',
   },
   ul: {
     listStyleType: 'none',
+    display: 'flex',
     margin: 0,
     padding: 0,
-    display: 'flex',
-    justifyContent: 'space-around',
   },
   li: {
-    margin: '0 15px',
+    margin: '0 10px',
   },
   link: {
-    color: 'white',
+    color: '#fff',
     textDecoration: 'none',
-    fontSize: '18px',
   },
-  link2: {
-    color: 'black',
-    textDecoration: 'none',
-    fontSize: '18px',
+  notificationIcon: {
+    position: 'relative',
+    cursor: 'pointer',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: '-10px',
+    right: '-10px',
+    backgroundColor: 'red',
+    color: 'white',
+    borderRadius: '50%',
+    padding: '5px 10px',
+  },
+  cartIcon: {
+    cursor: 'pointer',
   },
   cartDropdown: {
     position: 'absolute',
-    right: 0,
-    top: '50px',
-    backgroundColor: 'white',
-    border: '1px solid #ddd',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-    width: '400px',
+    top: '40px',
+    right: '10px',
+    backgroundColor: '#fff',
+    color: '#000',
+    padding: '10px',
+    border: '1px solid #ccc',
+    borderRadius: '5px',
+    zIndex: 1000,
+  },
+  notificationsDropdown: {
+    position: 'absolute',
+    top: '40px',
+    right: '10px',
+    backgroundColor: '#fff',
+    color: '#000',
+    padding: '10px',
+    border: '1px solid #ccc',
+    borderRadius: '5px',
     zIndex: 1000,
   },
 };
