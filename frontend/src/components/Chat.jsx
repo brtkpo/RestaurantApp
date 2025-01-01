@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Chat = ({ roomName }) => {
   const [messages, setMessages] = useState([]);
@@ -57,8 +58,12 @@ const Chat = ({ roomName }) => {
 
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          const newMessage = data.message;
-          console.log(data);
+          console.log('Received message from WebSocket:', data); // Logowanie odpowiedzi z WebSocket
+          const newMessage = {
+            user: data.user,
+            message: data.message,
+            timestamp: new Date(data.timestamp).toLocaleString() // Parsowanie i formatowanie daty
+          };
           // Jeśli wiadomość pochodzi od klienta, nie dodawaj jej ponownie
           if (!sentByClient) {
             setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -80,6 +85,30 @@ const Chat = ({ roomName }) => {
     };
   }, [roomName, sentByClient]); // Zależność na `sentByClient`, aby zaktualizować stan po wysłaniu wiadomości
 
+  useEffect(() => {
+    // Fetch previous messages
+    const fetchMessages = async () => {
+      try {
+        const token = sessionStorage.getItem('authToken');
+        const response = await axios.get(`http://localhost:8000/api/chat/${roomName}/messages/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        console.log(response.data);
+        const formattedMessages = response.data.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp).toLocaleString() // Parsowanie i formatowanie daty
+        }));
+        setMessages(formattedMessages);
+      } catch (error) {
+        console.error('Failed to fetch messages:', error);
+      }
+    };
+
+    fetchMessages();
+  }, [roomName]);
+
   const sendMessage = () => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       setSentByClient(true); // Ustawiamy flagę na true, że wiadomość jest wysyłana przez klienta
@@ -94,7 +123,9 @@ const Chat = ({ roomName }) => {
     <div>
       <div>
         {messages.map((msg, index) => (
-          <div key={index}>{msg}</div> // Wyświetlanie wiadomości
+          <div key={index}>
+            <strong>{msg.user}:</strong> {msg.message} <em>({msg.timestamp})</em>
+          </div> // Wyświetlanie wiadomości
         ))}
       </div>
       <input

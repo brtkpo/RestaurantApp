@@ -660,3 +660,12 @@ class SuccessPaymentView(APIView):
             return HttpResponseRedirect('http://localhost:3000/user?payment=success')
         except Order.DoesNotExist:
             return JsonResponse({'error': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+#Chat
+class ChatMessageListView(ListAPIView):
+    serializer_class = ChatMessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        room_name = self.kwargs['room_name']
+        return ChatMessage.objects.filter(room=room_name).order_by('timestamp')

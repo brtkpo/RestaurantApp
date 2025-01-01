@@ -74,6 +74,9 @@ urlpatterns = [
     #Payment
     path('api/create-checkout-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
     path('api/success/', SuccessPaymentView.as_view(), name='success'),
+    
+    #Chat
+    path('api/chat/<str:room_name>/messages/', ChatMessageListView.as_view(), name='chat-messages'),
 ]
 
 from django.conf.urls.static import static
