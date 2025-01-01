@@ -6,10 +6,29 @@ const Chat = ({ roomName }) => {
   const [socket, setSocket] = useState(null);
   const [sentByClient, setSentByClient] = useState(false); // Flaga do śledzenia, czy wiadomość jest wysyłana przez klienta
 
+  function getCSRFToken() {
+    const csrfToken = document.cookie.split(';').find(cookie => cookie.trim().startsWith('csrftoken='));
+    return csrfToken ? csrfToken.split('=')[1] : '';
+  }
+
   // Funkcja do ustanowienia połączenia WebSocket
   const connectWebSocket = (url) => {
     return new Promise((resolve, reject) => {
-      const ws = new WebSocket(url);
+
+      const token = sessionStorage.getItem('authToken');
+      if (!token) {
+        console.error("Token is missing!");
+        reject("Token is missing");
+        return;
+      }
+      console.log(token);
+
+      const wsUrl = `${url}?token=${token}`;
+      const ws = new WebSocket(wsUrl, [], {
+        headers: {
+          'Authorization': `Bearer ${token}`,  // Dodajemy token do nagłówka
+        }
+      });
 
       ws.onopen = () => {
         console.log('WebSocket connection established');
@@ -24,6 +43,7 @@ const Chat = ({ roomName }) => {
       ws.onclose = (event) => {
         console.warn('WebSocket connection closed:', event.code, event.reason);
       };
+
     });
   };
 
@@ -38,7 +58,7 @@ const Chat = ({ roomName }) => {
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
           const newMessage = data.message;
-
+          console.log(data);
           // Jeśli wiadomość pochodzi od klienta, nie dodawaj jej ponownie
           if (!sentByClient) {
             setMessages((prevMessages) => [...prevMessages, newMessage]);

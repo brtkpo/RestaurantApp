@@ -228,3 +228,12 @@ class OrderHistory(models.Model):
 
     def __str__(self):
         return f"Order {self.order.id} - {self.status} at {self.timestamp}"
+
+class ChatMessage(models.Model):
+    room = models.CharField(max_length=255)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} in {self.room} at {self.timestamp}"

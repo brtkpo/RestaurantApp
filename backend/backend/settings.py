@@ -14,6 +14,12 @@ from pathlib import Path
 import cloudinary
 from datetime import timedelta
 
+#import django
+#django.setup()
+
+#from core.models import *
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -241,6 +247,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",  # Adres Twojej aplikacji React
 ]
+
+CSRF_COOKIE_SECURE = False  # Jeśli używasz HTTPS, upewnij się, że jest to ustawione na True
 
 CHANNEL_LAYERS = {
     'default': {
