@@ -176,11 +176,6 @@ class CartItem(models.Model):
         return f"{self.quantity} x {self.product.name}"
 
 #Order
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-# Ensure you have the channel_layer initialized
-channel_layer = get_channel_layer()
-
 class Order(models.Model):
     PAYMENT_CHOICES = [
         ('card', 'Card'),
@@ -222,24 +217,8 @@ class Order(models.Model):
     
     def update_status(self, new_status, description=""):
         self.status = new_status
-        order_history = OrderHistory.objects.create(order=self, status=new_status, description=description)
+        OrderHistory.objects.create(order=self, status=new_status, description=description)
         self.save()
-        
-        Notification.objects.create(user=self.user, message=f"Nowa status zamówienia nr. {self.order_id}: {new_status}")
-
-        # Send notification via WebSocket
-        async_to_sync(channel_layer.group_send)(
-            f'order_{self.order_id}',
-            {
-                'type': 'order_history',
-                'message': {
-                    'order_id': self.order_id,
-                    'status': new_status,
-                    'description': description,
-                    'timestamp': order_history.timestamp.isoformat()
-                }
-            }
-        )
     
 class OrderHistory(models.Model):
     order = models.ForeignKey('Order', related_name='history', on_delete=models.CASCADE)
@@ -258,12 +237,3 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.user} in {self.room} at {self.timestamp}"
-    
-class Notification(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    message = models.TextField()
-    timestamp = models.DateTimeField(default=timezone.now)
-    is_read = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Notification for {self.user.email} at {self.timestamp}"

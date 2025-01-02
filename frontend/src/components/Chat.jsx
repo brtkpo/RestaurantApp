@@ -7,6 +7,11 @@ const Chat = ({ roomName }) => {
   const [socket, setSocket] = useState(null);
   const [sentByClient, setSentByClient] = useState(false); // Flaga do śledzenia, czy wiadomość jest wysyłana przez klienta
 
+  function getCSRFToken() {
+    const csrfToken = document.cookie.split(';').find(cookie => cookie.trim().startsWith('csrftoken='));
+    return csrfToken ? csrfToken.split('=')[1] : '';
+  }
+
   // Funkcja do ustanowienia połączenia WebSocket
   const connectWebSocket = (url) => {
     return new Promise((resolve, reject) => {
@@ -116,7 +121,6 @@ const Chat = ({ roomName }) => {
 
   return (
     <div>
-      <h2>Chat</h2>
       <div>
         {messages.map((msg, index) => (
           <div key={index}>
