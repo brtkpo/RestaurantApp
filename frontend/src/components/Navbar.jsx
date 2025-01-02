@@ -7,8 +7,8 @@ import DeleteProductFromCart from './DeleteProductFromCart';
 
 const Navbar = () => {
   const token = useSelector((state) => state.token);  // Pobieramy token z Redux
-  const { cartItems, setCartItems, refreshCart } = useContext(CartContext);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { cartItems, setCartItems, isCartOpen, setIsCartOpen, refreshCart } = useContext(CartContext);
+  //const [isCartOpen, setIsCartOpen] = useState(false);
 
   const fetchCart = async () => {
     const sessionId = sessionStorage.getItem('session_id');
@@ -47,6 +47,10 @@ const Navbar = () => {
     const price = parseFloat(item.product.price);
     return sum + (price * item.quantity);
   }, 0);
+
+  const handleOrderClick = () => {
+    setIsCartOpen(false); // Zamknij koszyk
+  };
 
   return (
     <>
@@ -91,9 +95,9 @@ const Navbar = () => {
                 <strong>Suma: {totalSum.toFixed(2)} PLN</strong>
                 <li style={styles.li}>
                   {token  ? (
-                    <Link to="/order" style={styles.link2}>Złóż zamówinenie</Link>  // Jeśli zalogowany, pokazujemy "Złóż zamówienie"s
+                    <Link to="/order" style={styles.link2} onClick={handleOrderClick}>Złóż zamówinenie</Link>  // Jeśli zalogowany, pokazujemy "Złóż zamówienie"s
                   ) : (
-                    <Link to="/login" style={styles.link2}>Zaloguj się, by złożyć zamówienie</Link>  // Jeśli nie, pokazujemy "Login"
+                    <Link to="/login" style={styles.link2} onClick={handleOrderClick}>Zaloguj się, by złożyć zamówienie</Link>  // Jeśli nie, pokazujemy "Login"
                   )}
                 </li>
               </div>

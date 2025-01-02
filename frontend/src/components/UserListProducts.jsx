@@ -5,7 +5,7 @@ import placeholderImage from '../assets/Placeholder.png';
 import Modal from 'react-modal';
 
 const UserListProducts = ({ products }) => {
-  const { cartItems, refreshCart } = useContext(CartContext);
+  const { cartItems, refreshCart, setIsCartOpen } = useContext(CartContext);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [productToAdd, setProductToAdd] = useState(null);
   const [modalResolve, setModalResolve] = useState(null);
@@ -52,6 +52,7 @@ const UserListProducts = ({ products }) => {
       sessionId = Math.random().toString(36).substr(2, 9);
       sessionStorage.setItem('session_id', sessionId);
     }
+    setIsCartOpen(true);
 
     // Sprawdź, czy w koszyku są produkty z innej restauracji
     if (cartItems.length > 0) {
@@ -77,6 +78,7 @@ const UserListProducts = ({ products }) => {
         `http://localhost:8000/api/cart/${sessionId}/items/`,
         requestData
       );
+      setIsCartOpen(true);
       console.log('Product added to cart:', response.data);
       //alert(`Dodano do koszyka: Produkt ${product.name}, Ilość: ${quantity}`);
       refreshCart();

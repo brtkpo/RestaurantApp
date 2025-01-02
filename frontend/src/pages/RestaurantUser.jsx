@@ -14,9 +14,18 @@ const RestaurantProfile = () => {
   const dispatch = useDispatch();
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
+  const [formError, setFormError] = useState(null);
   const navigate = useNavigate();
   const [productsUpdated, setProductsUpdated] = useState(false);
-
+  const [formData, setFormData] = useState({
+    name: '',
+    phone_number: '',
+    description: '',
+    allows_online_payment: false,
+    allows_cash_payment: false,
+    allows_delivery: false,
+    allows_pickup: false,
+  });
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
   // Ładowanie danych restauratora z backendu
@@ -35,6 +44,16 @@ const RestaurantProfile = () => {
           },
         });
         setProfileData(response.data);
+        setFormData({
+          name: response.data.restaurant.name,
+          phone_number: response.data.restaurant.phone_number,
+          description: response.data.restaurant.description,
+          allows_online_payment: response.data.restaurant.allows_online_payment,
+          allows_cash_payment: response.data.restaurant.allows_cash_payment,
+          allows_delivery: response.data.restaurant.allows_delivery,
+          allows_pickup: response.data.restaurant.allows_pickup,
+        });
+        console.log(response.data);
       } catch (error) {
         setError('Błąd podczas ładowania danych.');
         console.error(error);
@@ -63,6 +82,46 @@ const RestaurantProfile = () => {
 
   const handleProductsUpdated = () => {
     setProductsUpdated(!productsUpdated);
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError(null);
+
+    // Walidacja: co najmniej jedna opcja płatności i jedna opcja dostawy musi być zaznaczona
+    if (!formData.allows_online_payment && !formData.allows_cash_payment) {
+      setFormError('Musisz wybrać co najmniej jedną opcję płatności.');
+      return;
+    }
+    if (!formData.allows_delivery && !formData.allows_pickup) {
+      setFormError('Musisz wybrać co najmniej jedną opcję dostawy.');
+      return;
+    }
+
+    const token = sessionStorage.getItem('authToken');
+    try {
+      await axios.patch(
+        `http://localhost:8000/api/restaurant/update/${profileData.restaurant.id}/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert('Dane restauracji zostały zaktualizowane pomyślnie!');
+    } catch (error) {
+      console.error('Error updating restaurant details:', error);
+      alert('Nie udało się zaktualizować danych restauracji.');
+    }
   };
 
   // Jeśli wystąpił błąd podczas ładowania danych
@@ -123,6 +182,55 @@ const RestaurantProfile = () => {
       <p>Nazwa: {restaurant.name}</p>
       <p>Telefon lokalu: {restaurant.phone_number}</p>
       <p>Opis: {restaurant.description}</p>
+
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              name="allows_online_payment"
+              checked={formData.allows_online_payment}
+              onChange={handleChange}
+            />
+            Płatność online
+          </label>
+        </div>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              name="allows_cash_payment"
+              checked={formData.allows_cash_payment}
+              onChange={handleChange}
+            />
+            Płatność przy odbiorze
+          </label>
+        </div>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              name="allows_delivery"
+              checked={formData.allows_delivery}
+              onChange={handleChange}
+            />
+            Dostawa kurierem
+          </label>
+        </div>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              name="allows_pickup"
+              checked={formData.allows_pickup}
+              onChange={handleChange}
+            />
+            Odbiór osobisty
+          </label>
+        </div>
+        {formError && <p style={{ color: 'red' }}>{formError}</p>}
+        <button type="submit">Zapisz</button>
+      </form>
 
       <h3>Zdjęcie restauracji</h3>
       {restaurant.image ? (

@@ -18,6 +18,10 @@ const Order = () => {
   const [deliveryType, setDeliveryType] = useState('delivery');
   const [orderNotes, setOrderNotes] = useState('');
   const [user, setUser] = useState('');
+  const [restaurantSettings, setRestaurantSettings] = useState({});
+  const [isRestaurantSettingsLoaded, setIsRestaurantSettingsLoaded] = useState(false);
+  const [isAddressesLoaded, setIsAddressesLoaded] = useState(false);
+  const { setIsCartOpen } = useContext(CartContext);
 
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
@@ -26,6 +30,48 @@ const Order = () => {
       navigate('/login'); // Przekierowanie na stronę logowania, jeśli użytkownik nie jest zalogowany
     }
   }, [token, navigate]);
+
+  useEffect(() => {
+    setIsCartOpen(false); // Zamknij koszyk, gdy użytkownik jest na stronie zamówienia
+  }, [setIsCartOpen]);
+
+  useEffect(() => {
+    const fetchRestaurantSettings = async () => {
+      const parsedCartId = parseInt(cartId, 10);
+      console.log('Parsed cartId:', parsedCartId);
+      if (parsedCartId && !isNaN(parsedCartId)) {
+        try {
+          const response = await axios.get(`http://localhost:8000/api/cart/${parsedCartId}/restaurant-info/`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (response.data && Object.keys(response.data).length > 0) {
+            setRestaurantSettings(response.data);
+            //console.log("Restaurant settings:", response.data);
+          } else {
+            console.error("Received empty restaurant settings");
+          }
+        } catch (error) {
+          console.error("Error fetching restaurant settings:", error);
+        }
+        finally {
+
+          setIsRestaurantSettingsLoaded(true); // Ustawienie flagi na true
+          console.log("isRestaurantSettingsLoaded:", isRestaurantSettingsLoaded);
+          console.log("isAddressesLoaded:", isAddressesLoaded);
+        }
+      } else {
+        //console.error("Invalid cartId:", parsedCartId);
+      }
+    };
+    fetchRestaurantSettings();
+  }, [cartId, token]);
+
+  useEffect(() => {
+      console.log(restaurantSettings);
+      console.log(restaurantSettings.allows_online_payment);
+  }, [restaurantSettings]);
 
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
@@ -47,6 +93,11 @@ const Order = () => {
       }
     } catch (error) {
       alert('Błąd podczas dodawania adresu');
+    }
+    finally {
+      setIsAddressesLoaded(true); // Ustawienie flagi na true po zakończeniu fetchowania
+      console.log("isRestaurantSettingsLoaded:", isRestaurantSettingsLoaded);
+      console.log("isAddressesLoaded:", isAddressesLoaded);
     }
   };
 
@@ -74,15 +125,18 @@ const Order = () => {
 
     console.log("Order data:", orderData);
 
-
     try {
       const response = await axios.post("http://localhost:8000/api/orders/", orderData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      const orderId = response.data.order_id;
+
+      await refreshCart(); // Opróżnij koszyk po złożeniu zamówienia
+      setIsCartOpen(false);
       alert("Zamówienie zostało złożone pomyślnie!");
-      refreshCart(); // Opróżnij koszyk po złożeniu zamówienia
+      navigate(`/user/orders/${orderId}`);
     } catch (error) {
       console.error("Error creating order:", error);
       if (error.response && error.response.data) {
@@ -92,7 +146,7 @@ const Order = () => {
   };
 
   const groupedCartItems = cartItems ? cartItems.reduce((acc, item) => {
-    console.log(cartItems[0].product.restaurant);
+    console.log(cartItems);
     const { name, restaurant, price } = item.product;
     if (!acc[restaurant]) {
       acc[restaurant] = [];
@@ -100,6 +154,14 @@ const Order = () => {
     acc[restaurant].push({ ...item, name, price });
     return acc;
   }, {}) : {};
+
+  const calculateTotalPrice = () => {
+    return cartItems.reduce((total, item) => total + item.quantity * item.product.price, 0);
+  };
+
+  if (!isRestaurantSettingsLoaded) {
+    return <div>Ładowanie danych...</div>; // Możesz tu wstawić spinner lub komunikat ładowania
+  }
 
   return (
     <div>
@@ -114,77 +176,92 @@ const Order = () => {
             </div>
           )}
           <AddAddressForm onAddAddress={handleAddAddress} />
-
         </>
       ) : (
         <p>Proszę się zalogować, aby zobaczyć listę adresów.</p>
       )}
       {Object.keys(groupedCartItems).map((restaurantName) => (
-              <div key={restaurantName}>
-                <h3>{restaurantName}</h3>
-                <ul>
-                  {groupedCartItems[restaurantName].map((item) => (
-                    <li key={item.id}>
-                      <img
-                        src={item.image ? `${cloudinaryBaseUrl}${item.image}` : placeholderImage}
-                        alt={item.name}
-                        style={{ width: "300px", height: "auto" }}
-                      />
-                      <br />
-                      {item.name} - {item.quantity} szt. x {item.price} PLN
-                      <DeleteProductFromCart 
-                        productId={item.product.id} 
-                        cartItemId={item.id} 
-                        quantity={item.quantity}
-                        refreshCart={refreshCart} 
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
+        <div key={restaurantName}>
+          <h3>{restaurantSettings.name}</h3>
+          <ul>
+            {groupedCartItems[restaurantName].map((item) => (
+              <li key={item.id}>
+                <img
+                  src={item.image ? `${cloudinaryBaseUrl}${item.image}` : placeholderImage}
+                  alt={item.name}
+                  style={{ width: "300px", height: "auto" }}
+                />
+                <br />
+                {item.name} - {item.quantity} szt. x {item.price} PLN
+                <DeleteProductFromCart 
+                  productId={item.product.id} 
+                  cartItemId={item.id} 
+                  quantity={item.quantity}
+                  refreshCart={refreshCart} 
+                />
+              </li>
             ))}
-            <div>
-            <h3>Wybierz typ płatności:</h3>
-            <label>
-              <input
-                type="radio"
-                value="online"
-                checked={paymentType === 'online'}
-                onChange={(e) => setPaymentType(e.target.value)}
-              />
-              Online
-            </label>
-          </div>
+          </ul>
           <div>
-            <h3>Wybierz typ dostawy:</h3>
-            <label>
-              <input
-                type="radio"
-                value="pickup"
-                checked={deliveryType === 'pickup'}
-                onChange={(e) => setDeliveryType(e.target.value)}
-              />
-              Odbiór osobisty
-            </label>
-            <label>
-              <input
-                type="radio"
-                value="delivery"
-                checked={deliveryType === 'delivery'}
-                onChange={(e) => setDeliveryType(e.target.value)}
-              />
-              Dostawa
-            </label>
+            <h3>Łączna cena: {calculateTotalPrice()} PLN</h3>
           </div>
-          <div>
-            <h3>Notatki do zamówienia:</h3>
-            <textarea
-              value={orderNotes}
-              onChange={(e) => setOrderNotes(e.target.value)}
-              placeholder="Dodaj notatki do zamówienia"
-            />
-          </div>
-          <button onClick={handleCreateOrder}>Złóż zamówienie</button>
+        </div>
+      ))}
+      <div>
+        <h3>Wybierz typ płatności:</h3>
+        <label style={{ color: restaurantSettings.allows_online_payment ? 'black' : 'gray' }}>
+          <input
+            type="radio"
+            value="online"
+            checked={paymentType === 'online'}
+            onChange={(e) => restaurantSettings.allows_online_payment && setPaymentType(e.target.value)}
+            disabled={!restaurantSettings.allows_online_payment}
+          />
+          Online
+        </label>
+        <label style={{ color: restaurantSettings.allows_cash_payment ? 'black' : 'gray' }}>
+          <input
+            type="radio"
+            value="cash"
+            checked={paymentType === 'cash'}
+            onChange={(e) => restaurantSettings.allows_cash_payment && setPaymentType(e.target.value)}
+            disabled={!restaurantSettings.allows_cash_payment}
+          />
+          Przy odbiorze
+        </label>
+      </div>
+      <div>
+        <h3>Wybierz typ dostawy:</h3>
+        <label style={{ color: restaurantSettings.allows_delivery ? 'black' : 'gray' }}>
+          <input
+            type="radio"
+            value="delivery"
+            checked={deliveryType === 'delivery'}
+            onChange={(e) => restaurantSettings.allows_delivery && setDeliveryType(e.target.value)}
+            disabled={!restaurantSettings.allows_delivery}
+          />
+          Dostawa kurierem
+        </label>
+        <label style={{ color: restaurantSettings.allows_pickup ? 'black' : 'gray' }}>
+          <input
+            type="radio"
+            value="pickup"
+            checked={deliveryType === 'pickup'}
+            onChange={(e) => restaurantSettings.allows_pickup && setDeliveryType(e.target.value)}
+            disabled={!restaurantSettings.allows_pickup}
+          />
+          Odbiór osobisty
+        </label>
+      </div>
+      <div>
+        <h3>Notatki do zamówienia:</h3>
+        <textarea
+          value={orderNotes}
+          onChange={(e) => setOrderNotes(e.target.value)}
+          placeholder="Dodaj notatki do zamówienia"
+        />
+      </div>
+      <button onClick={handleCreateOrder}>Złóż zamówienie</button>
     </div>
   );
 };

@@ -6,6 +6,7 @@ export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartId, setCartId] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const fetchCart = async () => {
     const sessionId = sessionStorage.getItem('session_id');
@@ -30,10 +31,11 @@ export const CartProvider = ({ children }) => {
 
   const refreshCart = () => {
     fetchCart();
+    //setIsCartOpen(false);
   };
 
   return (
-    <CartContext.Provider value={{ cartId, cartItems, refreshCart }}>
+    <CartContext.Provider value={{ cartId, cartItems, isCartOpen, setIsCartOpen, refreshCart }}>
       {children}
     </CartContext.Provider>
   );

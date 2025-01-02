@@ -73,6 +73,11 @@ class Restaurant(models.Model):
     description = models.TextField(null=True, blank=True)
     image = CloudinaryField('image', null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name='restaurants', blank=True)  # Dodano relację
+    
+    allows_online_payment = models.BooleanField(default=True)
+    allows_cash_payment = models.BooleanField(default=True)
+    allows_delivery = models.BooleanField(default=True)
+    allows_pickup = models.BooleanField(default=True)
     #created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

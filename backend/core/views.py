@@ -511,6 +511,31 @@ class ClearCartItemsFromOtherRestaurantsView(DestroyAPIView):
         CartItem.objects.filter(cart=cart).exclude(product__restaurant_id=restaurant_id).delete()
 
         return Response({"message": "Produkty z innych restauracji zostały usunięte z koszyka."}, status=status.HTTP_200_OK)
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+class CartRestaurantInfoView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RestaurantSerializer
+
+    def get(self, request, *args, **kwargs):
+        cart_id = kwargs.get('cart_id')
+        try:
+            cart = Cart.objects.get(id=cart_id)
+            cart_item = CartItem.objects.filter(cart=cart).first()
+            if not cart_item:
+                return Response({"error": "Koszyk jest pusty."}, status=status.HTTP_404_NOT_FOUND)
+            
+            restaurant = cart_item.product.restaurant
+            serializer = self.get_serializer(restaurant)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Cart.DoesNotExist:
+            return Response({"error": "Koszyk nie istnieje."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error fetching restaurant info for cart {cart_id}: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 #Order
 class OrderListCreateView(ListCreateAPIView):
@@ -539,6 +564,17 @@ class OrderListCreateView(ListCreateAPIView):
                 cart.save()
             except Cart.DoesNotExist:
                 return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            {"order_id": serializer.instance.order_id},
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
 
 import logging
 logger = logging.getLogger('django')
