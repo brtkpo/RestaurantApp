@@ -4,6 +4,9 @@ import placeholderImage from '../assets/Placeholder.png';
 
 const Home = () => {
   const [restaurants, setRestaurants] = useState([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -14,27 +17,34 @@ const Home = () => {
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
   useEffect(() => {
-    //if (restaurants.length > 0) {
-    //  setLoading(false);
-    //  return;
-    //}
-
-    fetch("http://localhost:8000/api/restaurant/list") 
-      .then((response) => {
+    const fetchRestaurants = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/restaurant/list");
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data);
+        const data = await response.json();
         setRestaurants(data);
+        setFilteredRestaurants(data);
         setLoading(false);
-      })
-      .catch((error) => {
+
+        // Extract unique tags from restaurants
+        const uniqueTags = [];
+        data.forEach(restaurant => {
+          restaurant.tags.forEach(tag => {
+            if (!uniqueTags.some(t => t.id === tag.id)) {
+              uniqueTags.push(tag);
+            }
+          });
+        });
+        setTags(uniqueTags);
+      } catch (error) {
         console.error("There was a problem with the fetch operation:", error);
-      });
-  }, []); //[restaurants]
+      }
+    };
+
+    fetchRestaurants();
+  }, []);
 
   //useEffect(() => {
   //  if (selectedRestaurant !== null) {
@@ -47,24 +57,43 @@ const Home = () => {
     //}
   //}, [selectedRestaurant]); //scrollPosition
 
+  const handleTagChange = (tagId) => {
+    const newSelectedTags = selectedTags.includes(tagId)
+      ? selectedTags.filter(id => id !== tagId)
+      : [...selectedTags, tagId];
+    setSelectedTags(newSelectedTags);
+
+    if (newSelectedTags.length === 0) {
+      setFilteredRestaurants(restaurants);
+    } else {
+      const filtered = restaurants.filter(restaurant =>
+        restaurant.tags.some(tag => newSelectedTags.includes(tag.id))
+      );
+      setFilteredRestaurants(filtered);
+    }
+  };
+
   const handleRestaurantClick = (restaurant) => {
     console.log("handleRestaurantClick");
     //const currentScroll = window.scrollY;
     //console.log("Zapisuję pozycję scrolla:", currentScroll);
     // Zapisz aktualną pozycję scrolla przed przejściem
     //setScrollPosition(window.scrollY);
-    setSelectedRestaurant(restaurant);
     setScrollPosition(window.scrollY);
+    console.log("scrollPosition", scrollPosition);
+    setSelectedRestaurant(restaurant);
+    //setScrollPosition(window.scrollY);
     window.scrollTo(0, 0);
   };
 
   const handleBackClick = () => {
     console.log("handleBackClick");
+    console.log("scrollPositionhandleBackClick", scrollPosition);
     //console.log("Przywracam pozycję scrolla:", scrollPosition);
     setSelectedRestaurant(null);
     setScrollPosition(window.scrollY);
     
-    console.log("scrollFun");
+    //console.log("scrollFun");
     if (scrollPosition > 0) {
       const scrollToPosition = () => {
         const currentScrollY = window.scrollY;
@@ -78,6 +107,8 @@ const Home = () => {
       };
       requestAnimationFrame(scrollToPosition);
     }
+    console.log("scrollPositionfun", scrollPosition);
+    setScrollPosition(0);
     //setSelectedRestaurant(null);
     // Przywróć pozycję scrolla
     //setTimeout(() => {
@@ -161,8 +192,25 @@ const Home = () => {
       {/*<h1>Welcome to the Home Page!</h1>*/}
       
       <h2>Lista Restauracji:</h2>
+      <div>
+        <h3>Filtruj według tagów</h3>
+        <ul style={{ listStyleType: 'none', padding: 0 }}>
+          {tags.map(tag => (
+            <li key={tag.id}>
+              <label>
+                <input
+                  type="checkbox"
+                  value={tag.id}
+                  onChange={() => handleTagChange(tag.id)}
+                />
+                {tag.name}
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
       <ul style={{ listStyleType: "none", padding: 0 }}>
-        {restaurants.map((restaurant) => (
+        {filteredRestaurants.map((restaurant) => (
           <li
             key={restaurant.id}
             onClick={() => {handleRestaurantClick(restaurant); setIsRendered(true);}}
