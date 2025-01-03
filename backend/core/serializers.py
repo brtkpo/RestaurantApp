@@ -26,7 +26,7 @@ class AddressSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email', read_only=True)
     class Meta:
         model = Address
-        fields = ['id', 'first_name', 'last_name', 'phone_number', 'street', 'building_number', 'apartment_number', 'postal_code', 'city', 'user', 'email']
+        fields = ['id', 'first_name', 'last_name', 'phone_number', 'street', 'building_number', 'apartment_number', 'postal_code', 'city', 'user', 'email', 'owner_role', 'restaurant']
 
     extra_kwargs = {
             'apartment_number': {'required': False, 'allow_null': True},
@@ -61,6 +61,18 @@ class RestaurantSerializer(serializers.ModelSerializer):
     #        return f'https://res.cloudinary.com/dljau5sfr/{obj.image}'
     #        #return f'{obj.image}'
     #    return None
+
+class RestaurantWithAddressSerializer(serializers.ModelSerializer):
+    address = AddressSerializer(source='address_set', many=True, read_only=True)
+    
+    tags = TagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tag.objects.all(), write_only=True, required=False
+    )
+
+    class Meta:
+        model = Restaurant
+        fields = ['id', 'name', 'phone_number', 'description', 'image', 'tags', 'tag_ids','allows_online_payment', 'allows_cash_payment', 'allows_delivery', 'allows_pickup', 'owner', 'address']
 
 class RestaurateurRegistrationSerializer(serializers.ModelSerializer):
     restaurant = RestaurantSerializer()

@@ -124,8 +124,26 @@ class AddAddressView(APIView):
 
     def post(self, request):
         data = request.data
+        user = request.user
         # Dodajemy usera automatycznie, bazując na aktualnie zalogowanym użytkowniku
-        data['user'] = request.user.id  
+        data['user'] = user.id  
+        data['owner_role'] = user.role  
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"owner_role: {user.role}")
+        
+        if user.role == 'restaurateur':
+            # Sprawdzamy, czy użytkownik ma już zapisany adres
+            if Address.objects.filter(user=user).exists():
+                return Response({'error': 'Adres już istnieje dla tego użytkownika.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Przypisujemy restaurant_id na podstawie user.id
+            try:
+                restaurant = Restaurant.objects.get(owner_id=user.id)
+                data['restaurant'] = restaurant.id
+                logger.info(f"restaurant_id: {restaurant.id}")
+            except Restaurant.DoesNotExist:
+                return Response({'error': 'Restauracja nie istnieje dla tego użytkownika.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if data.get('apartment_number') == '':
             data['apartment_number'] = None
@@ -173,8 +191,10 @@ class RestaurantRegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class RestaurantListView(ListAPIView):
-    queryset = Restaurant.objects.all()
-    serializer_class = RestaurantSerializer
+    serializer_class = RestaurantWithAddressSerializer
+
+    def get_queryset(self):
+        return Restaurant.objects.filter(address__isnull=False).distinct()
 
 
 class RestaurantProfileView(APIView):

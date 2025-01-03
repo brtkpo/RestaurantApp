@@ -9,6 +9,7 @@ import AddProduct from '../components/AddProduct';
 import RestaurantProducts from "../components/RestaurantProducts";
 import RestaurantOrders from "../components/RestaurantOrders";
 import placeholderImage from '../assets/Placeholder.png';
+import RestaurantAddress from '../components/RestaurantAddress';
 
 const RestaurantProfile = () => {
   const dispatch = useDispatch();
@@ -182,7 +183,7 @@ const RestaurantProfile = () => {
       <p>Nazwa: {restaurant.name}</p>
       <p>Telefon lokalu: {restaurant.phone_number}</p>
       <p>Opis: {restaurant.description}</p>
-
+      <RestaurantAddress profileData={profileData} />
       <form onSubmit={handleSubmit}>
         <div>
           <label>

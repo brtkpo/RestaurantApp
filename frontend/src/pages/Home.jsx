@@ -179,8 +179,11 @@ const Home = () => {
           >
             <h2>{restaurant.name}</h2>
             <p>{restaurant.description}</p>
-            <p>{restaurant.address}</p>
-
+            {restaurant.address && restaurant.address.map((addr) => (
+              <p key={addr.id}>
+                {addr.street} {addr.building_number}, {addr.apartment_number ? `${addr.apartment_number}, ` : ''}{addr.postal_code} {addr.city}
+              </p>
+            ))}
             {/* Sprawdzamy, czy jest dostępne zdjęcie */}
 
             <img
