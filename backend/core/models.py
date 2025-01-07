@@ -78,6 +78,7 @@ class Restaurant(models.Model):
     allows_cash_payment = models.BooleanField(default=True)
     allows_delivery = models.BooleanField(default=True)
     allows_pickup = models.BooleanField(default=True)
+    minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     #created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

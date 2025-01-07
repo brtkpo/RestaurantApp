@@ -26,6 +26,7 @@ const RestaurantProfile = () => {
     allows_cash_payment: false,
     allows_delivery: false,
     allows_pickup: false,
+    minimum_order_amount: 0.00,
   });
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
@@ -53,6 +54,7 @@ const RestaurantProfile = () => {
           allows_cash_payment: response.data.restaurant.allows_cash_payment,
           allows_delivery: response.data.restaurant.allows_delivery,
           allows_pickup: response.data.restaurant.allows_pickup,
+          minimum_order_amount: response.data.restaurant.minimum_order_amount,
         });
         console.log(response.data);
       } catch (error) {
@@ -229,6 +231,19 @@ const RestaurantProfile = () => {
             Odbiór osobisty
           </label>
         </div>
+        <div>
+        <label>
+          Minimalna kwota zamówienia:
+          <input
+            type="number"
+            name="minimum_order_amount"
+            value={formData.minimum_order_amount}
+            onChange={handleChange}
+            min="0"
+            max="10000"
+          />
+        </label>
+      </div>
         {formError && <p style={{ color: 'red' }}>{formError}</p>}
         <button type="submit">Zapisz</button>
       </form>

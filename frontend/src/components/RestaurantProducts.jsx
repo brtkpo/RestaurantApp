@@ -83,6 +83,10 @@ const RestaurantProducts = ({ restaurantId }) => {
     return <div>Błąd: {error}</div>;
   }
 
+  if (products.length === 0) {
+    return <div>Brak produktów dla restauracji.</div>;
+  }
+
   return (
     <div>
       <h2>Produkty</h2>

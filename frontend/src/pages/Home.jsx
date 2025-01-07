@@ -31,6 +31,7 @@ const Home = () => {
       setFilteredRestaurants(data);
       setLoading(false);
       setError(null);
+      console.log("Restaurants:", data);
 
       // Extract unique tags from restaurants
       const uniqueTags = [];
@@ -241,6 +242,22 @@ const Home = () => {
                     {addr.street} {addr.building_number}, {addr.apartment_number ? `${addr.apartment_number}, ` : ''}{addr.postal_code} {addr.city}
                   </p>
                 ))}
+                {(restaurant.allows_cash_payment || restaurant.allows_online_payment) && (
+                  <p>
+                    {restaurant.allows_cash_payment && "Płatność na miejscu/przy odbiorze"}
+                    {restaurant.allows_cash_payment && restaurant.allows_online_payment && ", "}
+                    {restaurant.allows_online_payment && "Płatność online"}
+                  </p>
+                )}
+                {(restaurant.allows_delivery || restaurant.allows_pickup) && (
+                  <p>
+                    {restaurant.allows_delivery && "Dostawa"}
+                    {restaurant.allows_delivery && restaurant.allows_pickup && ", "}
+                    {restaurant.allows_pickup && "Odbiór osobisty"}
+                  </p>
+                )}
+                {restaurant.minimum_order_amount > 0 && <p>Minimalna wartość zamówienia: {restaurant.minimum_order_amount} PLN</p>}
+                {restaurant.minimum_order_amount == 0 && <p>Brak minimalnej wartości zamówienia</p>}
                 <img
                   src={restaurant.image !== null ? `${cloudinaryBaseUrl}${restaurant.image}` : placeholderImage}
                   alt={restaurant.name}

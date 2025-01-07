@@ -17,7 +17,7 @@ export const CartProvider = ({ children }) => {
         //console.log(response);
         setCartId(response.data[0].id);
         setCartItems(response.data[0].items);
-        //console.log('response:', response);
+        console.log('response:', response);
         //console.log('Fetched cart:', response.data[0].items);
       } catch (error) {
         console.error('Error fetching cart:', error);
