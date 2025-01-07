@@ -40,6 +40,8 @@ urlpatterns = [
     path('api/restaurant/user', RestaurantProfileView.as_view(), name='restaurant_user'),
     path('api/restaurant/update/<int:pk>/', RestaurantUpdateView.as_view(), name='restaurant-detail'),
     
+    path('api/cities/', CityListView.as_view(), name='city-list'),
+    
     #Cloudinary
     path('api/generate-signature/', generateUploadSignature, name='generate_upload_signature'),
     

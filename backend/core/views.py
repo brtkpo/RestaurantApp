@@ -10,6 +10,7 @@ from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView, RetrieveAPIView, ListCreateAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView, GenericAPIView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Count
 from .serializers import *
 from .models import *
 from django.http import JsonResponse
@@ -184,7 +185,7 @@ class RestaurantRegistrationView(APIView):
         if serializer.is_valid():
             serializer.save()  # Zapisujemy nowego użytkownika i restaurację
             return Response(
-                {"message": "Restaurateur and restaurant created successfully."},
+                {"message": "restaurator i restauracja utworzona pomyślnie!"},
                 status=status.HTTP_201_CREATED
             )
         #logger.error(f"Validation errors: {serializer.errors}")
@@ -194,7 +195,20 @@ class RestaurantListView(ListAPIView):
     serializer_class = RestaurantWithAddressSerializer
 
     def get_queryset(self):
+        city = self.request.query_params.get('city', None)
+        if city:
+            return Restaurant.objects.filter(address__city__iexact=city, address__isnull=False).distinct()
         return Restaurant.objects.filter(address__isnull=False).distinct()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        if not queryset.exists():
+            city = self.request.query_params.get('city', None)
+            if city:
+                return Response({"error": f"Brak restauracji w mieście: {city}"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Nie znaleziono restauracji"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class RestaurantProfileView(APIView):
@@ -208,6 +222,15 @@ class RestaurantProfileView(APIView):
 class RestaurantUpdateView(UpdateAPIView):
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
+    
+class CityListView(ListAPIView):
+    """
+    GET: Zwraca listę wszystkich unikalnych nazw miast dla adresów restauracji
+    """
+    def get(self, request, *args, **kwargs):
+        cities = Address.objects.filter(owner_role='restaurateur').values('city').annotate(count=Count('city')).order_by('city')
+        city_names = [city['city'] for city in cities]
+        return Response(city_names, status=status.HTTP_200_OK)
     
 #Cloudinary
 def generateUploadSignature(request):

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import UserListProducts from "../components/UserListProducts.jsx";
 import placeholderImage from '../assets/Placeholder.png';
 
@@ -7,55 +7,64 @@ const Home = () => {
   const [filteredRestaurants, setFilteredRestaurants] = useState([]);
   const [tags, setTags] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const scrollPositionRef = useRef(0);
   const [isRendered, setIsRendered] = useState(false); //userlist
   const [products, setProducts] = useState(null);
   const [error, setError] = useState(null);
+  const [cities, setCities] = useState([]);
+  const [selectedCity, setSelectedCity] = useState('');
 
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
+  const fetchRestaurants = async (city = '') => {
+    setLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8000/api/restaurant/list?city=${city}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Network response was not ok");
+      }
+      const data = await response.json();
+      setRestaurants(data);
+      setFilteredRestaurants(data);
+      setLoading(false);
+      setError(null);
+
+      // Extract unique tags from restaurants
+      const uniqueTags = [];
+      data.forEach(restaurant => {
+        restaurant.tags.forEach(tag => {
+          if (!uniqueTags.some(t => t.id === tag.id)) {
+            uniqueTags.push(tag);
+          }
+        });
+      });
+      setTags(uniqueTags);
+    } catch (error) {
+      console.error("There was a problem with the fetch operation:", error);
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchRestaurants = async () => {
+    const fetchCities = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/restaurant/list");
+        const response = await fetch("http://localhost:8000/api/cities/");
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
         const data = await response.json();
-        setRestaurants(data);
-        setFilteredRestaurants(data);
-        setLoading(false);
-
-        // Extract unique tags from restaurants
-        const uniqueTags = [];
-        data.forEach(restaurant => {
-          restaurant.tags.forEach(tag => {
-            if (!uniqueTags.some(t => t.id === tag.id)) {
-              uniqueTags.push(tag);
-            }
-          });
-        });
-        setTags(uniqueTags);
+        setCities(data);
       } catch (error) {
         console.error("There was a problem with the fetch operation:", error);
       }
     };
 
-    fetchRestaurants();
+    fetchCities();
   }, []);
-
-  //useEffect(() => {
-  //  if (selectedRestaurant !== null) {
-  //    setScrollPosition(window.scrollY);
-  //  }
-    //if (selectedRestaurant === null) {
-    //  setTimeout(() => {
-    //    window.scrollTo(0, scrollPosition);
-    //  }, 0);
-    //}
-  //}, [selectedRestaurant]); //scrollPosition
 
   const handleTagChange = (tagId) => {
     const newSelectedTags = selectedTags.includes(tagId)
@@ -63,80 +72,61 @@ const Home = () => {
       : [...selectedTags, tagId];
     setSelectedTags(newSelectedTags);
 
-    if (newSelectedTags.length === 0) {
-      setFilteredRestaurants(restaurants);
-    } else {
-      const filtered = restaurants.filter(restaurant =>
-        restaurant.tags.some(tag => newSelectedTags.includes(tag.id))
-      );
-      setFilteredRestaurants(filtered);
+    filterRestaurants(selectedCity, newSelectedTags);
+  };
+
+  const handleCityChange = (e) => {
+    setSelectedCity(e.target.value);
+  };
+
+  const handleCitySelect = () => {
+    fetchRestaurants(selectedCity);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleCitySelect();
     }
+  };
+
+  const filterRestaurants = (city, tags) => {
+    let filtered = restaurants;
+
+    if (city) {
+      filtered = filtered.filter(restaurant =>
+        restaurant.address.some(addr => addr.city.toLowerCase() === city.toLowerCase())
+      );
+    }
+
+    if (tags.length > 0) {
+      filtered = filtered.filter(restaurant =>
+        restaurant.tags.some(tag => tags.includes(tag.id))
+      );
+    }
+
+    setFilteredRestaurants(filtered);
   };
 
   const handleRestaurantClick = (restaurant) => {
     console.log("handleRestaurantClick");
-    //const currentScroll = window.scrollY;
-    //console.log("Zapisuję pozycję scrolla:", currentScroll);
-    // Zapisz aktualną pozycję scrolla przed przejściem
-    //setScrollPosition(window.scrollY);
-    setScrollPosition(window.scrollY);
-    console.log("scrollPosition", scrollPosition);
+    scrollPositionRef.current = window.scrollY; // Zapisz aktualną pozycję scrolla do useRef
+    console.log("scrollPositionRef.current", scrollPositionRef.current);
+    console.log("window.scrollY", window.scrollY);
     setSelectedRestaurant(restaurant);
-    //setScrollPosition(window.scrollY);
     window.scrollTo(0, 0);
   };
 
   const handleBackClick = () => {
     console.log("handleBackClick");
-    console.log("scrollPositionhandleBackClick", scrollPosition);
-    //console.log("Przywracam pozycję scrolla:", scrollPosition);
     setSelectedRestaurant(null);
-    setScrollPosition(window.scrollY);
-    
-    //console.log("scrollFun");
-    if (scrollPosition > 0) {
-      const scrollToPosition = () => {
-        const currentScrollY = window.scrollY;
-        const difference = scrollPosition - currentScrollY;
-        const increment = Math.sign(difference) * Math.min(Math.abs(difference), 1000); // 10
-        window.scrollTo(0, currentScrollY + increment);
-
-        if (Math.abs(difference) > 0) {
-          requestAnimationFrame(scrollToPosition);
-        }
-      };
-      requestAnimationFrame(scrollToPosition);
-    }
-    console.log("scrollPositionfun", scrollPosition);
-    setScrollPosition(0);
-    //setSelectedRestaurant(null);
-    // Przywróć pozycję scrolla
-    //setTimeout(() => {
-    //  window.scrollTo(0, scrollPosition);
-    //}, 0); // Używamy timeoutu, aby upewnić się, że scrollowanie nastąpi po renderze
   };
 
-  //useEffect(() => {
-  //  console.log("useEffectScrollPosition");
-  //  if (scrollPosition > 0) {
-  //    const scrollToPosition = () => {
-  //      const currentScrollY = window.scrollY;
-  //      const difference = scrollPosition - currentScrollY;
-  //      const increment = Math.sign(difference) * Math.min(Math.abs(difference), 100); // 10
-  //      window.scrollTo(0, currentScrollY + increment);
-
-  //      if (Math.abs(difference) > 0) {
-  //        requestAnimationFrame(scrollToPosition);
-  //      }
-  //    };
-
-  //    requestAnimationFrame(scrollToPosition);
-  //  }
-  //}, [scrollPosition]); // Update scroll only when scrollPosition changes
-
-  //if (loading) {
-    //return <p>Błąd połączenia, przepraszamy.</p>;
-  //}
+  useEffect(() => {
+    if (!selectedRestaurant && scrollPositionRef.current > 0) {
+      window.scrollTo(0, scrollPositionRef.current); // Przywróć pozycję scrolla z useRef
+      scrollPositionRef.current = 0; // Resetuj pozycję scrolla
+    }
+  }, [selectedRestaurant, filteredRestaurants]);
 
   useEffect(() => {
     setIsRendered(true);
@@ -167,7 +157,6 @@ const Home = () => {
     setIsRendered(true);
   };
 
-
   if (selectedRestaurant && isRendered === false) {
     if (products && products.length === 0) {
       return (
@@ -181,7 +170,7 @@ const Home = () => {
     return (
       <div>
         <h1>{selectedRestaurant.name}</h1>
-        {products && <UserListProducts products={products} onRendered={handleRendered} />}{/*<UserListProducts restaurantId={selectedRestaurant.id} onRendered={handleRendered}/>*/}
+        {products && <UserListProducts products={products} onRendered={handleRendered} />}
         <button onClick={handleBackClick}>Wróć</button>
       </div>
     );
@@ -189,80 +178,96 @@ const Home = () => {
 
   return (
     <div>
-      {/*<h1>Welcome to the Home Page!</h1>*/}
       
-      <h2>Lista Restauracji:</h2>
       <div>
-        <h3>Filtruj według tagów</h3>
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
-          {tags.map(tag => (
-            <li key={tag.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  value={tag.id}
-                  onChange={() => handleTagChange(tag.id)}
-                />
-                {tag.name}
-              </label>
-            </li>
+        <h3>Restauracje w pobliżu:</h3>
+        <input
+          type="text"
+          list="cities"
+          value={selectedCity}
+          onChange={handleCityChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Wyszukaj miasto"
+        />
+        <datalist id="cities">
+          {cities.map(city => (
+            <option key={city} value={city} />
           ))}
-        </ul>
+        </datalist>
+        <button onClick={handleCitySelect}>Szukaj</button>
       </div>
-      <ul style={{ listStyleType: "none", padding: 0 }}>
-        {filteredRestaurants.map((restaurant) => (
-          <li
-            key={restaurant.id}
-            onClick={() => {handleRestaurantClick(restaurant); setIsRendered(true);}}
-            style={{
-              cursor: "pointer",
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              padding: "20px",
-              marginBottom: "10px",
-              transition: "background-color 0.2s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9f9f9")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "white")}
-          >
-            <h2>{restaurant.name}</h2>
-            <p>{restaurant.description}</p>
-            {restaurant.address && restaurant.address.map((addr) => (
-              <p key={addr.id}>
-                {addr.street} {addr.building_number}, {addr.apartment_number ? `${addr.apartment_number}, ` : ''}{addr.postal_code} {addr.city}
-              </p>
+      {loading && <p>Ładowanie...</p>}
+      {error && <p>{error}</p>}
+      {!loading && !error && restaurants.length > 0 && (
+        <>
+          <div>
+            <h3>Filtruj według tagów</h3>
+            <ul style={{ listStyleType: 'none', padding: 0 }}>
+              {tags.map(tag => (
+                <li key={tag.id}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      value={tag.id}
+                      onChange={() => handleTagChange(tag.id)}
+                    />
+                    {tag.name}
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <h2>Lista Restauracji:</h2>
+          <ul style={{ listStyleType: "none", padding: 0 }}>
+            {filteredRestaurants.map((restaurant) => (
+              <li
+                key={restaurant.id}
+                onClick={() => {handleRestaurantClick(restaurant); setIsRendered(true);}}
+                style={{
+                  cursor: "pointer",
+                  border: "1px solid #ddd",
+                  borderRadius: "10px",
+                  padding: "20px",
+                  marginBottom: "10px",
+                  transition: "background-color 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9f9f9")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "white")}
+              >
+                <h2>{restaurant.name}</h2>
+                <p>{restaurant.description}</p>
+                {restaurant.address && restaurant.address.map((addr) => (
+                  <p key={addr.id}>
+                    {addr.street} {addr.building_number}, {addr.apartment_number ? `${addr.apartment_number}, ` : ''}{addr.postal_code} {addr.city}
+                  </p>
+                ))}
+                <img
+                  src={restaurant.image !== null ? `${cloudinaryBaseUrl}${restaurant.image}` : placeholderImage}
+                  alt={restaurant.name}
+                  style={{ width: "300px", height: "auto" }}
+                />
+                {restaurant.tags && restaurant.tags.length > 0 && (
+                  <div style={{ marginTop: "10px" }}>
+                    <ul>
+                      {restaurant.tags.map((tag) => (
+                        <li key={tag.id} style={{ display: "inline", marginRight: "10px"}}>
+                          <span style={{ 
+                            backgroundColor: "#f0f0f0", 
+                            padding: "5px 10px", 
+                            borderRadius: "5px" 
+                          }}>
+                            {tag.name}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </li>
             ))}
-            {/* Sprawdzamy, czy jest dostępne zdjęcie */}
-
-            <img
-              src={restaurant.image !== null ? `${cloudinaryBaseUrl}${restaurant.image}` : placeholderImage}
-              alt={restaurant.name}
-              style={{ width: "300px", height: "auto" }}
-            />
-
-
-            {/* Wyświetlanie tagów */}
-            {restaurant.tags && restaurant.tags.length > 0 && (
-              <div style={{ marginTop: "10px" }}>
-                {/*<h3>Tags:</h3>*/}
-                <ul>
-                  {restaurant.tags.map((tag) => (
-                    <li key={tag.id} style={{ display: "inline", marginRight: "10px"}}>
-                      <span style={{ 
-                        backgroundColor: "#f0f0f0", 
-                        padding: "5px 10px", 
-                        borderRadius: "5px" 
-                      }}>
-                        {tag.name}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+          </ul>
+        </>
+      )}
     </div>
   );
 };
