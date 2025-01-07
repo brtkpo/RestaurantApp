@@ -455,8 +455,6 @@ class CartListCreateView(ListCreateAPIView):
 
     def get_queryset(self):
         session_id = self.kwargs['session_id']
-        #cart = Cart.objects.filter(session_id=session_id)
-        #print(cart)  # Debugging
         cart = Cart.objects.filter(session_id=session_id).first()
         if cart:
             # Usuń produkty, które nie są dostępne

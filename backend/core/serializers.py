@@ -122,6 +122,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     #product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), source='product', write_only=True)
     product = ProductSerializer(read_only=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)  # Ustawiamy pole price jako read_only
+    #restaurant = RestaurantSerializer(source='product.restaurant', read_only=True)  # Dodajemy pole restaurant
 
     class Meta:
         model = CartItem
@@ -133,10 +134,17 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
+    restaurant = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
-        fields = ['id', 'session_id', 'created_at', 'total_price', 'items']
+        fields = ['id', 'session_id', 'created_at', 'total_price', 'items','restaurant']
+        
+    def get_restaurant(self, obj):
+        first_item = obj.items.first()
+        if first_item:
+            return RestaurantSerializer(first_item.product.restaurant).data
+        return None
         
 #Order
 class OrderHistorySerializer(serializers.ModelSerializer):

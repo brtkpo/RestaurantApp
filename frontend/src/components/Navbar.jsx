@@ -7,41 +7,11 @@ import DeleteProductFromCart from './DeleteProductFromCart';
 
 const Navbar = () => {
   const token = useSelector((state) => state.token);  // Pobieramy token z Redux
-  const { cartItems, setCartItems, isCartOpen, setIsCartOpen, refreshCart } = useContext(CartContext);
-  //const [isCartOpen, setIsCartOpen] = useState(false);
-
-  const fetchCart = async () => {
-    const sessionId = sessionStorage.getItem('session_id');
-    console.log('session Id:', sessionId); // Debugging
-    if (sessionId) {
-      try {
-        const response = await axios.get(`http://localhost:8000/api/cart/${sessionId}/`);
-        //console.log('response:', response);
-        //console.log('Fetched cart:', response.data[0].items); // Debugging
-        setCartItems(response.data[0].items);
-      } catch (error) {
-        console.error('Error fetching cart:', error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    refreshCart();
-    //fetchCart();
-  }, []);
+  const { cartItems, restaurant, isCartOpen, setIsCartOpen, refreshCart } = useContext(CartContext);
 
   const toggleCart = () => {
     setIsCartOpen(!isCartOpen);
   };
-
-  const groupedCartItems = cartItems ? cartItems.reduce((acc, item) => {
-    const { name, restaurant, price } = item.product;
-    if (!acc[restaurant]) {
-      acc[restaurant] = [];
-    }
-    acc[restaurant].push({ ...item, name, price });
-    return acc;
-  }, {}) : {};
 
   const totalSum = cartItems.reduce((sum, item) => {
     const price = parseFloat(item.product.price);
@@ -72,40 +42,43 @@ const Navbar = () => {
         </ul>
         {isCartOpen && (
           <div style={styles.cartDropdown}>
-            {Object.keys(groupedCartItems).map((restaurantName) => (
-              <div key={restaurantName}>
-                <h3>{restaurantName}</h3>
-                <ul>
-                  {groupedCartItems[restaurantName].map((item) => (
-                    <li key={item.id}>
-                      {item.name} - {item.quantity} szt. x {item.price} PLN
-                      <DeleteProductFromCart 
-                        productId={item.product.id} 
-                        cartItemId={item.id} 
-                        quantity={item.quantity}
-                        refreshCart={refreshCart} 
-                      />
-                    </li>
-                  ))}
-                </ul>
+            {restaurant && (
+              <div>
+                <h3>{restaurant.name}</h3>
               </div>
-            ))}
-            { totalSum > 0 ? (
+            )}
+            <ul>
+              {cartItems.map((item) => (
+                <li key={item.id}>
+                  {item.product.name} - {item.quantity} szt. x {item.product.price} PLN
+                  <DeleteProductFromCart 
+                    productId={item.product.id} 
+                    cartItemId={item.id} 
+                    quantity={item.quantity}
+                    refreshCart={refreshCart} 
+                  />
+                </li>
+              ))}
+            </ul>
+            {totalSum === 0 ? (
+              <p>Brak produktów w koszyku.</p>
+            ) : totalSum < restaurant.minimum_order_amount ? (
+              <div style={styles.totalSum}>
+                <strong>Suma: {totalSum.toFixed(2)} PLN</strong>
+                <p>Minimalna kwota zamówienia to {restaurant.minimum_order_amount} PLN. Dodaj więcej produktów do koszyka.</p>
+              </div>
+            ) : (
               <div style={styles.totalSum}>
                 <strong>Suma: {totalSum.toFixed(2)} PLN</strong>
                 <li style={styles.li}>
                   {token  ? (
-                    <Link to="/order" style={styles.link2} onClick={handleOrderClick}>Złóż zamówinenie</Link>  // Jeśli zalogowany, pokazujemy "Złóż zamówienie"s
+                    <Link to="/order" style={styles.link2} onClick={handleOrderClick}>Złóż zamówienie</Link>  // Jeśli zalogowany, pokazujemy "Złóż zamówienie"
                   ) : (
                     <Link to="/login" style={styles.link2} onClick={handleOrderClick}>Zaloguj się, by złożyć zamówienie</Link>  // Jeśli nie, pokazujemy "Login"
                   )}
                 </li>
               </div>
-            ) : (
-              <p>Twój koszyk jest pusty.</p>
             )}
-            
-            
           </div>
         )}
       </nav>

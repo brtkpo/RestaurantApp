@@ -31,7 +31,7 @@ const Home = () => {
       setFilteredRestaurants(data);
       setLoading(false);
       setError(null);
-      console.log("Restaurants:", data);
+      //console.log("Restaurants:", data);
 
       // Extract unique tags from restaurants
       const uniqueTags = [];
@@ -109,16 +109,16 @@ const Home = () => {
   };
 
   const handleRestaurantClick = (restaurant) => {
-    console.log("handleRestaurantClick");
+    //console.log("handleRestaurantClick");
     scrollPositionRef.current = window.scrollY; // Zapisz aktualną pozycję scrolla do useRef
-    console.log("scrollPositionRef.current", scrollPositionRef.current);
-    console.log("window.scrollY", window.scrollY);
+    //console.log("scrollPositionRef.current", scrollPositionRef.current);
+    //console.log("window.scrollY", window.scrollY);
     setSelectedRestaurant(restaurant);
     window.scrollTo(0, 0);
   };
 
   const handleBackClick = () => {
-    console.log("handleBackClick");
+    //console.log("handleBackClick");
     setSelectedRestaurant(null);
   };
 
