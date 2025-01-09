@@ -48,7 +48,7 @@ const Order = () => {
           });
           if (response.data && Object.keys(response.data).length > 0) {
             setRestaurantSettings(response.data);
-            //console.log("Restaurant settings:", response.data);
+            console.log("Restaurant settings:", response.data);
           } else {
             console.error("Received empty restaurant settings");
           }
@@ -261,7 +261,12 @@ const Order = () => {
           placeholder="Dodaj notatki do zamówienia"
         />
       </div>
-      <button onClick={handleCreateOrder}>Złóż zamówienie</button>
+      {calculateTotalPrice() < restaurantSettings.minimum_order_amount ? (
+        <p>Minimalna kwota zamówienia dla {restaurantSettings.name} to: {restaurantSettings.minimum_order_amount} PLN</p>
+      ) : (
+        <button onClick={handleCreateOrder}>Złóż zamówienie</button>
+      )}
+      
     </div>
   );
 };

@@ -592,24 +592,32 @@ class OrderListCreateView(ListCreateAPIView):
                 address = Address.objects.get(id=address_id)
                 user = address.user  # Uzyskujemy użytkownika z adresu
             except Address.DoesNotExist:
-                return Response({"error": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
-            
-        order = serializer.save()
+                raise serializers.ValidationError({"error": "Address not found"})
+         
         cart_id = self.request.data.get('cart')
-        
         if cart_id:
             try:
                 cart = Cart.objects.get(id=cart_id)
-                cart.order_id = order.order_id
-                cart.session_id = None
-                cart.save()
+                total_price = sum(item.product.price * item.quantity for item in CartItem.objects.filter(cart=cart))
+                restaurant = CartItem.objects.filter(cart=cart).first().product.restaurant
+                if total_price < restaurant.minimum_order_amount:
+                    raise serializers.ValidationError({"error": f"Minimalna kwota zamówienia dla {restaurant.name} to {restaurant.minimum_order_amount} PLN"})
             except Cart.DoesNotExist:
-                return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
+                raise serializers.ValidationError({"error": "Cart not found"})
+            
+        order = serializer.save()
+        if cart_id:
+            cart.order_id = order.order_id
+            cart.session_id = None
+            cart.save()
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        try:
+            self.perform_create(serializer)
+        except serializers.ValidationError as e:
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
         headers = self.get_success_headers(serializer.data)
         return Response(
             {"order_id": serializer.instance.order_id},
