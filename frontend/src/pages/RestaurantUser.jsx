@@ -28,6 +28,7 @@ const RestaurantProfile = () => {
     allows_pickup: false,
     minimum_order_amount: 0.00,
   });
+  const [deliveryCities, setDeliveryCities] = useState([]);
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
   // Ładowanie danych restauratora z backendu
@@ -55,7 +56,9 @@ const RestaurantProfile = () => {
           allows_delivery: response.data.restaurant.allows_delivery,
           allows_pickup: response.data.restaurant.allows_pickup,
           minimum_order_amount: response.data.restaurant.minimum_order_amount,
+          delivery_city: ''
         });
+        setDeliveryCities(response.data.restaurant.delivery_cities);
         console.log(response.data);
       } catch (error) {
         setError('Błąd podczas ładowania danych.');
@@ -65,7 +68,7 @@ const RestaurantProfile = () => {
     fetchProfileData();
   }, [navigate]);
 
-  const fetchProducts = async () => {
+  /*const fetchProducts = async () => {
     console.log("fetchProducts");
     try {
       const response = await axios.get(
@@ -80,6 +83,67 @@ const RestaurantProfile = () => {
       }));
     } catch (err) {
       setError(err.message || "Nieoczekiwany błąd.");
+    }
+  };*/
+
+  const normalizeCityName = (cityName) => {
+    return cityName
+      .toLowerCase()
+      .replace(/\s*-\s*/g, '-') // Usuwa dodatkowe spacje wokół myślników
+      .replace(/-+/g, '-') // Zamienia wiele myślników na jeden
+      .split(' ') // Dzieli na słowa przy spacji
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Pierwsza litera duża, reszta mała
+      .join(' ') // Łączy słowa z powrotem w string
+      .replace(/-\s/g, '-') // Usuwa spacje po myślnikach
+      .replace(/\s-/g, '-'); // Usuwa spacje przed myślnikami
+  };
+
+  const handleAddCity = async () => {
+    const token = sessionStorage.getItem('authToken');
+    let cityName = formData.delivery_city.trim();
+    console.log("1",cityName);
+
+    // Sprawdzenie, czy nazwa miasta zawiera tylko litery, spacje lub myślniki
+    const cityRegex = /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s-]+$/;
+    if (!cityRegex.test(cityName)) {
+      alert('Nazwa miasta może zawierać tylko litery, spacje lub myślniki.');
+      return;
+    }
+    console.log("2",cityName);
+    cityName = await normalizeCityName(cityName);
+    console.log("3",cityName);
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/api/restaurant/${profileData.restaurant.id}/add-delivery-city/`,
+        { name: cityName },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setDeliveryCities([...deliveryCities, { id: response.data.id, name: cityName }]);
+      setFormData({ ...formData, delivery_city: '' });
+    } catch (error) {
+      console.error('Error adding city:', error);
+    }
+  };
+
+  const handleRemoveCity = async (cityId) => {
+    const token = sessionStorage.getItem('authToken');
+    try {
+      await axios.delete(
+        `http://localhost:8000/api/restaurant/${profileData.restaurant.id}/remove-delivery-city/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: { id: cityId }
+        }
+      );
+      setDeliveryCities(deliveryCities.filter(city => city.id !== cityId));
+    } catch (error) {
+      console.error('Error removing city:', error);
     }
   };
 
@@ -111,7 +175,7 @@ const RestaurantProfile = () => {
 
     const token = sessionStorage.getItem('authToken');
     try {
-      await axios.patch(
+      const response = await axios.patch(
         `http://localhost:8000/api/restaurant/update/${profileData.restaurant.id}/`,
         formData,
         {
@@ -120,10 +184,18 @@ const RestaurantProfile = () => {
           },
         }
       );
-      alert('Dane restauracji zostały zaktualizowane pomyślnie!');
+      if (response.data.message) {
+        alert(response.data.message);
+      } else {
+        alert('Dane restauracji zostały zaktualizowane pomyślnie!');
+      }
     } catch (error) {
       console.error('Error updating restaurant details:', error);
-      alert('Nie udało się zaktualizować danych restauracji.');
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        alert('Nie udało się zaktualizować danych restauracji.');
+      }
     }
   };
 
@@ -247,6 +319,35 @@ const RestaurantProfile = () => {
         {formError && <p style={{ color: 'red' }}>{formError}</p>}
         <button type="submit">Zapisz</button>
       </form>
+
+      <div>
+          <label>
+            Miasto dostawy:
+            <input
+              type="text"
+              name="delivery_city"
+              value={formData.delivery_city}
+              onChange={handleChange}
+            />
+          </label>
+          <button type="button" onClick={handleAddCity}>Dodaj miasto</button>
+        </div>
+
+      <h3>Miasta dostawy</h3>
+      {formData.allows_delivery && deliveryCities.length === 0 && (
+        <p>Dodaj miasta, które dostawa obsługuje</p>
+      )}
+      <ul>
+        {deliveryCities.map(city => (
+          <li key={city.id}>
+            {city.name}
+            <button onClick={() => handleRemoveCity(city.id)}>Usuń</button>
+          </li>
+        ))}
+        {deliveryCities.length === 0 && (
+          <li>Brak miast</li>
+        )}
+      </ul>
 
       <h3>Zdjęcie restauracji</h3>
       {restaurant.image ? (

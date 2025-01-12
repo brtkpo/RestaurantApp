@@ -65,6 +65,12 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
     
+class City(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+    
 class Restaurant(models.Model):
     owner = models.OneToOneField(AppUser, on_delete=models.CASCADE, limit_choices_to={'role': 'restaurateur'})
     name = models.CharField(max_length=255)
@@ -76,9 +82,10 @@ class Restaurant(models.Model):
     
     allows_online_payment = models.BooleanField(default=True)
     allows_cash_payment = models.BooleanField(default=True)
-    allows_delivery = models.BooleanField(default=True)
+    allows_delivery = models.BooleanField(default=False)
     allows_pickup = models.BooleanField(default=True)
     minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    delivery_cities = models.ManyToManyField('City', blank=True)
     #created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

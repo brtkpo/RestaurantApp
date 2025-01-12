@@ -159,6 +159,9 @@ const Order = () => {
     return cartItems.reduce((total, item) => total + item.quantity * item.product.price, 0);
   };
 
+  const isMinimumOrderAmountMet = calculateTotalPrice() >= restaurantSettings.minimum_order_amount;
+  const isCityInDeliveryCities = deliveryType === 'delivery' && selectedAddress && restaurantSettings.delivery_cities.some(city => city.name === selectedAddress.city);
+
   if (!isRestaurantSettingsLoaded) {
     return <div>Ładowanie danych...</div>; // Możesz tu wstawić spinner lub komunikat ładowania
   }
@@ -261,12 +264,23 @@ const Order = () => {
           placeholder="Dodaj notatki do zamówienia"
         />
       </div>
-      {calculateTotalPrice() < restaurantSettings.minimum_order_amount ? (
-        <p>Minimalna kwota zamówienia dla {restaurantSettings.name} to: {restaurantSettings.minimum_order_amount} PLN</p>
-      ) : (
-        <button onClick={handleCreateOrder}>Złóż zamówienie</button>
-      )}
-      
+      <div>
+        {!selectedAddress && deliveryType === 'delivery' ? (
+          <p>Proszę wybrać adres dostawy.</p>
+        ) : (
+          <>
+            {isMinimumOrderAmountMet ? (
+              deliveryType === 'pickup' || isCityInDeliveryCities ? (
+                <button onClick={handleCreateOrder}>Złóż zamówienie</button>
+              ) : (
+                <p>Restauracja {restaurantSettings.name} nie dostarcza do miasta {selectedAddress.city}</p>
+              )
+            ) : (
+              <p>Minimalna kwota zamówienia dla {restaurantSettings.name} to: {restaurantSettings.minimum_order_amount} PLN</p>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

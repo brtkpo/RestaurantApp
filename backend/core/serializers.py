@@ -42,9 +42,14 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ['id', 'name']
         
+class CitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = City
+        fields = ['id', 'name']
+        
 class RestaurantSerializer(serializers.ModelSerializer):
     #image_url = serializers.SerializerMethodField()
-    
+    delivery_cities = CitySerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     tag_ids = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all(), write_only=True, required=False
@@ -52,7 +57,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Restaurant
-        fields = ['id', 'name', 'phone_number', 'description', 'image', 'tags', 'tag_ids','allows_online_payment', 'allows_cash_payment', 'allows_delivery', 'allows_pickup', 'minimum_order_amount']
+        fields = ['id', 'name', 'phone_number', 'description', 'image', 'tags', 'tag_ids','allows_online_payment', 'allows_cash_payment', 'allows_delivery', 'allows_pickup', 'minimum_order_amount', 'delivery_cities']
         #fields = ['name', 'address', 'phone_number', 'description']
         
     #def get_image_url(self, obj):

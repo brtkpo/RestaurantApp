@@ -42,6 +42,10 @@ urlpatterns = [
     
     path('api/cities/', CityListView.as_view(), name='city-list'),
     
+    #DeliveryCity
+    path('api/restaurant/<int:restaurant_id>/add-delivery-city/', AddDeliveryCityView.as_view(), name='add-delivery-city'),
+    path('api/restaurant/<int:restaurant_id>/remove-delivery-city/', RemoveDeliveryCityView.as_view(), name='remove-delivery-city'),
+    
     #Cloudinary
     path('api/generate-signature/', generateUploadSignature, name='generate_upload_signature'),
     

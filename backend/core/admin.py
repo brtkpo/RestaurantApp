@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AppUser, Restaurant, Tag
+from .models import AppUser, Restaurant, Tag, City
 
 # Register your models here.
 
@@ -8,6 +8,8 @@ admin.site.register(AppUser)
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     search_fields = ['name']
+    
+admin.site.register(City)
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):

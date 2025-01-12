@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 #from rest_framework.authentication import TokenAuthentication
-from rest_framework.exceptions import AuthenticationFailed, NotFound
+from rest_framework.exceptions import AuthenticationFailed, NotFound, PermissionDenied
 from rest_framework.decorators import api_view
 #from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.generics import ListAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView, RetrieveAPIView, ListCreateAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView, GenericAPIView
@@ -197,7 +197,11 @@ class RestaurantListView(ListAPIView):
     def get_queryset(self):
         city = self.request.query_params.get('city', None)
         if city:
-            return Restaurant.objects.filter(address__city__iexact=city, address__isnull=False).distinct()
+            return Restaurant.objects.filter(
+                address__city__iexact=city, address__isnull=False
+            ).distinct() | Restaurant.objects.filter(
+                delivery_cities__name__iexact=city
+            ).distinct()
         return Restaurant.objects.filter(address__isnull=False).distinct()
 
     def list(self, request, *args, **kwargs):
@@ -222,15 +226,96 @@ class RestaurantProfileView(APIView):
 class RestaurantUpdateView(UpdateAPIView):
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+
+        # Check if allows_delivery is True and delivery_cities is empty
+        if serializer.validated_data.get('allows_delivery') and not instance.delivery_cities.exists():
+            serializer.validated_data['allows_delivery'] = False
+            return Response({"message": "Musisz dodać miasta dostawy, aby umożliwić dostawę."}, status=status.HTTP_400_BAD_REQUEST)
+
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
     
 class CityListView(ListAPIView):
     """
     GET: Zwraca listę wszystkich unikalnych nazw miast dla adresów restauracji
     """
     def get(self, request, *args, **kwargs):
-        cities = Address.objects.filter(owner_role='restaurateur').values('city').annotate(count=Count('city')).order_by('city')
-        city_names = [city['city'] for city in cities]
-        return Response(city_names, status=status.HTTP_200_OK)
+        # Miasta z adresów restauracji
+        address_cities = Address.objects.filter(owner_role='restaurateur').values('city').annotate(count=Count('city')).order_by('city')
+        address_city_names = {city['city'] for city in address_cities}
+
+        # Miasta dostawy
+        delivery_cities = City.objects.all().values('name').annotate(count=Count('name')).order_by('name')
+        delivery_city_names = {city['name'] for city in delivery_cities}
+
+        # Połączenie obu zestawów miast
+        all_city_names = sorted(address_city_names.union(delivery_city_names))
+
+        return Response(all_city_names, status=status.HTTP_200_OK)
+    
+#DeliveryCity
+class AddDeliveryCityView(CreateAPIView):
+    serializer_class = CitySerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        restaurant_id = self.kwargs.get('restaurant_id')
+        try:
+            restaurant = Restaurant.objects.get(id=restaurant_id)
+        except Restaurant.DoesNotExist:
+            return Response({"error": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if restaurant.owner != request.user:
+            raise PermissionDenied("You do not have permission to modify this restaurant's delivery cities.")
+        
+        city_name = request.data.get('name')
+        if not city_name:
+            return Response({"error": "City name is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        city, created = City.objects.get_or_create(name=city_name)
+        restaurant.delivery_cities.add(city)
+        restaurant.save()
+        
+        return Response({"message": "City added successfully"}, status=status.HTTP_201_CREATED)
+
+class RemoveDeliveryCityView(DestroyAPIView):
+    serializer_class = CitySerializer
+    permission_classes = [IsAuthenticated]
+
+    def destroy(self, request, *args, **kwargs):
+        restaurant_id = self.kwargs.get('restaurant_id')
+        try:
+            restaurant = Restaurant.objects.get(id=restaurant_id)
+        except Restaurant.DoesNotExist:
+            return Response({"error": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if restaurant.owner != request.user:
+            raise PermissionDenied("You do not have permission to modify this restaurant's delivery cities.")
+        
+        city_id = request.data.get('id')
+        if not city_id:
+            return Response({"error": "City ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            city = City.objects.get(id=city_id)
+        except City.DoesNotExist:
+            return Response({"error": "City not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        restaurant.delivery_cities.remove(city)
+        restaurant.save()
+        
+        return Response({"message": "City removed successfully"}, status=status.HTTP_200_OK)
     
 #Cloudinary
 def generateUploadSignature(request):
@@ -587,6 +672,7 @@ class OrderListCreateView(ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         address_id = self.request.data.get('address')
+        delivery_type = self.request.data.get('delivery_type')
         if address_id:
             try:
                 address = Address.objects.get(id=address_id)
@@ -602,6 +688,8 @@ class OrderListCreateView(ListCreateAPIView):
                 restaurant = CartItem.objects.filter(cart=cart).first().product.restaurant
                 if total_price < restaurant.minimum_order_amount:
                     raise serializers.ValidationError({"error": f"Minimalna kwota zamówienia dla {restaurant.name} to {restaurant.minimum_order_amount} PLN"})
+                if delivery_type == 'delivery' and address.city not in restaurant.delivery_cities.values_list('name', flat=True):
+                    raise serializers.ValidationError({"error": f"Restauracja {restaurant.name} nie dostarcza do miasta {address.city}"})
             except Cart.DoesNotExist:
                 raise serializers.ValidationError({"error": "Cart not found"})
             
