@@ -5,10 +5,11 @@ import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from asgiref.sync import sync_to_async
+from asgiref.sync import sync_to_async, async_to_sync 
 from rest_framework_simplejwt.tokens import AccessToken  # Jeśli używasz JWT
-from core.models import ChatMessage, AppUser, Notification  # Użyj AppUser, jeśli to Twój model użytkownika
+from core.models import ChatMessage, AppUser, Notification, Order  # Użyj AppUser, jeśli to Twój model użytkownika
 from django.contrib.auth import get_user_model
+from channels.layers import get_channel_layer
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             message = text_data_json['message']
             user = await self.get_user(id=self.user.id) # todo
             # Wywołanie funkcji zapisu w bazie danych
-            chat_message = await self.save_message(message, user)
+            order_id = self.room_group_name.split('_')[1]  # Assuming order_id is passed in the message
+            order = await self.get_order(order_id)
+            chat_message = await self.save_message(message, user, order)
             
             logger.info(f"chat_message: {chat_message}") 
 
@@ -81,17 +84,49 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_user(self, id):
         return AppUser.objects.get(id=id)
+    
+    @database_sync_to_async
+    def get_order(self, order_id):
+        return Order.objects.get(order_id=order_id)
 
     # Funkcja zapisująca wiadomość do bazy danych
     @database_sync_to_async
-    def save_message(self, message, user):
-        # Zapisz wiadomość w bazie danych
+    def save_message(self, message, user, order):
         chat_message = ChatMessage.objects.create(room=self.room_name, user=user, message=message)
+        
+        if user.role == 'client':
+            recipient = order.restaurant.owner
+        else:
+            recipient = order.user
+        
+        notification = Notification.objects.create(
+            user=recipient,
+            order=order,
+            message=f"Nowa wiadomość w zamówieniu nr.{order.order_id}",
+        )
+        
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'notifications_{recipient.id}',
+            {
+                'type': 'send_notification',
+                'message': notification.message,
+                'timestamp': notification.timestamp.isoformat()
+            }
+        )
+        
         return chat_message
 
     async def chat_message(self, event):
         message = event['message']
         await self.send(text_data=json.dumps(message))
+    
+    async def send_notification(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'notification',
+            'message': event['message'],
+            'timestamp': event['timestamp']
+        }))
         
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
