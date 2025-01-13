@@ -7,7 +7,7 @@ import AddAddressForm from '../components/AddAddressForm';
 import UserOrders from '../components/UserOrders';
 import axios from 'axios';
 
-import CheckoutButton from '../components/CheckoutButton';
+import Notifications from '../components/Notifications';
 
 const User = () => {
   const dispatch = useDispatch();
@@ -171,6 +171,7 @@ const User = () => {
 
   return (
     <div>
+      <Notifications token={sessionStorage.getItem('authToken')} />
       <h1>Panel użytkownika</h1>
       {showPaymentSuccess && <div style={styles.popup_success}>Płatność zakończona sukcesem!</div>}
       {showPaymentFail && <div style={styles.popup_fail}>Płatność nie powiodła się!</div>}

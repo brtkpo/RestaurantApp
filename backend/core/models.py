@@ -187,7 +187,9 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
-
+    
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 #Order
 class Order(models.Model):
     PAYMENT_CHOICES = [
@@ -228,10 +230,50 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.order_id} - {self.status}"
     
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new:
+            OrderHistory.objects.create(order=self, status=self.status, description="Złożono zamówienie")
+            
+            # Tworzenie powiadomienia dla restauracji
+            notification = Notification.objects.create(
+                user=self.restaurant.owner,
+                order=self,
+                message=f"Nowe zamówienie nr {self.order_id}.",
+            )
+            
+            # Wysyłanie powiadomienia przez WebSocket
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{self.restaurant.owner.id}',
+                {
+                    'type': 'send_notification',
+                    'message': notification.message,
+                    'timestamp': notification.timestamp.isoformat()
+                }
+            )
+    
     def update_status(self, new_status, description=""):
         self.status = new_status
         OrderHistory.objects.create(order=self, status=new_status, description=description)
         self.save()
+        
+        notification = Notification.objects.create(
+            user=self.user,
+            order=self,
+            message=f"Status zamówienia {self.order_id} został zmieniony na {new_status}.",
+        )
+        
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'notifications_{self.user.id}',
+            {
+                'type': 'send_notification',
+                'message': notification.message,
+                'timestamp': notification.timestamp.isoformat()
+            }
+        )
     
 class OrderHistory(models.Model):
     order = models.ForeignKey('Order', related_name='history', on_delete=models.CASCADE)
@@ -250,3 +292,13 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.user} in {self.room} at {self.timestamp}"
+    
+class Notification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Notification for {self.user.email} - {self.message}"

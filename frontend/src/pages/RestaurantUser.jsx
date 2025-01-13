@@ -11,6 +11,8 @@ import RestaurantOrders from "../components/RestaurantOrders";
 import placeholderImage from '../assets/Placeholder.png';
 import RestaurantAddress from '../components/RestaurantAddress';
 
+import Notifications from '../components/Notifications';
+
 const RestaurantProfile = () => {
   const dispatch = useDispatch();
   const [profileData, setProfileData] = useState(null);
@@ -246,6 +248,7 @@ const RestaurantProfile = () => {
 
   return (
     <div>
+      <Notifications token={sessionStorage.getItem('authToken')} />
       <h1>Panel Restauratora</h1>
       <h2>Twoje dane</h2>
       <p>Imię: {first_name}</p>

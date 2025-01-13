@@ -829,6 +829,23 @@ class SuccessPaymentView(APIView):
                 status=order.status,
                 description="zapłacone"
             )
+            
+            notification = Notification.objects.create(
+                user=order.restaurant.owner,
+                order=order,
+                message=f"Zamówienie nr {order.order_id} zostało opłacone.",
+            )
+
+            # Wysyłanie powiadomienia przez WebSocket
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{order.restaurant.owner.id}',
+                {
+                    'type': 'send_notification',
+                    'message': notification.message,
+                    'timestamp': notification.timestamp.isoformat()
+                }
+            )
 
             return HttpResponseRedirect('http://localhost:3000/user?payment=success')
         except Order.DoesNotExist:

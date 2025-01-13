@@ -7,7 +7,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from rest_framework_simplejwt.tokens import AccessToken  # Jeśli używasz JWT
-from core.models import ChatMessage, AppUser  # Użyj AppUser, jeśli to Twój model użytkownika
+from core.models import ChatMessage, AppUser, Notification  # Użyj AppUser, jeśli to Twój model użytkownika
 from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
@@ -92,3 +92,34 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         message = event['message']
         await self.send(text_data=json.dumps(message))
+        
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        token = self.scope['query_string'].decode().split('=')[1]
+        try:
+            access_token = AccessToken(token)
+            self.user = await sync_to_async(AppUser.objects.get)(id=access_token['user_id'])
+            self.room_group_name = f'notifications_{self.user.id}'
+
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+
+            await self.accept()
+        except Exception as e:
+            logger.error(f"Token verification failed: {e}")
+            await self.close()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def send_notification(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'notification',
+            'message': event['message'],
+            'timestamp': event['timestamp']
+        }))
