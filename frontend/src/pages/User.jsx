@@ -171,7 +171,7 @@ const User = () => {
 
   return (
     <div>
-      <Notifications token={sessionStorage.getItem('authToken')} />
+      <Notifications token={sessionStorage.getItem('authToken')} userRole={'client'} />
       <h1>Panel użytkownika</h1>
       {showPaymentSuccess && <div style={styles.popup_success}>Płatność zakończona sukcesem!</div>}
       {showPaymentFail && <div style={styles.popup_fail}>Płatność nie powiodła się!</div>}

@@ -240,7 +240,7 @@ class Order(models.Model):
             notification = Notification.objects.create(
                 user=self.restaurant.owner,
                 order=self,
-                message=f"Nowe zamówienie nr {self.order_id}.",
+                message=f"Nowe zamówienie nr.{self.order_id}.",
             )
             
             # Wysyłanie powiadomienia przez WebSocket
@@ -262,7 +262,7 @@ class Order(models.Model):
         notification = Notification.objects.create(
             user=self.user,
             order=self,
-            message=f"Status zamówienia {self.order_id} został zmieniony na {new_status}.",
+            message=f"Status zamówienia nr.{self.order_id} został zmieniony na {new_status}.",
         )
         
         channel_layer = get_channel_layer()

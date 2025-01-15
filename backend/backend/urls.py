@@ -84,6 +84,10 @@ urlpatterns = [
     
     #Chat
     path('api/chat/<str:room_name>/messages/', ChatMessageListView.as_view(), name='chat-messages'),
+    
+    #Notifications
+    path('api/notifications/unread/', UnreadNotificationsListView.as_view(), name='unread-notifications'),
+    path('api/notifications/<int:id>/mark_as_read/', MarkNotificationAsReadView.as_view(), name='mark-notification-as-read'),
 ]
 
 from django.conf.urls.static import static

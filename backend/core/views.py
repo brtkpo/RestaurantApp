@@ -833,7 +833,7 @@ class SuccessPaymentView(APIView):
             notification = Notification.objects.create(
                 user=order.restaurant.owner,
                 order=order,
-                message=f"Zamówienie nr {order.order_id} zostało opłacone.",
+                message=f"Zamówienie nr.{order.order_id} zostało opłacone.",
             )
 
             # Wysyłanie powiadomienia przez WebSocket
@@ -859,3 +859,23 @@ class ChatMessageListView(ListAPIView):
     def get_queryset(self):
         room_name = self.kwargs['room_name']
         return ChatMessage.objects.filter(room=room_name).order_by('timestamp')
+    
+#Notification
+class UnreadNotificationsListView(ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user, is_read=False)
+
+class MarkNotificationAsReadView(UpdateAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.instance.is_read = True
+        serializer.save()

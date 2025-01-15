@@ -248,7 +248,7 @@ const RestaurantProfile = () => {
 
   return (
     <div>
-      <Notifications token={sessionStorage.getItem('authToken')} />
+      <Notifications token={sessionStorage.getItem('authToken')} userRole={'restaurateur'} />
       <h1>Panel Restauratora</h1>
       <h2>Twoje dane</h2>
       <p>Imię: {first_name}</p>
