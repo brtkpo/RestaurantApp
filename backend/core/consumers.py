@@ -61,6 +61,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Wywołanie funkcji zapisu w bazie danych
             order_id = self.room_group_name.split('_')[1]  # Assuming order_id is passed in the message
             order = await self.get_order(order_id)
+            
+            if order.archived:
+                await self.send(text_data=json.dumps({'error': 'Nie można dodawać wiadomości do zarchiwizowanego zamówienia.'}))
+                return
+            
             chat_message = await self.save_message(message, user, order)
             
             logger.info(f"chat_message: {chat_message}") 

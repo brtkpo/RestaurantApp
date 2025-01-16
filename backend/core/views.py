@@ -717,7 +717,7 @@ import logging
 logger = logging.getLogger('django')
 
 class OrderDetailView(RetrieveUpdateAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.filter(archived=False)
     serializer_class = OrderViewSerializer
     permission_classes = [IsAuthenticated]
     
@@ -731,6 +731,10 @@ class OrderDetailView(RetrieveUpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         order = self.get_object()
+        order.archive_if_needed()
+        if order.archived:
+            return Response({'error': 'Nie można modyfikować zarchiwizowanego zamówienia.'}, status=status.HTTP_403_FORBIDDEN)
+        
         data = request.data
         #logger.warning(f"restaurant User {request.user.restaurant.id} order {order.order_id}")
         #logger.warning(order.restaurant.id)
@@ -754,7 +758,10 @@ class UserOrderListView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Order.objects.filter(user=user).order_by('-created_at')
+        orders = Order.objects.filter(user=user, archived=False).order_by('-created_at')
+        for order in orders:
+            order.archive_if_needed()
+        return orders
 
 class UserOrderDetailView(RetrieveAPIView):
     serializer_class = OrderViewSerializer
@@ -762,7 +769,10 @@ class UserOrderDetailView(RetrieveAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Order.objects.filter(user=user)
+        orders = Order.objects.filter(user=user, archived=False)
+        for order in orders:
+            order.archive_if_needed()
+        return orders
 
 class RestaurantOrdersView(ListAPIView):
     #serializer_class = OrderSerializer
@@ -771,7 +781,10 @@ class RestaurantOrdersView(ListAPIView):
 
     def get_queryset(self):
         restaurant_id = self.kwargs['restaurant_id']
-        return Order.objects.filter(restaurant_id=restaurant_id)
+        orders = Order.objects.filter(restaurant_id=restaurant_id, archived=False)
+        for order in orders:
+            order.archive_if_needed()
+        return orders
 
 #Payment
 stripe.api_key = settings.STRIPE_SECRET_KEY

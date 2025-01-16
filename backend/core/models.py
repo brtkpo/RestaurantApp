@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from datetime import timedelta
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -225,7 +226,7 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    #todo: bool archived
+    archived = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Order {self.order_id} - {self.status}"
@@ -274,6 +275,11 @@ class Order(models.Model):
                 'timestamp': notification.timestamp.isoformat()
             }
         )
+    
+    def archive_if_needed(self):
+        if self.status in ['cancelled', 'delivered', 'picked_up'] and self.updated_at <= timezone.now() - timedelta(hours=24):
+            self.archived = True
+            self.save()
     
 class OrderHistory(models.Model):
     order = models.ForeignKey('Order', related_name='history', on_delete=models.CASCADE)

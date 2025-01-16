@@ -174,7 +174,7 @@ class OrderViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['order_id', 'cart', 'items', 'restaurant', 'address', 'user', 'is_paid', 'payment_type', 'delivery_type', 'order_notes', 'status', 'history', 'created_at', 'updated_at', 'total_price']
+        fields = ['order_id', 'cart', 'items', 'restaurant', 'address', 'user', 'is_paid', 'payment_type', 'delivery_type', 'order_notes', 'status', 'history', 'created_at', 'updated_at', 'total_price', 'archived']
 
 class ChatMessageSerializer(serializers.ModelSerializer):
     class Meta:
