@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const Chat = ({ roomName }) => {
+const Chat = ({ roomName, archived = false }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [socket, setSocket] = useState(null);
@@ -128,12 +128,16 @@ const Chat = ({ roomName }) => {
           </div> // Wyświetlanie wiadomości
         ))}
       </div>
-      <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)} // Zmiana tekstu w polu wejściowym
-      />
-      <button onClick={sendMessage}>Send</button> {/* Przycisk do wysyłania wiadomości */}
+      {!archived && (
+        <>
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)} // Zmiana tekstu w polu wejściowym
+          />
+          <button onClick={sendMessage}>Send</button> {/* Przycisk do wysyłania wiadomości */}
+        </>
+      )}
     </div>
   );
 };

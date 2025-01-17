@@ -116,25 +116,32 @@ const OrderDetails = () => {
       </ul>
       <p>Suma: {order.total_price} PLN</p>
       <button onClick={() => navigate('/restaurant/user')}>Powrót</button>
-      <div>
-        <h2>Aktualizuj status:</h2>
-        <label>
-          Status:
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            {getStatusOptions().map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <div>
-        <label>
-          Opis:
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
-        </label>
-      </div>
-      <button onClick={handleStatusChange}>Zaktualizuj status</button>
-      <Chat roomName={order.order_id} />
+      {order.archived ? (
+        <Chat roomName={order.order_id} archived={order.archived} />
+        /*<p style={{ color: 'red' }}>To zamówienie jest zarchiwizowane i nie można go modyfikować.</p>*/
+      ) : (
+        <>
+          <div>
+            <h2>Aktualizuj status:</h2>
+            <label>
+              Status:
+              <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                {getStatusOptions().map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div>
+            <label>
+              Opis:
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+            </label>
+          </div>
+          <button onClick={handleStatusChange}>Zaktualizuj status</button>
+          <Chat roomName={order.order_id} />
+        </>
+      )}
       <h3>Historia zamówienia</h3>
       <ul>
         {order.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((entry) => (

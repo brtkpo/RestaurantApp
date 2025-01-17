@@ -717,7 +717,8 @@ import logging
 logger = logging.getLogger('django')
 
 class OrderDetailView(RetrieveUpdateAPIView):
-    queryset = Order.objects.filter(archived=False)
+    #queryset = Order.objects.filter(archived=False)
+    queryset = Order.objects.all()
     serializer_class = OrderViewSerializer
     permission_classes = [IsAuthenticated]
     
@@ -769,7 +770,7 @@ class UserOrderDetailView(RetrieveAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        orders = Order.objects.filter(user=user, archived=False)
+        orders = Order.objects.filter(user=user)
         for order in orders:
             order.archive_if_needed()
         return orders
@@ -785,6 +786,23 @@ class RestaurantOrdersView(ListAPIView):
         for order in orders:
             order.archive_if_needed()
         return orders
+    
+#Archived Order
+class ArchivedUserOrderListView(ListAPIView):
+    serializer_class = OrderViewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Order.objects.filter(user=user, archived=True).order_by('-created_at')
+
+class ArchivedRestaurantOrdersView(ListAPIView):
+    serializer_class = OrderViewSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        restaurant_id = self.kwargs['restaurant_id']
+        return Order.objects.filter(restaurant_id=restaurant_id, archived=True).order_by('-created_at')
 
 #Payment
 stripe.api_key = settings.STRIPE_SECRET_KEY

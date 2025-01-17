@@ -5,6 +5,7 @@ import { setUserToken } from '../redux/actions';
 import AddressList from '../components/AddressList';  
 import AddAddressForm from '../components/AddAddressForm';
 import UserOrders from '../components/UserOrders';
+import ArchivedUserOrders from '../components/ArchivedUserOrders';
 import axios from 'axios';
 
 import Notifications from '../components/Notifications';
@@ -185,6 +186,7 @@ const User = () => {
         <p>Ładowanie danych...</p>
       )}
       <UserOrders />
+      <ArchivedUserOrders />
       <button onClick={handleLogout}>Wyloguj</button>
       <AddressList key={addresses.map(address => address.id).join('-')} addresses={addresses} onDeleteAddress={handleDeleteAddress} />
       <AddAddressForm onAddAddress={handleAddAddress} />

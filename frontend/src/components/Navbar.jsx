@@ -89,7 +89,7 @@ const Navbar = () => {
 
 const styles = {
   navbar: {
-    backgroundColor: '#333',
+    backgroundColor: '#333', //#f2f2f2
     padding: '10px',
     position: "fixed", // Navbar "przyklejony" do okna przeglądarki
     top: 0, // Pozycja od góry

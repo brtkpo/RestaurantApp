@@ -10,6 +10,7 @@ import RestaurantProducts from "../components/RestaurantProducts";
 import RestaurantOrders from "../components/RestaurantOrders";
 import placeholderImage from '../assets/Placeholder.png';
 import RestaurantAddress from '../components/RestaurantAddress';
+import ArchivedRestaurantOrders from '../components/ArchivedRestaurantOrders';
 
 import Notifications from '../components/Notifications';
 
@@ -387,6 +388,7 @@ const RestaurantProfile = () => {
 
       <br />
       <RestaurantOrders restaurantId={profileData.restaurant.id} /> 
+      <ArchivedRestaurantOrders restaurantId={profileData.restaurant.id} /> 
       <ManageTags restaurantId={restaurant.id} />
       <RestaurantProducts restaurantId={restaurant.id} key={productsUpdated} />
       <AddProduct restaurantId={restaurant.id} onProductAdded={handleProductsUpdated} />

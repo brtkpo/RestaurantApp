@@ -33,6 +33,7 @@ const UserOrderDetails = () => {
         setOrder(response.data);
         setLoading(false);
         console.log(response.data);
+        console.log(response.data.archived);
       } catch (error) {
         setError('Błąd podczas ładowania szczegółów zamówienia');
         setLoading(false);
@@ -70,7 +71,7 @@ const UserOrderDetails = () => {
             ))}
           </ul>
           <p>Suma: {order.total_price} PLN</p>
-          {order.payment_type === "online" && !order.is_paid && (
+          {order.payment_type === "online" && !order.is_paid && !order.archived &&(
             <CheckoutButton
               email={order.address.email}
               orderId={order.order_id}
@@ -84,7 +85,7 @@ const UserOrderDetails = () => {
         </div>
       )}
       <button onClick={() => navigate('/user')}>Powrót</button>
-      <Chat roomName={order.order_id} />
+      <Chat roomName={order.order_id} archived={order.archived} />
       <h3>Historia zamówienia</h3>
       <ul>
         {order.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((entry) => (
