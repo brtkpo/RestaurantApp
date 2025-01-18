@@ -36,3 +36,50 @@
     transform: rotate(360deg);
   }
 }
+
+
+.custom-text-field .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: black;
+}
+
+.custom-text-field .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: black;
+}
+
+.custom-text-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: black;
+}
+
+.custom-text-field .MuiInputLabel-root {
+  color: black;
+  display: flex;
+}
+
+.custom-text-field .MuiInputLabel-root.Mui-focused {
+  color: black;
+}
+
+.custom-button {
+  background-color: black !important;
+  color: white !important;
+}
+
+.custom-button:hover {
+  background-color: #333 !important; /* Ciemniejszy odcień czerni przy najechaniu */
+  color: white !important;
+}
+
+.centered-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Wyśrodkuj poziomo */
+  justify-content: flex-start; /* Ustaw na górze pionowo */
+  min-height: 50vh; /* Ustaw wysokość na 100% widocznego obszaru */
+   /* Opcjonalnie dodaj padding od góry */
+  text-align: center;
+  overflow: hidden; 
+}
+
+.padding-top {
+  padding-top: 20px;
+}

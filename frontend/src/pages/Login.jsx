@@ -1,15 +1,12 @@
 import React from 'react';
 import LoginForm from '../components/LoginForm';
-import Button from '@mui/material/Button';
+import '../App.css';
 
 const Login = () => {
-  return (
-    <div>
-      <h1>Panel logowania</h1>
+return (
+    <div className="centered-container padding-top" >
+      <h1>Zaloguj Się!</h1>
       <LoginForm />
-      <Button variant="contained" color="primary">
-        Zaloguj się
-      </Button>
     </div>
   );
 };
