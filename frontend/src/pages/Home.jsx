@@ -178,7 +178,7 @@ const Home = () => {
   }
 
   return (
-    <div>
+    <div className="pt-10">
       
       <div>
         <h3>Restauracje w pobliżu:</h3>

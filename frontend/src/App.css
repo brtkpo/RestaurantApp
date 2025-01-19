@@ -114,3 +114,22 @@
   color: #333; /* Ustawia kolor na czarny podczas najechania */
   text-decoration: underline; /* Opcjonalnie dodaje podkreślenie podczas najechania */
 }
+
+.modal-enter {
+  opacity: 0;
+  transform: translateY(4rem) scale(0.95);
+}
+.modal-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 300ms, transform 300ms;
+}
+.modal-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.modal-exit-active {
+  opacity: 0;
+  transform: translateY(4rem) scale(0.95);
+  transition: opacity 150ms, transform 150ms;
+}

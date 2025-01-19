@@ -152,10 +152,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        if hasattr(self, 'room_group_name'): ## ta linijka dodana Dodano sprawdzenie if hasattr(self, 'room_group_name') w metodzie disconnect, aby upewnić się, że room_group_name istnieje przed próbą jego użycia.
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
 
     async def send_notification(self, event):
         await self.send(text_data=json.dumps({

@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@material-tailwind/react": "^2.1.10",
     "@mui/icons-material": "^6.4.0",
     "@mui/material": "^6.4.0",
     "@stripe/stripe-js": "^5.3.0",
@@ -54,5 +55,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17"
   }
 }
