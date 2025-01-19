@@ -37,6 +37,9 @@
   }
 }
 
+.custom-text-field {
+  width: 100%; /* Ustaw szerokość pól tekstowych na 100% wewnątrz kontenera */
+}
 
 .custom-text-field .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
   border-color: black;
@@ -75,11 +78,39 @@
   align-items: center; /* Wyśrodkuj poziomo */
   justify-content: flex-start; /* Ustaw na górze pionowo */
   min-height: 50vh; /* Ustaw wysokość na 100% widocznego obszaru */
-   /* Opcjonalnie dodaj padding od góry */
   text-align: center;
   overflow: hidden; 
 }
 
+.form-container {
+  width: 50%; /* Ustaw szerokość kontenera na 50% */
+  max-width: 600px; /* Ustaw maksymalną szerokość kontenera */
+  margin: 0 auto; /* Wyśrodkuj kontener */
+  box-sizing: border-box; /* Upewnij się, że padding jest wliczany do szerokości kontenera */
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    width: 75%; /* Zmniejsz szerokość kontenera na mniejszych ekranach */
+  }
+}
+
+@media (max-width: 480px) {
+  .form-container {
+    width: 90%; /* Zmniejsz szerokość kontenera na bardzo małych ekranach */
+  }
+}
+
 .padding-top {
   padding-top: 20px;
+}
+
+.custom-link {
+  color: black; /* Dziedziczy kolor tekstu */
+  text-decoration: underline; /* Usuwa podkreślenie */
+}
+
+.custom-link:hover {
+  color: #333; /* Ustawia kolor na czarny podczas najechania */
+  text-decoration: underline; /* Opcjonalnie dodaje podkreślenie podczas najechania */
 }

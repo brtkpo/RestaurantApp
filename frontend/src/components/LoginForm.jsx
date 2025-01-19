@@ -21,7 +21,16 @@ const LoginForm = () => {
     setIsSubmitting(true);
 
     
-
+    if(password === '' || username === '') {
+      setIsSubmitting(false);
+      if (username === '') {
+        await setUsernameError(true);
+      }
+      if (password === '') {
+        await setPasswordError(true);
+      }
+      return;
+    }
     
 
     if(password === '' || username === '') {
@@ -58,13 +67,12 @@ const LoginForm = () => {
     setIsSubmitting(false);
   };
 
-  const isFormValid = username !== '' && password !== '';
-
   return (
-    <div className="centered-container">
+    <div className="centered-container form-container">
       <Box
         component="form"
         onSubmit={handleSubmit}
+
         sx={{ '& .MuiTextField-root': { m: 1, width: '25ch' } }}
         noValidate
         autoComplete="on"
@@ -113,10 +121,10 @@ const LoginForm = () => {
       </Box>
       <div>
         <p>
-          Nie masz konta? <Link to="/register">Zarejestruj się</Link>
+          Nie masz konta? <Link to="/register" className="custom-link">Zarejestruj się</Link>
         </p>
         <p>
-          Jesteś Restauratorem? <Link to="/restaurant/register">Zarejestruj restaurację</Link>
+          Jesteś Restauratorem? <Link to="/restaurant/register" className="custom-link">Zarejestruj restaurację</Link>
         </p>
       </div>
     </div>
