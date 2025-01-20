@@ -148,6 +148,7 @@ const AddAddressForm = () => {
           value={formData.phone_number}
           onChange={handleChange}
           placeholder="Numer telefonu"
+          maxLength="9" 
         />
         <input
           type="text"

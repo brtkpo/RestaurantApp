@@ -63,7 +63,7 @@ def clientRegister(request):
             return Response({
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
-                "message": "Account created successfully!",
+                "message": "konto utworzone pomyślnie!",
                 "role": user.role,
             }, status=status.HTTP_201_CREATED)
         
@@ -178,17 +178,34 @@ class DeleteAddressView(APIView):
 #logger = logging.getLogger(__name__)
 
 #Restaurant
-class RestaurantRegistrationView(APIView):
-    def post(self, request):
-        #logger.info(f"Received data: {request.data}")
-        serializer = RestaurateurRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()  # Zapisujemy nowego użytkownika i restaurację
+class RestaurantRegistrationView(CreateAPIView):
+    queryset = AppUser.objects.all()
+    serializer_class = RestaurateurRegistrationSerializer
+
+    def perform_create(self, serializer):
+        user = serializer.save()  # Zapisujemy nowego użytkownika i restaurację
+        refresh = RefreshToken.for_user(user)
+        self.token_data = {
+            "message": "restaurator i restauracja utworzona pomyślnie!",
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+        }
+
+    def create(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        
+        # Sprawdzenie, czy email istnieje
+        if AppUser.objects.filter(email=email).exists():
             return Response(
-                {"message": "restaurator i restauracja utworzona pomyślnie!"},
-                status=status.HTTP_201_CREATED
+                {'message': 'Email jest już zajęty.'},
+                status=status.HTTP_400_BAD_REQUEST
             )
-        #logger.error(f"Validation errors: {serializer.errors}")
+        
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(self.token_data, status=status.HTTP_201_CREATED, headers=headers)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class RestaurantListView(ListAPIView):

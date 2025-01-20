@@ -22,6 +22,7 @@ function Register() {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -33,21 +34,24 @@ function Register() {
     }));
 
     if (name === "email") {
-      setEmailError(!value.includes("@"));
+      setEmailError(!value.includes("@") && value.length > 0);
     }
     if (name === "first_name") {
       const firstNameRegex = /^[a-zA-Z]+(-[a-zA-Z]+)?$/;
-      setFirstNameError(!firstNameRegex.test(value));
+      setFirstNameError(!firstNameRegex.test(value) && value.length > 0);
     }
 
     if (name === "last_name") {
       const lastNameRegex = /^[a-zA-Z]+(-[a-zA-Z]+)?$/;
-      setLastNameError(!lastNameRegex.test(value));
+      setLastNameError(!lastNameRegex.test(value) && value.length > 0);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if(isSubmitting) return;
+    setIsSubmitting(true);
+
     if (emailError || firstNameError || lastNameError) {
       setError(true);
       setModalMessage("Proszę poprawić błędy w formularzu.");
@@ -58,7 +62,7 @@ function Register() {
     try {
       const response = await axios.post("http://localhost:8000/api/register/", formData);
       setModalMessage("Zarejestrowano pomyślnie!");
-      setModalIsOpen(true);
+      //setModalIsOpen(true);
       setIsRegistered(true);
 
       const data = response.data;
@@ -81,8 +85,10 @@ function Register() {
         setError(true);
         setModalMessage("Wystąpił problem z połączeniem z serwerem.");
       }
-      setModalIsOpen(true);
+      //setModalIsOpen(true);
     }
+    setModalIsOpen(true);
+    setIsSubmitting(false);
   };
 
   const handleModalClose = () => {
@@ -150,7 +156,9 @@ function Register() {
           />
         </div>
         <div className="flex items-center mt-4 justify-center">
-          <button type="submit" className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">Zarejestruj</button>
+          <button type="submit" className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+          {isSubmitting ? 'Rejestracja' : 'Zarejestruj'}
+          </button>
         </div>
         <div class="flex items-center justify-center pt-4 text-center">
           <span class="text-sm text-gray-600 dark:text-gray-200">Masz już konto?</span>
