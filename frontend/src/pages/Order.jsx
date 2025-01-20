@@ -198,15 +198,16 @@ const Order = () => {
           </div> 
           <AddAddressForm isOpen={isAddAddressModalOpen} onRequestClose={closeAddAddressModal} onAddAddress={refreshAddresses} />
           {selectedAddress && (
-            <div>
-              <h3>Wybrany adres:</h3>
-              <p>{selectedAddress.first_name} {selectedAddress.last_name} - {selectedAddress.street} {selectedAddress.building_number} {selectedAddress.apartment_number}, {selectedAddress.postal_code} {selectedAddress.city}, tel. {selectedAddress.phone_number}</p>
+            <div className="text-center">
+              <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Wybrany adres:</h3>
+              <span className="ml-2 text-slate-600 text-sm ">
+                {selectedAddress.first_name} {selectedAddress.last_name} - {selectedAddress.street} {selectedAddress.building_number} {selectedAddress.apartment_number}, {selectedAddress.postal_code} {selectedAddress.city}, tel. {selectedAddress.phone_number}
+              </span>
             </div>
           )}
-          
         </div>
       ) : (
-        <p>Proszę się zalogować, aby zobaczyć listę adresów.</p>
+        <p className="mt-10 px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">Proszę się zalogować, aby zobaczyć listę adresów.</p>
       )}
       {Object.keys(groupedCartItems).map((restaurantName) => (
         <div key={restaurantName}>
