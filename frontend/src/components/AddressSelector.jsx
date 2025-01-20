@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const AddressSelector = ({ onSelect }) => {
+const AddressSelector = ({ onSelect, onAddAddress }) => {
   const [addresses, setAddresses] = useState([]);
   const [error, setError] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -29,7 +29,7 @@ const AddressSelector = ({ onSelect }) => {
     };
 
     fetchAddresses();
-  }, []);
+  }, [onAddAddress]);
 
   const handleSelect = (address) => {
     setSelectedAddress(address);

@@ -36,13 +36,14 @@ function Register() {
     if (name === "email") {
       setEmailError(!value.includes("@") && value.length > 0);
     }
+
     if (name === "first_name") {
-      const firstNameRegex = /^[a-zA-Z]+(-[a-zA-Z]+)?$/;
+      const firstNameRegex = /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s-]+$/;
       setFirstNameError(!firstNameRegex.test(value) && value.length > 0);
     }
 
     if (name === "last_name") {
-      const lastNameRegex = /^[a-zA-Z]+(-[a-zA-Z]+)?$/;
+      const lastNameRegex = /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s-]+$/;
       setLastNameError(!lastNameRegex.test(value) && value.length > 0);
     }
   };

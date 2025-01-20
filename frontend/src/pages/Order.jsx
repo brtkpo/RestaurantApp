@@ -18,6 +18,7 @@ const Order = () => {
   const [deliveryType, setDeliveryType] = useState('delivery');
   const [orderNotes, setOrderNotes] = useState('');
   const [user, setUser] = useState('');
+  const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
   const [restaurantSettings, setRestaurantSettings] = useState({});
   const [isRestaurantSettingsLoaded, setIsRestaurantSettingsLoaded] = useState(false);
   const [isAddressesLoaded, setIsAddressesLoaded] = useState(false);
@@ -78,28 +79,46 @@ const Order = () => {
     setUser(address.user);
   };
 
-  const handleAddAddress = async (newAddress) => {
+  const handleAddAddress = (newAddress) => {
+    setAddresses([...addresses, newAddress]);
+    setIsAddAddressModalOpen(false);
+    setSelectedAddress(newAddress);
+  };
+
+  const openAddAddressModal = () => {
+    setIsAddAddressModalOpen(true);
+  };
+
+  const closeAddAddressModal = () => {
+    setIsAddAddressModalOpen(false);
+  };
+
+  const refreshAddresses = () => {
+    // Funkcja do odświeżenia adresów
+    fetchAddresses();
+  };
+
+  const fetchAddresses = async () => {
+    const token = sessionStorage.getItem('authToken');
     try {
-      const response = await axios.post('http://localhost:8000/api/addresses/', newAddress, {
+      const response = await axios.get('http://localhost:8000/api/addresses/', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      if (response.status === 201) {
-        setAddresses([...addresses, response.data]);
-        alert('Adres dodany pomyślnie!');
-        //fetchAddresses();
+      if (response.data.length === 0) {
+        setAddresses([]);
+      } else {
+        setAddresses(response.data);
       }
     } catch (error) {
-      alert('Błąd podczas dodawania adresu');
-    }
-    finally {
-      setIsAddressesLoaded(true); // Ustawienie flagi na true po zakończeniu fetchowania
-      console.log("isRestaurantSettingsLoaded:", isRestaurantSettingsLoaded);
-      console.log("isAddressesLoaded:", isAddressesLoaded);
+      console.error('Błąd podczas ładowania adresów', error);
     }
   };
+
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
 
   const handleCreateOrder = async () => {
     if (!selectedAddress) {
@@ -168,18 +187,22 @@ const Order = () => {
 
   return (
     <div>
-      <h2>Order Page</h2>
+      <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Dokończ zamówienie!</h3>
       {token ? (
-        <>
-          <AddressSelector onSelect={handleAddressSelect} /> {/* Wyświetlanie listy adresów */}
+        <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4 mt-10">
+          <AddressSelector onSelect={handleAddressSelect} onAddAddress={refreshAddresses} />  
+          <button onClick={openAddAddressModal} className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+            Dodaj nowy adres
+          </button>
+          <AddAddressForm isOpen={isAddAddressModalOpen} onRequestClose={closeAddAddressModal} onAddAddress={refreshAddresses} />
           {selectedAddress && (
             <div>
               <h3>Wybrany adres:</h3>
               <p>{selectedAddress.first_name} {selectedAddress.last_name} - {selectedAddress.street} {selectedAddress.building_number} {selectedAddress.apartment_number}, {selectedAddress.postal_code} {selectedAddress.city}, tel. {selectedAddress.phone_number}</p>
             </div>
           )}
-          <AddAddressForm onAddAddress={handleAddAddress} />
-        </>
+          
+        </div>
       ) : (
         <p>Proszę się zalogować, aby zobaczyć listę adresów.</p>
       )}

@@ -8,8 +8,6 @@ const Login = () => {
   const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [passwordError, setPasswordError] = useState(false);
-    const [usernameError, setUsernameError] = useState(false);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [error, setError] = useState(false);
     const [role, setRole] = useState('');
@@ -20,29 +18,6 @@ const Login = () => {
       e.preventDefault();
       if(isSubmitting) return;
       setIsSubmitting(true);
-  
-      /*
-      if(password === '' || username === '') {
-        setIsSubmitting(false);
-        if (username === '') {
-          await setUsernameError(true);
-        }
-        if (password === '') {
-          await setPasswordError(true);
-        }
-        return;
-      }
-
-      if(password === '' || username === '') {
-        setIsSubmitting(false);
-        if (username === '') {
-          await setUsernameError(true);
-        }
-        if (password === '') {
-          await setPasswordError(true);
-        }
-        return;
-      }*/
   
       const response = await fetch('http://localhost:8000/api/login/', {
         method: 'POST',
@@ -58,8 +33,6 @@ const Login = () => {
         sessionStorage.setItem('authToken', token);
         dispatch(setUserToken(token));
         setRole(data.role);
-        //data.role === 'client' ? navigate('/user') : navigate('/restaurant/user');
-        //alert('Zalogowano pomyślnie!');
       } else {
         setError(true);
       }
