@@ -189,11 +189,13 @@ const Order = () => {
     <div>
       <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Dokończ zamówienie!</h3>
       {token ? (
-        <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4 mt-10">
-          <AddressSelector onSelect={handleAddressSelect} onAddAddress={refreshAddresses} />  
-          <button onClick={openAddAddressModal} className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
-            Dodaj nowy adres
-          </button>
+        <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+          <AddressSelector onSelect={handleAddressSelect} onAddAddress={refreshAddresses} /> 
+          <div className='flex justify-center'>
+            <button onClick={openAddAddressModal} className=" px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+              Dodaj nowy adres
+            </button>
+          </div> 
           <AddAddressForm isOpen={isAddAddressModalOpen} onRequestClose={closeAddAddressModal} onAddAddress={refreshAddresses} />
           {selectedAddress && (
             <div>

@@ -38,8 +38,8 @@ const AddressSelector = ({ onSelect, onAddAddress }) => {
 
   return (
     <div>
-      <h3>Wybierz adres</h3>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <h3 className="text-xl font-medium text-center text-gray-800 dark:text-gray-700">Wybierz adres:</h3>
+      {error && <p className=" text-xl font-medium text-center text-red-600 dark:text-red-500">{error}</p>}
       <ul>
         {addresses.map((address) => (
           <li key={address.id}>

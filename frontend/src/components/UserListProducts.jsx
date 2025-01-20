@@ -60,7 +60,7 @@ const UserListProducts = ({ products }) => {
       if (cartRestaurantId !== product.restaurant) {
         const result = await openModal(product);
         if (!result) {
-          //return;
+          return;
         }
       }
     }
