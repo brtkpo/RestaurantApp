@@ -209,9 +209,11 @@ const Order = () => {
       ) : (
         <p className="mt-10 px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">Proszę się zalogować, aby zobaczyć listę adresów.</p>
       )}
+
+      <div className="mt-10 font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
       {Object.keys(groupedCartItems).map((restaurantName) => (
         <div key={restaurantName}>
-          <h3>{restaurantSettings.name}</h3>
+          <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">{restaurantSettings.name}</h3>
           <ul>
             {groupedCartItems[restaurantName].map((item) => (
               <li key={item.id}>
@@ -232,10 +234,12 @@ const Order = () => {
             ))}
           </ul>
           <div>
-            <h3>Łączna cena: {calculateTotalPrice()} PLN</h3>
+            <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Łączna cena: {calculateTotalPrice()} PLN</h3>
           </div>
         </div>
       ))}
+      </div>  
+      
       <div>
         <h3>Wybierz typ płatności:</h3>
         <label style={{ color: restaurantSettings.allows_online_payment ? 'black' : 'gray' }}>

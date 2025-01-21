@@ -26,7 +26,7 @@ const UserListProducts = ({ products }) => {
     setModalIsOpen(false);
     setProductToAdd(null);
     if (modalResolve) {
-      modalResolve(false);
+      modalResolve(false); 
     }
   };
 
@@ -38,11 +38,16 @@ const UserListProducts = ({ products }) => {
     }
 
     if (productToAdd) {
-      await axios.delete(`http://localhost:8000/api/cart/${sessionId}/clear/${productToAdd.restaurant}/`);
+      console.log('Product to add:', productToAdd);
+      const response = await axios.delete(`http://localhost:8000/api/cart/${sessionId}/clear/${productToAdd.restaurant}/`);
       //alert('Produkty z innych restauracji zostały usunięte z koszyka.');
       //refreshCart();
+      console.log('Products removed from cart:', response.data);
       handleAddToCart(productToAdd);
-      closeModal();
+      if (modalResolve) {
+        modalResolve(true); // Ustawia wynik modala na `true`
+      }
+    closeModal();
     }
   };
 
@@ -59,6 +64,7 @@ const UserListProducts = ({ products }) => {
       const cartRestaurantId = cartItems[0].product.restaurant;
       if (cartRestaurantId !== product.restaurant) {
         const result = await openModal(product);
+        console.log(result);
         if (!result) {
           return;
         }
