@@ -165,7 +165,7 @@ const Order = () => {
   };
 
   const groupedCartItems = cartItems ? cartItems.reduce((acc, item) => {
-    console.log(cartItems);
+    console.log("cartItems: ",cartItems);
     const { name, restaurant, price } = item.product;
     if (!acc[restaurant]) {
       acc[restaurant] = [];
@@ -218,8 +218,8 @@ const Order = () => {
             {groupedCartItems[restaurantName].map((item) => (
               <li key={item.id}>
                 <img
-                  src={item.image ? `${cloudinaryBaseUrl}${item.image}` : placeholderImage}
-                  alt={item.name}
+                  src={item.product.image ? `${cloudinaryBaseUrl}${item.product.image}` : placeholderImage}
+                  alt={item.product.name}
                   style={{ width: "300px", height: "auto" }}
                 />
                 <br />
