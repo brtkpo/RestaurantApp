@@ -164,7 +164,7 @@ const Order = () => {
       setIsCartOpen(false);
       setModalMessage("Zamówienie zostało złożone pomyślnie!");
       
-      //alert("Zamówienie zostało złożone pomyślnie!");
+      alert("Zamówienie zostało złożone pomyślnie!");
       setIsOrdered(true);
       //navigate(`/user/orders/${orderId}`);
     } catch (error) {
