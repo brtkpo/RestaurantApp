@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const Chat = ({ roomName, archived = false , mainUserId}) => {
+const Chat = ({ roomName, archived = false , mainUserId, restaurant = false}) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [socket, setSocket] = useState(null);
@@ -66,7 +66,14 @@ const Chat = ({ roomName, archived = false , mainUserId}) => {
           };
           // Jeśli wiadomość pochodzi od klienta, nie dodawaj jej ponownie
           if (!sentByClient) {
-            setMessages((prevMessages) => [...prevMessages, newMessage]);
+            setMessages((prevMessages) => {
+              // Sprawdź, czy wiadomość już istnieje
+              const lastMessage = prevMessages[prevMessages.length - 1];
+              if (lastMessage && lastMessage.message === newMessage.message && lastMessage.timestamp === newMessage.timestamp) {
+                return prevMessages;
+              }
+              return [...prevMessages, newMessage];
+            });
           }
         };
       } catch (error) {
@@ -128,23 +135,41 @@ const Chat = ({ roomName, archived = false , mainUserId}) => {
     <div>
       <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Chat do zamówienia nr. {roomName}</h3>
       <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
-        {messages.map((msg, index) => (
+      {messages.map((msg, index) => (
+        restaurant === false ? (
           mainUserId === msg.user ? (
             <div key={index} className="flex flex-col items-end mb-2">
-              <div className="px-3.5 py-2 bg-gray-800 text-white rounded-lg inline-flex items-center gap-3">
+              <div className="px-3.5 py-2 bg-gray-800 text-white rounded-lg inline-flex items-center gap-3 ml-auto max-w-[90%]">
                 <div>{msg.message}</div>
               </div>
               <h6 className="text-gray-400 text-xs font-normal leading-4 py-1 self-end">{msg.timestamp}</h6>
             </div>
           ) : (
             <div key={index} className="flex flex-col items-start mb-2">
-              <div className="px-3.5 py-2 bg-gray-100 rounded-lg inline-flex items-center gap-3">
+              <div className="px-3.5 py-2 bg-gray-100 rounded-lg inline-flex items-center gap-3 mr-auto max-w-[90%]">
                 <div>{msg.message}</div>
               </div>
               <h6 className="text-gray-500 text-xs font-normal leading-4 py-1 self-start">{msg.timestamp}</h6>
             </div>
           )
-        ))}
+        ) : (
+          mainUserId === msg.user ? (
+            <div key={index} className="flex flex-col items-start mb-2">
+              <div className="px-3.5 py-2 bg-gray-100 rounded-lg inline-flex items-center gap-3 mr-auto max-w-[90%]">
+                <div>{msg.message}</div>
+              </div>
+              <h6 className="text-gray-500 text-xs font-normal leading-4 py-1 self-start">{msg.timestamp}</h6>
+            </div>
+          ) : (
+            <div key={index} className="flex flex-col items-end mb-2">
+              <div className="px-3.5 py-2 bg-gray-800 text-white rounded-lg inline-flex items-center gap-3 ml-auto max-w-[90%]">
+                <div>{msg.message}</div>
+              </div>
+              <h6 className="text-gray-400 text-xs font-normal leading-4 py-1 self-end">{msg.timestamp}</h6>
+            </div>
+          )
+        )
+      ))}
         {!archived && (
         <>
           <div className="flex items-center space-x-2 mt-2">
