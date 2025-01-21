@@ -108,6 +108,7 @@ const UserListProducts = ({ products }) => {
               <p>Cena: {product.price} PLN</p>
               {/*<p>{product.is_available ? "Dostępny" : "Niedostępny"}</p>*/}
               <img
+                class="h-auto rounded-lg"
                 src={product.image ? `${cloudinaryBaseUrl}${product.image}` : placeholderImage}
                 alt={product.name}
                 style={{ width: "300px", height: "auto" }}

@@ -215,9 +215,10 @@ const Order = () => {
         <div key={restaurantName}>
           <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">{restaurantSettings.name}</h3>
           <ul>
-            {groupedCartItems[restaurantName].map((item) => (
+            {groupedCartItems[restaurantName].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map((item) => (
               <li key={item.id}>
-                <img
+                <img 
+                  class="h-auto rounded-lg"
                   src={item.product.image ? `${cloudinaryBaseUrl}${item.product.image}` : placeholderImage}
                   alt={item.product.name}
                   style={{ width: "300px", height: "auto" }}

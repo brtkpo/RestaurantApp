@@ -128,10 +128,11 @@ class CartItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)  # Ustawiamy pole price jako read_only
     #restaurant = RestaurantSerializer(source='product.restaurant', read_only=True)  # Dodajemy pole restaurant
+    created_at = serializers.DateTimeField(read_only=True) 
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'quantity', 'price']#,'product_id'
+        fields = ['id', 'product', 'quantity', 'price', 'created_at']#,'product_id'
     
     def validate(self, data):
         print('Validating data:', data)  # Logowanie danych podczas walidacji
