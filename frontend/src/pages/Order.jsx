@@ -7,6 +7,7 @@ import { CartContext } from '../components/CartContext';
 import DeleteProductFromCart from '../components/DeleteProductFromCart';
 import placeholderImage from '../assets/Placeholder.png';
 import axios from 'axios';
+import loadingGif from '../assets/200w.gif'; 
 
 const Order = () => {
   const token = useSelector((state) => state.token); // Pobieramy token z Redux
@@ -22,13 +23,14 @@ const Order = () => {
   const [restaurantSettings, setRestaurantSettings] = useState({});
   const [isRestaurantSettingsLoaded, setIsRestaurantSettingsLoaded] = useState(false);
   const [isAddressesLoaded, setIsAddressesLoaded] = useState(false);
+  const [isAddressSelectorLoaded, setIsAddressSelectorLoaded] = useState(false); 
   const { setIsCartOpen } = useContext(CartContext);
 
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
   useEffect(() => {
     if (!token) {
-      navigate('/login'); // Przekierowanie na stronę logowania, jeśli użytkownik nie jest zalogowany
+      navigate('/login'); // moze dodac modal z info nwm
     }
   }, [token, navigate]);
 
@@ -181,8 +183,12 @@ const Order = () => {
   const isMinimumOrderAmountMet = calculateTotalPrice() >= restaurantSettings.minimum_order_amount;
   const isCityInDeliveryCities = deliveryType === 'delivery' && selectedAddress && restaurantSettings.delivery_cities.some(city => city.name === selectedAddress.city);
 
-  if (!isRestaurantSettingsLoaded) {
-    return <div>Ładowanie danych...</div>; // Możesz tu wstawić spinner lub komunikat ładowania
+  if (!isRestaurantSettingsLoaded ) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <img src={loadingGif} alt="Loading..." />
+      </div>
+    );
   }
 
   return (
@@ -241,76 +247,81 @@ const Order = () => {
       ))}
       </div>  
       
-      <div>
-        <h3>Wybierz typ płatności:</h3>
-        <label style={{ color: restaurantSettings.allows_online_payment ? 'black' : 'gray' }}>
-          <input
-            type="radio"
-            value="online"
-            checked={paymentType === 'online'}
-            onChange={(e) => restaurantSettings.allows_online_payment && setPaymentType(e.target.value)}
-            disabled={!restaurantSettings.allows_online_payment}
+      <div className="mt-10 font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+        <div>
+          <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Wybierz typ płatności:</h3>
+          <label style={{ color: restaurantSettings.allows_online_payment ? 'black' : 'gray' }}>
+            <input
+              type="radio"
+              value="online"
+              checked={paymentType === 'online'}
+              onChange={(e) => restaurantSettings.allows_online_payment && setPaymentType(e.target.value)}
+              disabled={!restaurantSettings.allows_online_payment}
+            />
+            Online
+          </label>
+          <label style={{ color: restaurantSettings.allows_cash_payment ? 'black' : 'gray' }}>
+            <input
+              type="radio"
+              value="cash"
+              checked={paymentType === 'cash'}
+              onChange={(e) => restaurantSettings.allows_cash_payment && setPaymentType(e.target.value)}
+              disabled={!restaurantSettings.allows_cash_payment}
+            />
+            Przy odbiorze
+          </label>
+        </div>
+        <div>
+          <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Wybierz typ dostawy:</h3>
+          <label style={{ color: restaurantSettings.allows_delivery ? 'black' : 'gray' }}>
+            <input
+              type="radio"
+              value="delivery"
+              checked={deliveryType === 'delivery'}
+              onChange={(e) => restaurantSettings.allows_delivery && setDeliveryType(e.target.value)}
+              disabled={!restaurantSettings.allows_delivery}
+            />
+            Dostawa kurierem
+          </label>
+          <label style={{ color: restaurantSettings.allows_pickup ? 'black' : 'gray' }}>
+            <input
+              type="radio"
+              value="pickup"
+              checked={deliveryType === 'pickup'}
+              onChange={(e) => restaurantSettings.allows_pickup && setDeliveryType(e.target.value)}
+              disabled={!restaurantSettings.allows_pickup}
+            />
+            Odbiór osobisty
+          </label>
+        </div>
+        <div>
+          <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Notatki do zamówienia:</h3>
+          <textarea
+            value={orderNotes}
+            onChange={(e) => setOrderNotes(e.target.value)}
+            placeholder="Dodaj notatki do zamówienia"
           />
-          Online
-        </label>
-        <label style={{ color: restaurantSettings.allows_cash_payment ? 'black' : 'gray' }}>
-          <input
-            type="radio"
-            value="cash"
-            checked={paymentType === 'cash'}
-            onChange={(e) => restaurantSettings.allows_cash_payment && setPaymentType(e.target.value)}
-            disabled={!restaurantSettings.allows_cash_payment}
-          />
-          Przy odbiorze
-        </label>
-      </div>
-      <div>
-        <h3>Wybierz typ dostawy:</h3>
-        <label style={{ color: restaurantSettings.allows_delivery ? 'black' : 'gray' }}>
-          <input
-            type="radio"
-            value="delivery"
-            checked={deliveryType === 'delivery'}
-            onChange={(e) => restaurantSettings.allows_delivery && setDeliveryType(e.target.value)}
-            disabled={!restaurantSettings.allows_delivery}
-          />
-          Dostawa kurierem
-        </label>
-        <label style={{ color: restaurantSettings.allows_pickup ? 'black' : 'gray' }}>
-          <input
-            type="radio"
-            value="pickup"
-            checked={deliveryType === 'pickup'}
-            onChange={(e) => restaurantSettings.allows_pickup && setDeliveryType(e.target.value)}
-            disabled={!restaurantSettings.allows_pickup}
-          />
-          Odbiór osobisty
-        </label>
-      </div>
-      <div>
-        <h3>Notatki do zamówienia:</h3>
-        <textarea
-          value={orderNotes}
-          onChange={(e) => setOrderNotes(e.target.value)}
-          placeholder="Dodaj notatki do zamówienia"
-        />
-      </div>
-      <div>
-        {!selectedAddress && deliveryType === 'delivery' ? (
-          <p>Proszę wybrać adres dostawy.</p>
-        ) : (
-          <>
-            {isMinimumOrderAmountMet ? (
-              deliveryType === 'pickup' || isCityInDeliveryCities ? (
-                <button onClick={handleCreateOrder}>Złóż zamówienie</button>
+        </div>
+        <div>
+          {!selectedAddress && deliveryType === 'delivery' ? (
+            <p>Proszę wybrać adres dostawy.</p>
+          ) : (
+            <>
+              {isMinimumOrderAmountMet ? (
+                deliveryType === 'pickup' || isCityInDeliveryCities ? (
+                  <button 
+                    onClick={handleCreateOrder}
+                    className=" px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50"
+                    >Złóż zamówienie</button>
+                ) : (
+                  <p className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Restauracja {restaurantSettings.name} nie dostarcza do miasta {selectedAddress.city}</p>
+                )
               ) : (
-                <p>Restauracja {restaurantSettings.name} nie dostarcza do miasta {selectedAddress.city}</p>
-              )
-            ) : (
-              <p>Minimalna kwota zamówienia dla {restaurantSettings.name} to: {restaurantSettings.minimum_order_amount} PLN</p>
-            )}
-          </>
-        )}
+                <p className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Minimalna kwota zamówienia dla {restaurantSettings.name} to: {restaurantSettings.minimum_order_amount} PLN</p>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

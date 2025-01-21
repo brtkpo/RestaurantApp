@@ -30,6 +30,7 @@ const AddressSelector = ({ onSelect, onAddAddress }) => {
         
       } 
       setIsLoading(false); 
+      console.log('Addresses loaded');
     };
 
     fetchAddresses();
