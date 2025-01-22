@@ -163,18 +163,27 @@ const Home = () => {
   if (selectedRestaurant && isRendered === false) {
     if (products && products.length === 0) {
       return (
-        <div onRendered={handleRendered}>
-          <h1>{selectedRestaurant.name}</h1>
-          <div>Brak produktów do wyświetlenia.</div>
-          <button onClick={handleBackClick}>Wróć</button>
+        <div>
+          <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">{selectedRestaurant.name}</h3>
+          <div onRendered={handleRendered} className="mt-2 font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4 flex flex-col items-center justify-center">
+              <div>Brak produktów do wyświetlenia.</div>
+              <button onClick={handleBackClick} className="mt-2 px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+                Wróć
+              </button>
+            </div>
         </div>
       );
     }
     return (
       <div>
-        <h1>{selectedRestaurant.name}</h1>
+        <h3 className="mb-4 mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">{selectedRestaurant.name}</h3>
         {products && <UserListProducts products={products} onRendered={handleRendered} />}
-        <button onClick={handleBackClick}>Wróć</button>
+
+        <div className="mt-2 mb-10 text-center">
+          <button onClick={handleBackClick} className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+            Wróć
+          </button>
+        </div>
       </div>
     );
   }
@@ -211,7 +220,7 @@ const Home = () => {
         <>
           <div>
             <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Filtruj według tagów:</h3>
-            <div className="mb-2 font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4 flex items-center space-x-2">
+            <div className="mb-4 font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4 flex items-center space-x-2">
               <ul style={{ listStyleType: 'none', padding: 0 }}>
                 {tags.map(tag => (
                   <li key={tag.id}>
@@ -230,7 +239,7 @@ const Home = () => {
             </div>
           </div>
 
-          <ul className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3 list-none p-0 mx-4">
+          <ul className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3 list-none pt-2 pb-4 px-4 mx-4">
             {filteredRestaurants.map((restaurant) => (
               <li
                 key={restaurant.id}
@@ -269,12 +278,12 @@ const Home = () => {
                   style={{ width: "300px", height: "auto" }}
                 />
                 {restaurant.tags && restaurant.tags.length > 0 && (
-                  <div className="mt-2">
+                  <div className="mt-4">
                     <ul>
                       {restaurant.tags.map((tag) => (
                         <li key={tag.id} style={{ display: "inline" }}>
                           <span
-                            className="mr-1 px-4 sm:mx-2 w-full py-2.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40"
+                            className="mt-2 mr-1 px-4 sm:mx-2 w-full py-2.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40"
                           >
                             {tag.name}
                           </span>
