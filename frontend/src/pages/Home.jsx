@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import UserListProducts from "../components/UserListProducts.jsx";
 import placeholderImage from '../assets/Placeholder.png';
+import loadingGif from '../assets/200w.gif'; 
+
 
 const Home = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -178,10 +180,9 @@ const Home = () => {
   }
 
   return (
-    <div className="pt-10">
-      
-      <div>
-        <h3>Restauracje w pobliżu:</h3>
+    <div>
+      <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Wyszukaj restaurację:</h3>
+      <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4 flex items-center space-x-2">
         <input
           type="text"
           list="cities"
@@ -189,90 +190,92 @@ const Home = () => {
           onChange={handleCityChange}
           onKeyDown={handleKeyDown}
           placeholder="Wyszukaj miasto"
+          className="flex-grow px-4 py-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-gray-400 dark:focus:border-gray-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-gray-300"
         />
         <datalist id="cities">
           {cities.map(city => (
             <option key={city} value={city} />
           ))}
         </datalist>
-        <button onClick={handleCitySelect}>Szukaj</button>
+        <button onClick={handleCitySelect} className="w-15 px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+          Szukaj
+        </button>
       </div>
-      {loading && <p>Ładowanie...</p>}
+      {loading && (
+        <div className="flex justify-center items-center">
+          <img src={loadingGif} alt="Loading..." />
+        </div>
+      )}
       {error && <p>{error}</p>}
       {!loading && !error && restaurants.length > 0 && (
         <>
           <div>
-            <h3>Filtruj według tagów</h3>
-            <ul style={{ listStyleType: 'none', padding: 0 }}>
-              {tags.map(tag => (
-                <li key={tag.id}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      value={tag.id}
-                      onChange={() => handleTagChange(tag.id)}
-                    />
-                    {tag.name}
-                  </label>
-                </li>
-              ))}
-            </ul>
+            <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Filtruj według tagów:</h3>
+            <div className="mb-2 font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4 flex items-center space-x-2">
+              <ul style={{ listStyleType: 'none', padding: 0 }}>
+                {tags.map(tag => (
+                  <li key={tag.id}>
+                    <label class="relative flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        value={tag.id}
+                        onChange={() => handleTagChange(tag.id)}
+                        class="mr-1 w-4 h-4 accent-gray-600 text-gray-600 bg-gray-100 border-gray-300 focus:ring-gray-500 dark:focus:ring-gray-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      {tag.name}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <h2>Lista Restauracji:</h2>
-          <ul style={{ listStyleType: "none", padding: 0 }}>
+
+          <ul className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3 list-none p-0 mx-4">
             {filteredRestaurants.map((restaurant) => (
               <li
                 key={restaurant.id}
-                onClick={() => {handleRestaurantClick(restaurant); setIsRendered(true);}}
-                style={{
-                  cursor: "pointer",
-                  border: "1px solid #ddd",
-                  borderRadius: "10px",
-                  padding: "20px",
-                  marginBottom: "10px",
-                  transition: "background-color 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9f9f9")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "white")}
+                onClick={() => { handleRestaurantClick(restaurant); setIsRendered(true); }}
+                className="cursor-pointer border border-gray-300 rounded-lg p-5 transition duration-200 ease-in-out transform hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                <h2>{restaurant.name}</h2>
-                <p>{restaurant.description}</p>
-                {restaurant.address && restaurant.address.map((addr) => (
-                  <p key={addr.id}>
-                    {addr.street} {addr.building_number}, {addr.apartment_number ? `${addr.apartment_number}, ` : ''}{addr.postal_code} {addr.city}
-                  </p>
-                ))}
-                {(restaurant.allows_cash_payment || restaurant.allows_online_payment) && (
-                  <p>
-                    {restaurant.allows_cash_payment && "Płatność na miejscu/przy odbiorze"}
-                    {restaurant.allows_cash_payment && restaurant.allows_online_payment && ", "}
-                    {restaurant.allows_online_payment && "Płatność online"}
-                  </p>
-                )}
-                {(restaurant.allows_delivery || restaurant.allows_pickup) && (
-                  <p>
-                    {restaurant.allows_delivery && "Dostawa"}
-                    {restaurant.allows_delivery && restaurant.allows_pickup && ", "}
-                    {restaurant.allows_pickup && "Odbiór osobisty"}
-                  </p>
-                )}
-                {restaurant.minimum_order_amount > 0 && <p>Minimalna wartość zamówienia: {restaurant.minimum_order_amount} PLN</p>}
-                {restaurant.minimum_order_amount == 0 && <p>Brak minimalnej wartości zamówienia</p>}
+                <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">{restaurant.name}</h3>
+                <ul className="text-gray-800 list-disc list-inside dark:text-gray-700">
+                  <li>{restaurant.description}</li>
+                  {restaurant.address && restaurant.address.map((addr) => (
+                    <li key={addr.id}>
+                      {addr.street} {addr.building_number}, {addr.apartment_number ? `${addr.apartment_number}, ` : ''}{addr.postal_code} {addr.city}
+                    </li>
+                  ))}
+                  {(restaurant.allows_cash_payment || restaurant.allows_online_payment) && (
+                    <li>
+                      {restaurant.allows_cash_payment && "Płatność na miejscu/przy odbiorze"}
+                      {restaurant.allows_cash_payment && restaurant.allows_online_payment && ", "}
+                      {restaurant.allows_online_payment && "Płatność online"}
+                    </li>
+                  )}
+                  {(restaurant.allows_delivery || restaurant.allows_pickup) && (
+                    <li>
+                      {restaurant.allows_delivery && "Dostawa"}
+                      {restaurant.allows_delivery && restaurant.allows_pickup && ", "}
+                      {restaurant.allows_pickup && "Odbiór osobisty"}
+                    </li>
+                  )}
+                  {restaurant.minimum_order_amount > 0 && <li>Minimalna wartość zamówienia: {restaurant.minimum_order_amount} PLN</li>}
+                  {restaurant.minimum_order_amount == 0 && <li>Brak minimalnej wartości zamówienia</li>}
+                </ul>
                 <img
                   src={restaurant.image !== null ? `${cloudinaryBaseUrl}${restaurant.image}` : placeholderImage}
                   alt={restaurant.name}
+                  className="h-auto rounded-lg my-2 mx-auto"
                   style={{ width: "300px", height: "auto" }}
                 />
                 {restaurant.tags && restaurant.tags.length > 0 && (
-                  <div style={{ marginTop: "10px" }}>
+                  <div className="mt-2">
                     <ul>
                       {restaurant.tags.map((tag) => (
-                        <li key={tag.id} style={{ display: "inline", marginRight: "10px"}}>
-                          <span style={{ 
-                            backgroundColor: "#f0f0f0", 
-                            padding: "5px 10px", 
-                            borderRadius: "5px" 
-                          }}>
+                        <li key={tag.id} style={{ display: "inline" }}>
+                          <span
+                            className="mr-1 px-4 sm:mx-2 w-full py-2.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40"
+                          >
                             {tag.name}
                           </span>
                         </li>
