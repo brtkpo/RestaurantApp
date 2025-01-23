@@ -7,6 +7,8 @@ import AddAddressForm from '../components/AddAddressForm';
 import UserOrders from '../components/UserOrders';
 import ArchivedUserOrders from '../components/ArchivedUserOrders';
 import axios from 'axios';
+import loadingGif from '../assets/200w.gif'; 
+import Modal from 'react-modal';
 
 import Notifications from '../components/Notifications';
 
@@ -20,6 +22,7 @@ const User = () => {
   const [error, setError] = useState(null);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showPaymentFail, setShowPaymentFail] = useState(false);
+  const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true); // Dodano flagę isLoading
 
@@ -130,23 +133,6 @@ const User = () => {
     }
   };
 
-  const handleAddAddress = async (newAddress) => {
-    try {
-      const response = await axios.post('http://localhost:8000/api/addresses/', newAddress, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.status === 201) {
-        setAddresses([...addresses, response.data]);
-        alert('Adres dodany pomyślnie!');
-      }
-    } catch (error) {
-      alert('Błąd podczas dodawania adresu');
-    }
-  };
-
   const handleDeleteAddress = async (addressId) => {
     const confirmDelete = window.confirm('Czy na pewno chcesz usunąć ten adres?');
     if (confirmDelete) {
@@ -158,38 +144,68 @@ const User = () => {
         });
         if (response.status === 204) {
           setAddresses(addresses.filter((address) => address.id !== addressId));
-          alert('Adres usunięty pomyślnie!');
+          //alert('Adres usunięty pomyślnie!');
         }
       } catch (error) {
-        alert('Błąd podczas usuwania adresu');
+        //alert('Błąd podczas usuwania adresu');
       }
     }
   };
 
+  const openAddAddressModal = () => {
+    setIsAddAddressModalOpen(true);
+  };
+
+  const closeAddAddressModal = () => {
+    setIsAddAddressModalOpen(false);
+  };
+
+  const refreshAddresses = () => {
+    fetchAddresses();
+  };
+
   if (isLoading) {
-    return <p>Ładowanie danych...</p>; // Wyświetl komunikat, dopóki dane się ładują
+    return (
+      <div className="flex justify-center items-center">
+        <img src={loadingGif} alt="Loading..." />
+      </div>
+    );
   }
 
   return (
     <div>
-      <Notifications token={sessionStorage.getItem('authToken')} userRole={'client'} />
-      <h1>Panel użytkownika</h1>
       {showPaymentSuccess && <div style={styles.popup_success}>Płatność zakończona sukcesem!</div>}
       {showPaymentFail && <div style={styles.popup_fail}>Płatność nie powiodła się!</div>}
-      {userData ? (
-        <div>
-          <h2>Witaj, {userData.first_name} {userData.last_name}</h2>
-          <p>Email: {userData.email}</p>
-          <p>Telefon: {userData.phone_number || 'Brak numeru telefonu'}</p>
-        </div>
-      ) : (
-        <p>Ładowanie danych...</p>
-      )}
+
+      <Notifications token={sessionStorage.getItem('authToken')} userRole={'client'} />
+      <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Panel użytkownika</h3>
+
+      <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+        <ul className=" text-gray-800 list-disc list-inside dark:text-gray-700">
+          <li>Imię: {userData.first_name}</li>
+          <li>Nazwisko: {userData.last_name}</li>
+          <li>Email: {userData.email}</li>
+        </ul>
+
+      </div>
+
       <UserOrders />
       <ArchivedUserOrders />
-      <button onClick={handleLogout}>Wyloguj</button>
-      <AddressList key={addresses.map(address => address.id).join('-')} addresses={addresses} onDeleteAddress={handleDeleteAddress} />
-      <AddAddressForm onAddAddress={handleAddAddress} />
+
+      <div className="mt-2 text-center font-[sans-serif]">
+                  <button onClick={handleLogout} className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+                    Wyloguj
+                  </button>
+                </div>
+                
+      <AddressList key={addresses.map(address => address.id).join('-')} onAddAddress={refreshAddresses} addresses={addresses} onDeleteAddress={handleDeleteAddress} />
+      
+      <div className='flex justify-center'>
+        <button onClick={openAddAddressModal} className="mt-2 px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+          Dodaj nowy adres
+        </button>
+      </div> 
+      <AddAddressForm isOpen={isAddAddressModalOpen} onRequestClose={closeAddAddressModal} onAddAddress={refreshAddresses} />
       <br />
       <button onClick={handleDeleteAccount} style={{ color: 'red', marginTop: '30px' }}>
         Usuń konto

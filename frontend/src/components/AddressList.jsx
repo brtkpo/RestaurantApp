@@ -1,32 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import loadingGif from '../assets/200w.gif'; 
 
-const AddressList = () => {
+const AddressList = ({ onAddAddress }) => {
   const [addresses, setAddresses] = useState([]);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); 
+
+  const fetchAddresses = async () => {
+    try {
+      const token = sessionStorage.getItem('authToken');
+      const response = await axios.get('http://localhost:8000/api/addresses/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.length === 0) {
+          //setNoAddresses(true); // Brak adresów
+          setError('Brak adresów');
+        } else {
+          setAddresses(response.data); // Ustawiamy adresy, jeśli są
+        }
+    } catch (err) {
+      setError('Błąd podczas ładowania adresów');
+    }
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    const fetchAddresses = async () => {
-      try {
-        const token = sessionStorage.getItem('authToken');
-        const response = await axios.get('http://localhost:8000/api/addresses/', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.data.length === 0) {
-            //setNoAddresses(true); // Brak adresów
-            setError('Brak adresów');
-          } else {
-            setAddresses(response.data); // Ustawiamy adresy, jeśli są
-          }
-      } catch (err) {
-        setError('Błąd podczas ładowania adresów');
-      }
-    };
-
     fetchAddresses();
-  }, []);
+  }, [onAddAddress]);
 
   const handleDelete = async (addressId) => {
     const confirmDelete = window.confirm('Czy na pewno chcesz usunąć ten adres?');
@@ -45,19 +48,33 @@ const AddressList = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center">
+        <img src={loadingGif} alt="Loading..." />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <h3>Moje adresy</h3>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <ul>
-        {addresses.map((address) => (
-          <li key={address.id}>
-            {address.first_name} {address.last_name} - {address.street} {address.building_number} {address.apartment_number} , {address.postal_code} {address.city}, tel. {address.phone_number}
-            <button onClick={() => handleDelete(address.id)}>Usuń</button>
-            {/* Można dodać przycisk edytowania */}
-          </li>
-        ))}
-      </ul>
+      <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Moje adresy</h3>
+      <div className="font-[sans-serif] w-full max-w-2xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <ul className="text-gray-800 list-disc list-inside dark:text-gray-700">
+          {addresses.map((address) => (
+            <li key={address.id} className="flex justify-between items-center">
+              {address.first_name} {address.last_name} - {address.street} {address.building_number} {address.apartment_number} , {address.postal_code} {address.city}, tel. {address.phone_number}
+              <button type="button" onClick={() => handleDelete(address.id)} className="ml-auto px-4 sm:mx-2 w-full py-2.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40">
+                Usuń
+              </button>
+              
+              {/* Można dodać przycisk edytowania */}
+            </li>
+          ))}
+        </ul>
+      </div>
+      
     </div>
   );
 };
