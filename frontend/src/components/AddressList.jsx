@@ -60,20 +60,27 @@ const AddressList = ({ onAddAddress }) => {
     <div>
       <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Moje adresy</h3>
       <div className="font-[sans-serif] w-full max-w-2xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <ul className="text-gray-800 list-disc list-inside dark:text-gray-700">
-          {addresses.map((address) => (
-            <li key={address.id} className="flex justify-between items-center">
-              {address.first_name} {address.last_name} - {address.street} {address.building_number} {address.apartment_number} , {address.postal_code} {address.city}, tel. {address.phone_number}
-              <button type="button" onClick={() => handleDelete(address.id)} className="ml-auto px-4 sm:mx-2 w-full py-2.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40">
-                Usuń
-              </button>
-              
-              {/* Można dodać przycisk edytowania */}
-            </li>
-          ))}
-        </ul>
-      </div>
+  {error && <p style={{ color: 'red' }}>{error}</p>}
+  <ul className="list-disc pl-4 text-gray-800 dark:text-gray-700">
+    {addresses.map((address) => (
+      <li
+        key={address.id}
+        className="flex items-center justify-between mb-2"
+      >
+        <span className="list-item">
+          {address.first_name} {address.last_name} - {address.street} {address.building_number} {address.apartment_number}, {address.postal_code} {address.city}, tel. {address.phone_number}
+        </span>
+        <button
+          type="button"
+          onClick={() => handleDelete(address.id)}
+          className="ml-4 px-4 sm:mx-2 w-16 py-1.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40"
+        >
+          Usuń
+        </button>
+      </li>
+    ))}
+  </ul>
+</div>
       
     </div>
   );
