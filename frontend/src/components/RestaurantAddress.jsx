@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import loadingGif from '../assets/200w.gif'; 
 
 const RestaurantAddress = ({ profileData }) => {
   const [address, setAddress] = useState(null);
@@ -13,6 +14,7 @@ const RestaurantAddress = ({ profileData }) => {
   const [error, setError] = useState('');
   const [globalError, setGlobalError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
 
   useEffect(() => {
     const fetchAddress = async () => {
@@ -125,21 +127,22 @@ const RestaurantAddress = ({ profileData }) => {
   };
 
   if (isLoading) {
-    return <p>Ładowanie...</p>; // Wyświetl komunikat ładowania
+    return (
+      <div className="flex justify-center items-center">
+        <img src={loadingGif} alt="Loading..." />
+      </div>
+    );
   }
 
   return (
     <div>
-      <h2>Adres restauracji</h2>
       {error && <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
       {globalError && <p style={{ color: 'red' }}>{globalError}</p>}
       {address ? (
-        <div>
-          <p>{address.first_name} {address.last_name}</p>
-          <p>{address.street} {address.building_number} {address.apartment_number}</p>
-          <p>{address.postal_code} {address.city}</p>
-          <p>Telefon: {address.phone_number}</p>
-        </div>
+        <ul className=" text-gray-800 list-disc list-inside dark:text-gray-700">
+          <li>Adres: {address.street} {address.building_number}{address.apartment_number > 0 ? `/${address.apartment_number}` : ''}, {address.postal_code} {address.city}</li>
+          <li>Telefon: {address.phone_number}</li>
+        </ul>
       ) : (
         <form onSubmit={handleSubmit}>
           <div>

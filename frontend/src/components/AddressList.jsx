@@ -68,7 +68,7 @@ const AddressList = ({ onAddAddress }) => {
         className="flex items-center justify-between mb-2"
       >
         <span className="list-item">
-          {address.first_name} {address.last_name} - {address.street} {address.building_number} {address.apartment_number}, {address.postal_code} {address.city}, tel. {address.phone_number}
+          {address.first_name} {address.last_name} - {address.street} {address.building_number}{address.apartment_number > 0 ? `/${address.apartment_number}` : ''}, {address.postal_code} {address.city}, tel. {address.phone_number}
         </span>
         <button
           type="button"

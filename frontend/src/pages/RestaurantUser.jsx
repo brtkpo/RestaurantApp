@@ -11,6 +11,7 @@ import RestaurantOrders from "../components/RestaurantOrders";
 import placeholderImage from '../assets/Placeholder.png';
 import RestaurantAddress from '../components/RestaurantAddress';
 import ArchivedRestaurantOrders from '../components/ArchivedRestaurantOrders';
+import loadingGif from '../assets/200w.gif'; 
 
 import Notifications from '../components/Notifications';
 
@@ -208,8 +209,13 @@ const RestaurantProfile = () => {
   }
 
   // Jeśli dane restauratora nie są jeszcze dostępne
+
   if (!profileData) {
-    return <div>Ładowanie danych...</div>;
+    return (
+      <div className="flex justify-center items-center">
+        <img src={loadingGif} alt="Loading..." />
+      </div>
+    );
   }
 
   const { first_name, last_name, email, phone_number, restaurant } = profileData;
@@ -250,18 +256,23 @@ const RestaurantProfile = () => {
   return (
     <div>
       <Notifications token={sessionStorage.getItem('authToken')} userRole={'restaurateur'} />
-      <h1>Panel Restauratora</h1>
-      <h2>Twoje dane</h2>
-      <p>Imię: {first_name}</p>
-      <p>Nazwisko: {last_name}</p>
-      <p>Email: {email}</p>
-      <p>Numer telefonu: {phone_number || 'Brak numeru telefonu'}</p>
-
-      <h2>Informacje o restauracji</h2>
-      <p>Nazwa: {restaurant.name}</p>
-      <p>Telefon lokalu: {restaurant.phone_number}</p>
-      <p>Opis: {restaurant.description}</p>
-      <RestaurantAddress profileData={profileData} />
+      <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Panel Restauratora</h3>
+      <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+        <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Restaurator</h3>
+        <ul className=" text-gray-800 list-disc list-inside dark:text-gray-700">
+          <li>Imię: {first_name}</li>
+          <li>Nazwisko: {last_name}</li>
+          <li>Email: {email}</li>
+        </ul>
+        <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Restauracja</h3>
+        <ul className=" text-gray-800 list-disc list-inside dark:text-gray-700">
+        <li>Nazwa: {restaurant.name}</li>
+        <li>Telefon lokalu: {restaurant.phone_number}</li>
+        <li>Opis: {restaurant.description}</li>
+        <RestaurantAddress profileData={profileData} />
+        </ul>
+      </div>
+      
       <form onSubmit={handleSubmit}>
         <div>
           <label>
@@ -361,6 +372,7 @@ const RestaurantProfile = () => {
             src={`${cloudinaryBaseUrl}${restaurant.image}`}
             alt={restaurant.name}
             style={{ width: '300px', height: 'auto' }}
+            className="h-auto rounded-lg my-2 mx-auto"
           />
           <br />
           <h2>Upload Image</h2>
@@ -376,6 +388,7 @@ const RestaurantProfile = () => {
             src={placeholderImage}
             alt={restaurant.name}
             style={{ width: '300px', height: 'auto' }}
+            className="h-auto rounded-lg my-2 mx-auto"
           />
           <br />
           <h2>Upload Image</h2>
