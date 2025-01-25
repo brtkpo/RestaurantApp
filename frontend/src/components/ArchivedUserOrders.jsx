@@ -48,18 +48,18 @@ const ArchivedUserOrders = () => {
     fetchOrders();
   }, [token]);
 
-      if (isLoading) {
-        return (
-          <div>
-            <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Zarchiwizowane zamówienia</h3>
-            <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
-              <div className="flex justify-center items-center">
-                <img src={loadingGif} alt="Loading..." />
-              </div>
+    if (isLoading) {
+      return (
+        <div>
+          <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Zarchiwizowane zamówienia</h3>
+          <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+            <div className="flex justify-center items-center">
+              <img src={loadingGif} alt="Loading..." />
             </div>
           </div>
-        );
-      }
+        </div>
+      );
+    }
 
   return (
     <div>
