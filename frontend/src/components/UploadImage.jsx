@@ -100,8 +100,10 @@ const UploadImage = ({ onUploadSuccess, metadata }) => {
 
   return (
     <div>
-      {/*<h2>Upload Image</h2>*/}
-      <input type="file" onChange={handleFileChange} ref={fileInputRef} />
+      <div>
+        <input type="file" onChange={handleFileChange} ref={fileInputRef} class="block w-full px-3 py-2 mt-2 mb-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg file:bg-gray-200 file:text-gray-700 file:text-sm file:px-4 file:py-1 file:border-none file:rounded-full dark:file:bg-gray-800 dark:file:text-gray-200 dark:text-gray-300 placeholder-gray-400/70 dark:placeholder-gray-500 focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40 dark:border-gray-600 dark:bg-gray-900 dark:focus:border-blue-300" />
+      </div>
+
       {imageUrl && (
         <div>
           <Cropper
@@ -113,12 +115,12 @@ const UploadImage = ({ onUploadSuccess, metadata }) => {
             viewMode={1} 
             ref={cropperRef}
           />
-          <div>
-            <button onClick={handleUpload} disabled={loading}>
-              {loading ? "Uploading..." : "Upload Cropped Image"}
-            </button>
-            <button onClick={handleCancel} disabled={loading} style={{ marginLeft: "10px" }}>
+          <div className="mt-2 sm:flex sm:items-center sm:justify-between sm:mt-6 sm:-mx-2">
+            <button type="button" onClick={handleCancel} disabled={loading} className="px-4 sm:mx-2 w-full py-2.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40">
               Anuluj
+            </button>
+            <button type="submit" onClick={handleUpload} disabled={loading} className="px-4 sm:mx-2 w-full py-2.5 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+            {loading ? 'Dodawanie' : 'Dodaj'}
             </button>
           </div>
         </div>

@@ -12,6 +12,7 @@ import placeholderImage from '../assets/Placeholder.png';
 import RestaurantAddress from '../components/RestaurantAddress';
 import ArchivedRestaurantOrders from '../components/ArchivedRestaurantOrders';
 import loadingGif from '../assets/200w.gif'; 
+import Modal from 'react-modal';
 
 import Notifications from '../components/Notifications';
 
@@ -19,7 +20,7 @@ const RestaurantProfile = () => {
   const dispatch = useDispatch();
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
-  const [formError, setFormError] = useState(null);
+  const [formError, setFormError] = useState(false);
   const navigate = useNavigate();
   const [productsUpdated, setProductsUpdated] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,6 +35,10 @@ const RestaurantProfile = () => {
   });
   const [deliveryCities, setDeliveryCities] = useState([]);
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   // Ładowanie danych restauratora z backendu
   useEffect(() => {
@@ -165,15 +170,19 @@ const RestaurantProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormError(null);
+    setFormError(false);
 
     // Walidacja: co najmniej jedna opcja płatności i jedna opcja dostawy musi być zaznaczona
     if (!formData.allows_online_payment && !formData.allows_cash_payment) {
-      setFormError('Musisz wybrać co najmniej jedną opcję płatności.');
+      setFormError(true);
+      setModalMessage('Musisz wybrać co najmniej jedną opcję płatności.');
+      setModalIsOpen(true);
       return;
     }
     if (!formData.allows_delivery && !formData.allows_pickup) {
-      setFormError('Musisz wybrać co najmniej jedną opcję dostawy.');
+      setFormError(true);
+      setModalMessage('Musisz wybrać co najmniej jedną opcję dostawy.');
+      setModalIsOpen(true);
       return;
     }
 
@@ -189,17 +198,26 @@ const RestaurantProfile = () => {
         }
       );
       if (response.data.message) {
-        alert(response.data.message);
+        setModalMessage(response.data.message);
+        setModalIsOpen(true);
+        //alert(response.data.message);
       } else {
-        alert('Dane restauracji zostały zaktualizowane pomyślnie!');
+        //alert('Dane restauracji zostały zaktualizowane pomyślnie!');
+        setModalMessage('Dane restauracji zostały zaktualizowane pomyślnie!');
+        setModalIsOpen(true);
       }
     } catch (error) {
-      console.error('Error updating restaurant details:', error);
+      //console.error('Error updating restaurant details:', error);
       if (error.response && error.response.data && error.response.data.message) {
-        alert(error.response.data.message);
+        setFormError(true);
+        setModalMessage(error.response.data.message);
+        //alert(error.response.data.message);
       } else {
-        alert('Nie udało się zaktualizować danych restauracji.');
+        setFormError(true);
+        setModalMessage('Nie udało się zaktualizować danych restauracji.');
+        //alert('Nie udało się zaktualizować danych restauracji.');
       }
+      setModalIsOpen(true);
     }
   };
 
@@ -253,10 +271,16 @@ const RestaurantProfile = () => {
     }
   };
 
+  const handleModalClose = () => {
+    setModalIsOpen(false);
+    setIsSubmitting(false);
+    setError(false);
+  };
+
   return (
     <div>
       <Notifications token={sessionStorage.getItem('authToken')} userRole={'restaurateur'} />
-      <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Panel Restauratora</h3>
+      <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Panel restauratora</h3>
       <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
         <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Restaurator</h3>
         <ul className=" text-gray-800 list-disc list-inside dark:text-gray-700">
@@ -273,7 +297,9 @@ const RestaurantProfile = () => {
         </ul>
       </div>
       
-      <form onSubmit={handleSubmit}>
+      <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Ustawienia restauracji</h3>
+      <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+        <form onSubmit={handleSubmit} className="text-gray-800 dark:text-gray-700">
         <div>
           <label>
             <input
@@ -281,6 +307,7 @@ const RestaurantProfile = () => {
               name="allows_online_payment"
               checked={formData.allows_online_payment}
               onChange={handleChange}
+              class="accent-gray-500"
             />
             Płatność online
           </label>
@@ -292,6 +319,7 @@ const RestaurantProfile = () => {
               name="allows_cash_payment"
               checked={formData.allows_cash_payment}
               onChange={handleChange}
+              class="accent-gray-500"
             />
             Płatność przy odbiorze
           </label>
@@ -303,6 +331,7 @@ const RestaurantProfile = () => {
               name="allows_delivery"
               checked={formData.allows_delivery}
               onChange={handleChange}
+              class="accent-gray-500"
             />
             Dostawa kurierem
           </label>
@@ -314,98 +343,142 @@ const RestaurantProfile = () => {
               name="allows_pickup"
               checked={formData.allows_pickup}
               onChange={handleChange}
+              class="accent-gray-500"
             />
             Odbiór osobisty
           </label>
         </div>
         <div>
-        <label>
-          Minimalna kwota zamówienia:
-          <input
-            type="number"
-            name="minimum_order_amount"
-            value={formData.minimum_order_amount}
-            onChange={handleChange}
-            min="0"
-            max="10000"
-          />
-        </label>
-      </div>
-        {formError && <p style={{ color: 'red' }}>{formError}</p>}
-        <button type="submit">Zapisz</button>
-      </form>
-
-      <div>
-          <label>
-            Miasto dostawy:
+          <label className="flex items-center justify-between w-full">
+            <span>Minimalna kwota zamówienia:</span>
             <input
-              type="text"
-              name="delivery_city"
-              value={formData.delivery_city}
+              type="number"
+              name="minimum_order_amount"
+              value={formData.minimum_order_amount}
               onChange={handleChange}
+              min="0"
+              max="10000"
+              className="appearance-none block w-32 px-4 py-1.5 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-gray-400 dark:focus:border-gray-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-gray-300"
+              style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
             />
           </label>
-          <button type="button" onClick={handleAddCity}>Dodaj miasto</button>
         </div>
+          {/*formError && <p style={{ color: 'red' }}>{formError}</p>*/}
+          <div className="mt-2 text-center font-[sans-serif]">
+            <button type="submit" className=" px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+              Zapisz
+            </button>
+          </div>
+        </form>
 
-      <h3>Miasta dostawy</h3>
-      {formData.allows_delivery && deliveryCities.length === 0 && (
-        <p>Dodaj miasta, które dostawa obsługuje</p>
-      )}
-      <ul>
-        {deliveryCities.map(city => (
-          <li key={city.id}>
-            {city.name}
-            <button onClick={() => handleRemoveCity(city.id)}>Usuń</button>
-          </li>
-        ))}
-        {deliveryCities.length === 0 && (
-          <li>Brak miast</li>
+        <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={() => setModalIsOpen(false)}
+          contentLabel="formError Modal"
+          className="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center transition duration-300 ease-out transform"
+          overlayClassName="fixed inset-0 bg-black bg-opacity-50 transition duration-300 ease-out"
+        >
+          <div className="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl rtl:text-right dark:bg-gray-900 sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
+            <div className="mt-2 text-center">
+              {(formError || error) ? (
+                  <h3 className="text-lg font-medium leading-6 text-red-800 capitalize dark:text-white" id="modal-title">Błąd</h3>
+                ) : (<h3 className="text-lg font-medium leading-6 text-gray-800 capitalize dark:text-white" id="modal-title">Sukces!</h3>)}
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{modalMessage}</p>
+            </div>
+            <div className="mt-5 sm:flex sm:items-center sm:justify-center">
+              <div className="sm:flex sm:items-center">
+                <button
+                  onClick={handleModalClose}
+                  className="w-full px-4 py-2 mt-2 text-sm font-medium tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md sm:mt-0 sm:w-auto sm:mx-2 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+
+        <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Miasta z dostawą:</h3>
+        {formData.allows_delivery && deliveryCities.length === 0 && (
+          <p>Dodaj miasta, które dostawa obsługuje</p>
         )}
-      </ul>
+        <ul className="list-disc pl-4 text-gray-800 dark:text-gray-700">
+          {deliveryCities.map(city => (
+            <li key={city.id}
+            className="flex items-center justify-between mb-2">
+              <span className="list-item">
+              {city.name}
+              </span>
+              <button onClick={() => handleRemoveCity(city.id)}
+                className="ml-4 px-4 sm:mx-2 w-16 py-1.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40"
+                >Usuń</button>
+            </li>
+          ))}
+          {deliveryCities.length === 0 && (
+            <li>Brak miast z dostawą</li>
+          )}
+        </ul>
 
-      <h3>Zdjęcie restauracji</h3>
-      {restaurant.image ? (
-        // Jeśli zdjęcie istnieje, wyświetl je z Cloudinary
-        <div>
-          <img
-            src={`${cloudinaryBaseUrl}${restaurant.image}`}
-            alt={restaurant.name}
-            style={{ width: '300px', height: 'auto' }}
-            className="h-auto rounded-lg my-2 mx-auto"
+        <div className="flex items-center space-x-2 mt-2 pr-2">
+          <input
+            placeholder='Nowe miasto'
+            type="text"
+            name="delivery_city"
+            value={formData.delivery_city}
+            onChange={handleChange}
+            className="flex-grow px-4 py-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-gray-400 dark:focus:border-gray-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-gray-300"
           />
-          <br />
-          <h2>Upload Image</h2>
-          <UploadImage
-            onUploadSuccess={handleUploadSuccess}
-            metadata={{ id: restaurant.id, name: 'main' }}
-          />
+          <button type="button" onClick={handleAddCity} className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">Dodaj miasto</button>
         </div>
-      ) : (
-        // Jeśli nie ma zdjęcia, umożliwiamy załadowanie nowego
-        <div>
-          <img
-            src={placeholderImage}
-            alt={restaurant.name}
-            style={{ width: '300px', height: 'auto' }}
-            className="h-auto rounded-lg my-2 mx-auto"
-          />
-          <br />
-          <h2>Upload Image</h2>
-          <UploadImage
-            onUploadSuccess={handleUploadSuccess}
-            metadata={{ id: restaurant.id, name: 'main' }}
-          />
-        </div>
-      )}
+      </div>
 
-      <br />
+      <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Zdjęcie profilowe restauracji</h3>
+      <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+        {restaurant.image ? (
+          // Jeśli zdjęcie istnieje, wyświetl je z Cloudinary
+          <div>
+            <img
+              src={`${cloudinaryBaseUrl}${restaurant.image}`}
+              alt={restaurant.name}
+              style={{ width: '300px', height: 'auto' }}
+              className="h-auto rounded-lg mt-2 mx-auto"
+            />
+            <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Zmień zdjęcie</h3>
+            <UploadImage
+              onUploadSuccess={handleUploadSuccess}
+              metadata={{ id: restaurant.id, name: 'main' }}
+            />
+          </div>
+        ) : (
+          // Jeśli nie ma zdjęcia, umożliwiamy załadowanie nowego
+          <div>
+            <img
+              src={placeholderImage}
+              alt={restaurant.name}
+              style={{ width: '300px', height: 'auto' }}
+              className="h-auto rounded-lg mt-2 mx-auto"
+            />
+            <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Dodaj zdjęcie</h3>
+            <UploadImage
+              onUploadSuccess={handleUploadSuccess}
+              metadata={{ id: restaurant.id, name: 'main' }}
+            />
+          </div>
+        )}
+      </div>
+      
       <RestaurantOrders restaurantId={profileData.restaurant.id} /> 
       <ArchivedRestaurantOrders restaurantId={profileData.restaurant.id} /> 
-      <ManageTags restaurantId={restaurant.id} />
       <RestaurantProducts restaurantId={restaurant.id} key={productsUpdated} />
       <AddProduct restaurantId={restaurant.id} onProductAdded={handleProductsUpdated} />
-      <button onClick={handleLogout}>Wyloguj</button>
+
+      <ManageTags restaurantId={restaurant.id} />
+
+      <div className="mt-2 mb-10 text-center font-[sans-serif]">
+        <button onClick={handleLogout} className=" px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+        Wyloguj
+        </button>
+      </div>
     </div>
   );
 };
