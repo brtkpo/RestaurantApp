@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { Cropper } from "react-cropper";
 import "cropperjs/dist/cropper.css";
 
-const UploadImage = ({ onUploadSuccess, metadata }) => {
+const UploadImage = ({ onUploadSuccess, metadata, isLoaded, setIsLoaded }) => {
   const [file, setFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -17,6 +17,9 @@ const UploadImage = ({ onUploadSuccess, metadata }) => {
       reader.onload = () => {
         setFile(file);
         setImageUrl(reader.result);
+        if (setIsLoaded) {
+          setIsLoaded(true); // Ustaw isLoaded na true, jeśli setIsLoaded jest przekazane
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -24,7 +27,12 @@ const UploadImage = ({ onUploadSuccess, metadata }) => {
 
   // Funkcja do przesyłania obrazu na Cloudinary
   const handleUpload = () => {
-    if (!cropperRef.current) return;
+    if (!cropperRef.current) {
+      if (setIsLoaded) {
+        setIsLoaded(true); 
+      }
+      return;
+    }
 
     setLoading(true);
     const cropper = cropperRef.current.cropper;
@@ -85,12 +93,18 @@ const UploadImage = ({ onUploadSuccess, metadata }) => {
           console.error("Error getting signature:", error); // Debugging: błąd podczas pobierania podpisu z backendu
         });
     });
+    if (setIsLoaded) {
+      setIsLoaded(false); 
+    }
   };
 
   // Funkcja do anulowania załadowanego zdjęcia
   const handleCancel = () => {
     setFile(null);
     setImageUrl(null);
+    if (setIsLoaded) {
+      setIsLoaded(false); 
+    }
 
     // Resetuje wartość pola input
     if (fileInputRef.current) {
