@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { setUserToken } from '../redux/actions';
@@ -9,6 +9,7 @@ import ArchivedUserOrders from '../components/ArchivedUserOrders';
 import axios from 'axios';
 import loadingGif from '../assets/200w.gif'; 
 import Modal from 'react-modal';
+import { NotificationContext } from '../components/NotificationContext'; 
 
 import Notifications from '../components/Notifications';
 
@@ -23,6 +24,7 @@ const User = () => {
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showPaymentFail, setShowPaymentFail] = useState(false);
   const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
+  const { clearNotifications } = useContext(NotificationContext); 
 
   const [isLoading, setIsLoading] = useState(true); // Dodano flagę isLoading
 
@@ -106,6 +108,7 @@ const User = () => {
   const handleLogout = () => {
     dispatch(setUserToken(null));
     sessionStorage.removeItem('authToken');
+    clearNotifications(); 
     navigate('/login');
   };
 

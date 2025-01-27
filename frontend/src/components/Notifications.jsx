@@ -34,7 +34,7 @@ const Notifications = ({ token, userRole }) => {
 
   const handleMarkAsRead = async (id) => {
     await fetch(`http://localhost:8000/api/notifications/${id}/mark_as_read/`, {
-      method: 'POST',
+      method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',

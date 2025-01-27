@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Chat from '../components/Chat';
 import Modal from 'react-modal';
 import loadingGif from '../assets/200w.gif'; 
+import { NotificationContext } from '../components/NotificationContext'; 
 
 const OrderDetails = () => {
   const { orderId } = useParams();
@@ -17,6 +18,44 @@ const OrderDetails = () => {
   const [userId, setUserId] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const { notifications, markAsRead, markNotificationsAsReadByOrder } = useContext(NotificationContext);
+
+  useEffect(() => {
+    const notification = notifications.find((n) => n.order === parseInt(orderId));
+    if (notification) {
+      markAsRead(notification.id);
+    }
+  }, [orderId, notifications, markAsRead]);
+
+  useEffect(() => {
+    const ws = new WebSocket(`ws://localhost:8000/ws/notifications/?token=${sessionStorage.getItem('authToken')}`);
+
+    ws.onopen = () => {
+      console.log('WebSocket connection opened');
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('WebSocket message received:', data);
+      if (data.type === 'notification' && data.order === parseInt(orderId)) {
+        console.log("mark " ,data.order);
+        markNotificationsAsReadByOrder(data.order);
+        fetchOrderDetails();
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [orderId, markAsRead]);
 
   const statusLabels = {
     pending: 'Złożone',

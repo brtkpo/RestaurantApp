@@ -116,7 +116,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'send_notification',
                 'message': notification.message,
-                'timestamp': notification.timestamp.isoformat()
+                'timestamp': notification.timestamp.isoformat(),
+                'order': order.order_id
             }
         )
         
@@ -130,7 +131,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'notification',
             'message': event['message'],
-            'timestamp': event['timestamp']
+            'timestamp': event['timestamp'],
+            'order': event['order'],
         }))
         
 class NotificationConsumer(AsyncWebsocketConsumer):
@@ -162,5 +164,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'notification',
             'message': event['message'],
-            'timestamp': event['timestamp']
+            'timestamp': event['timestamp'],
+            'order': event['order'],
         }))

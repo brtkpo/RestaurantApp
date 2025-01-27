@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CheckoutButton from '../components/CheckoutButton';
 import Chat from '../components/Chat';
 import loadingGif from '../assets/200w.gif'; 
+import { NotificationContext } from '../components/NotificationContext'; 
 
 const UserOrderDetails = () => {
   const { orderId } = useParams();
@@ -12,6 +13,44 @@ const UserOrderDetails = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
+  const { notifications, markAsRead, markNotificationsAsReadByOrder } = useContext(NotificationContext);
+
+  useEffect(() => {
+    const notification = notifications.find((n) => n.order === parseInt(orderId));
+    if (notification) {
+      markAsRead(notification.id);
+    }
+  }, [orderId, notifications, markAsRead]);
+
+  useEffect(() => {
+      const ws = new WebSocket(`ws://localhost:8000/ws/notifications/?token=${sessionStorage.getItem('authToken')}`);
+  
+      ws.onopen = () => {
+        console.log('WebSocket connection opened');
+      };
+  
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log('WebSocket message received:', data);
+        if (data.type === 'notification' && data.order === parseInt(orderId)) {
+          console.log("mark " ,data.order);
+          markNotificationsAsReadByOrder(data.order);
+          fetchOrderDetails();
+        }
+      };
+  
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+  
+      ws.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+  
+      return () => {
+        ws.close();
+      };
+    }, [orderId, markAsRead]);
 
   const statusLabels = {
     pending: 'Złożone',
@@ -23,26 +62,26 @@ const UserOrderDetails = () => {
     picked_up: 'Odebrane',
   };
 
-  useEffect(() => {
-    const fetchOrderDetails = async () => {
-      try {
-        const token = sessionStorage.getItem('authToken');
-        const response = await axios.get(`http://localhost:8000/api/user/orders/${orderId}/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setOrder(response.data);
-        setLoading(false);
-        console.log('order',response.data);
-        setUserId(response.data.user);
-        console.log(response.data.archived);
-      } catch (error) {
-        setError('Błąd podczas ładowania szczegółów zamówienia');
-        setLoading(false);
-      }
-    };
+  const fetchOrderDetails = async () => {
+    try {
+      const token = sessionStorage.getItem('authToken');
+      const response = await axios.get(`http://localhost:8000/api/user/orders/${orderId}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setOrder(response.data);
+      setLoading(false);
+      console.log('order',response.data);
+      setUserId(response.data.user);
+      console.log(response.data.archived);
+    } catch (error) {
+      setError('Błąd podczas ładowania szczegółów zamówienia');
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchOrderDetails();
   }, [orderId]);
 

@@ -119,6 +119,14 @@ class DeleteUserView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+class UserDetailsView(RetrieveAPIView):
+    queryset = AppUser.objects.all()
+    serializer_class = UserDetailsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
 #Address
 class AddAddressView(APIView):
     permission_classes = [IsAuthenticated]  # Użytkownik musi być zalogowany
@@ -763,6 +771,21 @@ class OrderDetailView(RetrieveUpdateAPIView):
         # Update order status and history
         if 'status' in data:
             order.update_status(data['status'], data.get('description', ""))
+            #notification = Notification.objects.create(
+            #    user=order.user,
+            #    order=order,
+            #    message=f"Status zamówienia nr.{order.order_id} został zmieniony na {data['status']}.",
+            #)
+            #channel_layer = get_channel_layer()
+            #async_to_sync(channel_layer.group_send)(
+            #    f'notifications_{order.user.id}',
+            #    {
+            #        'type': 'send_notification',
+            #        'message': notification.message,
+            #        'timestamp': notification.timestamp.isoformat(),
+            #        'order': order.order_id,
+            #    }
+            #)
 
         serializer = self.get_serializer(order, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -771,6 +794,7 @@ class OrderDetailView(RetrieveUpdateAPIView):
         return Response(serializer.data)
 
 class UserOrderListView(ListAPIView):
+    
     serializer_class = OrderViewSerializer
     permission_classes = [IsAuthenticated]
 
@@ -782,6 +806,7 @@ class UserOrderListView(ListAPIView):
         return orders
 
 class UserOrderDetailView(RetrieveAPIView):
+    
     serializer_class = OrderViewSerializer
     permission_classes = [IsAuthenticated]
 
@@ -927,3 +952,16 @@ class MarkNotificationAsReadView(UpdateAPIView):
     def perform_update(self, serializer):
         serializer.instance.is_read = True
         serializer.save()
+        
+class MarkNotificationsAsReadByOrderView(UpdateAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        order_id = self.kwargs['order_id']
+        return Notification.objects.filter(order__order_id=order_id, user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        notifications = self.get_queryset()
+        notifications.update(is_read=True)
+        return Response({'status': 'notifications marked as read'}, status=status.HTTP_200_OK)

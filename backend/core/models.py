@@ -255,7 +255,8 @@ class Order(models.Model):
                 {
                     'type': 'send_notification',
                     'message': notification.message,
-                    'timestamp': notification.timestamp.isoformat()
+                    'timestamp': notification.timestamp.isoformat(),
+                    'order': self.order_id,
                 }
             )
     
@@ -276,7 +277,8 @@ class Order(models.Model):
             {
                 'type': 'send_notification',
                 'message': notification.message,
-                'timestamp': notification.timestamp.isoformat()
+                'timestamp': notification.timestamp.isoformat(),
+                'order': self.order_id,
             }
         )
     

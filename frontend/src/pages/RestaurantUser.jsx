@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
@@ -13,6 +13,7 @@ import RestaurantAddress from '../components/RestaurantAddress';
 import ArchivedRestaurantOrders from '../components/ArchivedRestaurantOrders';
 import loadingGif from '../assets/200w.gif'; 
 import Modal from 'react-modal';
+import { NotificationContext } from '../components/NotificationContext';
 
 import Notifications from '../components/Notifications';
 
@@ -39,6 +40,8 @@ const RestaurantProfile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+
+  const { clearNotifications } = useContext(NotificationContext); 
 
   // Ładowanie danych restauratora z backendu
   useEffect(() => {
@@ -110,7 +113,7 @@ const RestaurantProfile = () => {
   const handleAddCity = async () => {
     const token = sessionStorage.getItem('authToken');
     let cityName = formData.delivery_city.trim();
-    console.log("1",cityName);
+    //console.log("1",cityName);
 
     // Sprawdzenie, czy nazwa miasta zawiera tylko litery, spacje lub myślniki
     const cityRegex = /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s-]+$/;
@@ -118,9 +121,9 @@ const RestaurantProfile = () => {
       alert('Nazwa miasta może zawierać tylko litery, spacje lub myślniki.');
       return;
     }
-    console.log("2",cityName);
+    //console.log("2",cityName);
     cityName = await normalizeCityName(cityName);
-    console.log("3",cityName);
+    //console.log("3",cityName);
     try {
       const response = await axios.post(
         `http://localhost:8000/api/restaurant/${profileData.restaurant.id}/add-delivery-city/`,
@@ -241,6 +244,7 @@ const RestaurantProfile = () => {
   const handleLogout = () => {
     dispatch(setUserToken(null)); // Usuwamy token z Redux
     sessionStorage.removeItem('authToken'); // Usuwamy token z sessionStorage
+    clearNotifications();
     navigate('/login'); // Przekierowanie na stronę logowania
   };
 

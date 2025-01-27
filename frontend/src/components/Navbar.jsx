@@ -2,12 +2,19 @@ import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from 'react-redux'; 
 import { CartContext } from './CartContext';
+import { NotificationContext } from './NotificationContext';  
 import axios from "axios";
 import DeleteProductFromCart from './DeleteProductFromCart';
 
 const Navbar = () => {
   const token = useSelector((state) => state.token);  // Pobieramy token z Redux
   const { cartItems, restaurant, isCartOpen, setIsCartOpen, refreshCart } = useContext(CartContext);
+  const { notifications, markAsRead, handleGoToOrder } = useContext(NotificationContext);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); 
+
+  const toggleNotifications = () => {
+    setIsNotificationsOpen(!isNotificationsOpen);
+  };
 
   const toggleCart = () => {
     setIsCartOpen(!isCartOpen);
@@ -19,7 +26,7 @@ const Navbar = () => {
   }, 0);
 
   const handleOrderClick = () => {
-    setIsCartOpen(false); // Zamknij koszyk
+    setIsCartOpen(false); 
   };
 
   return (
@@ -38,6 +45,10 @@ const Navbar = () => {
           </li>
           <li style={styles.li}>
             <button onClick={toggleCart} style={styles.link}>Koszyk</button>
+          </li>
+
+          <li style={styles.li}>
+            <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} style={styles.link}>Powiadomienia</button>
           </li>
         </ul>
         {isCartOpen && (
@@ -79,6 +90,19 @@ const Navbar = () => {
                 </li>
               </div>
             )}
+          </div>
+        )}
+        {isNotificationsOpen && (
+          <div style={styles.notificationsDropdown}>
+            <ul>
+              {notifications.map((notification) => (
+                <li key={notification.id}>
+                  {notification.id} {notification.message} - {new Date(notification.timestamp).toLocaleString()}
+                  <button onClick={() => markAsRead(notification.id)}>Usuń</button>
+                  <button onClick={() => handleGoToOrder(notification.order)}>Idź</button>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </nav>

@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/register/', clientRegister, name='register'),
     path('api/user/', UserProfileView.as_view(), name='user-profile'),
     path('api/delete-user/', DeleteUserView.as_view(), name='delete-user'),
+    path('api/user/details/', UserDetailsView.as_view(), name='user-details'),
     
     #Adress
     path('api/addresses/', AddressListView.as_view(), name='address_list'),
@@ -92,6 +93,7 @@ urlpatterns = [
     #Notifications
     path('api/notifications/unread/', UnreadNotificationsListView.as_view(), name='unread-notifications'),
     path('api/notifications/<int:id>/mark_as_read/', MarkNotificationAsReadView.as_view(), name='mark-notification-as-read'),
+    path('api/notifications/mark_as_read_by_order/<int:order_id>/', MarkNotificationsAsReadByOrderView.as_view(), name='mark-notifications-as-read-by-order'),
 ]
 
 from django.conf.urls.static import static

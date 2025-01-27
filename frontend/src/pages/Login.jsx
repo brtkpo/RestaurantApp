@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setUserToken } from '../redux/actions';
 import Modal from 'react-modal';
+import { NotificationContext } from '../components/NotificationContext';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -13,6 +14,7 @@ const Login = () => {
     const [role, setRole] = useState('');
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { fetchUserDetails } = useContext(NotificationContext); 
   
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -31,6 +33,7 @@ const Login = () => {
         const data = await response.json();
         const token = data.access;
         sessionStorage.setItem('authToken', token);
+        await fetchUserDetails();
         dispatch(setUserToken(token));
         setRole(data.role);
       } else {

@@ -16,8 +16,7 @@ const AddressList = ({ onAddAddress }) => {
         },
       });
       if (response.data.length === 0) {
-          //setNoAddresses(true); // Brak adresów
-          setError('Brak adresów');
+          //setError('Brak adresów');
         } else {
           setAddresses(response.data); // Ustawiamy adresy, jeśli są
         }
