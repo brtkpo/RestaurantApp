@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import CheckoutButton from '../components/CheckoutButton';
 import Chat from '../components/Chat';
 import loadingGif from '../assets/200w.gif'; 
 import { NotificationContext } from '../components/NotificationContext'; 
+import Modal from 'react-modal';
 
 const UserOrderDetails = () => {
   const { orderId } = useParams();
@@ -15,6 +16,21 @@ const UserOrderDetails = () => {
   const [userId, setUserId] = useState(null);
   const { notifications, markAsRead, markNotificationsAsReadByOrder } = useContext(NotificationContext);
 
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showPaymentFail, setShowPaymentFail] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const location = useLocation();
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    if (query.get('payment') === 'success') {
+      setShowPaymentSuccess(true);
+    } else if (query.get('payment') === 'fail') {
+      setShowPaymentFail(true);
+    }
+    setIsModalOpen(true);
+  }, [location]);
+  
   useEffect(() => {
     const notification = notifications.find((n) => n.order === parseInt(orderId));
     if (notification) {
@@ -85,6 +101,10 @@ const UserOrderDetails = () => {
     fetchOrderDetails();
   }, [orderId]);
 
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
   if (loading) {
     return (
     <div className="flex justify-center items-center h-screen">
@@ -96,7 +116,9 @@ const UserOrderDetails = () => {
   if (error) {
     return(
       <div>
-        <p style={{ color: 'red' }}>{error}</p>;
+        <div className="text-center mt-10  font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+          <p style={{ color: 'red' }}>{error}</p>
+        </div>
          <div className="mt-2 mb-10 text-center">
           <button onClick={() => navigate('/user')} className=" px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">Powrót</button>
         </div>
@@ -153,31 +175,57 @@ const UserOrderDetails = () => {
       <Chat roomName={order.order_id} archived={order.archived} mainUserId={userId} />
       <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Historia zamówienia</h3>
       <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 pt-4 pb-2">
-      <ul className="text-gray-800 list-disc list-inside dark:text-gray-700">
-        {order.history.length === 0 ? (
-          <div className="flex items-center justify-center text-center space-x-2">
-            <p>Brak historii</p>
-          </div>
-          
-        ) : (
-          order.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((entry) => (
-            <li key={entry.id} className="flex flex-col items-center">
-              <div className="flex items-center space-x-2">
-                <span className="list-item">Status: {statusLabels[entry.status]}</span>
-              </div>
-              <p>Data: {new Date(entry.timestamp).toLocaleString()}</p>
-              {entry.description && <p>Opis: {entry.description}</p>}
-            </li>
-          ))
-        )}
-      </ul>
-      
-    </div>
+        <ul className="text-gray-800 list-disc list-inside dark:text-gray-700">
+          {order.history.length === 0 ? (
+            <div className="flex items-center justify-center text-center space-x-2">
+              <p>Brak historii</p>
+            </div>
+            
+          ) : (
+            order.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((entry) => (
+              <li key={entry.id} className="flex flex-col items-center">
+                <div className="flex items-center space-x-2">
+                  <span className="list-item">Status: {statusLabels[entry.status]}</span>
+                </div>
+                <p>Data: {new Date(entry.timestamp).toLocaleString()}</p>
+                {entry.description && <p>Opis: {entry.description}</p>}
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
       <div className="mt-2 mb-10 text-center">
         <button onClick={() => navigate('/user')} className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
           Powrót
         </button>
       </div>
+      {/*showPaymentSuccess && <div style={styles.popup_success}>Płatność zakończona sukcesem!</div>*/}
+      {/*showPaymentFail && <div style={styles.popup_fail}>Płatność nie powiodła się!</div>*/}  
+      {(showPaymentSuccess || showPaymentFail) && (
+        <Modal
+          isOpen={isModalOpen}
+          onRequestClose={() => setIsModalOpen(false)}
+          contentLabel="Error Modal"
+          className="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center transition duration-300 ease-out transform"
+          overlayClassName="fixed inset-0 bg-black bg-opacity-50 transition duration-300 ease-out"
+        >
+          <div className="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl rtl:text-right dark:bg-gray-900 sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
+            <div className="mt-2 text-center">
+              {(showPaymentFail) ? (
+                  <h3 className="text-lg font-medium leading-6 text-red-800 capitalize dark:text-white" id="modal-title">Błąd płatności!</h3>
+                ) : (<h3 className="text-lg font-medium leading-6 text-gray-800 capitalize dark:text-white" id="modal-title">Zapłacono pomyślnie!</h3>)}
+            </div>
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={handleModalClose}
+                className="w-full px-4 py-2 mt-2 text-sm font-medium tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md sm:mt-0 sm:w-auto sm:mx-2 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

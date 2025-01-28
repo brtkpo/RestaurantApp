@@ -156,7 +156,9 @@ const OrderDetails = () => {
   if (loadingError) {
     return(
       <div>
-        <p style={{ color: 'red' }}>{loadingError}</p>;
+        <div className="text-center mt-10  font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+          <p style={{ color: 'red' }}>{loadingError}</p>
+        </div>
          <div className="mt-2 mb-10 text-center">
           <button onClick={() => navigate('/user')} className=" px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">Powrót</button>
         </div>

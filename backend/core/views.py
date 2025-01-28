@@ -875,7 +875,8 @@ class CreateCheckoutSessionView(APIView):
                 mode='payment',
                 success_url=f'http://localhost:8000/api/success?session_id={{CHECKOUT_SESSION_ID}}&order_id={order_id}',
                 #success_url='http://localhost:3000/user',
-                cancel_url='http://localhost:3000/user?payment=fail', 
+                #cancel_url='http://localhost:3000/user?payment=fail', 
+                cancel_url=f'http://localhost:3000/user/orders/{order_id}?payment=fail',
                 metadata={'order_id': order_id},# Zmienna adresu anulowania
             )
 
@@ -920,7 +921,7 @@ class SuccessPaymentView(APIView):
                 }
             )
 
-            return HttpResponseRedirect('http://localhost:3000/user?payment=success')
+            return HttpResponseRedirect(f'http://localhost:3000/user/orders/{order_id}?payment=success')
         except Order.DoesNotExist:
             return JsonResponse({'error': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
         

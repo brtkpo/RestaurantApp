@@ -21,24 +21,11 @@ const User = () => {
   const [addresses, setAddresses] = useState([]);
   const [noAddresses, setNoAddresses] = useState(false);
   const [error, setError] = useState(null);
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
-  const [showPaymentFail, setShowPaymentFail] = useState(false);
   const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
   const { clearNotifications } = useContext(NotificationContext); 
 
   const [isLoading, setIsLoading] = useState(true); // Dodano flagę isLoading
 
-  const location = useLocation();
-  useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    if (query.get('payment') === 'success') {
-      setShowPaymentSuccess(true);
-      setTimeout(() => setShowPaymentSuccess(false), 3000);
-    } else if (query.get('payment') === 'fail') {
-      setShowPaymentFail(true);
-      setTimeout(() => setShowPaymentFail(false), 3000);
-    }
-  }, [location]);
 
   const fetchAddresses = async () => {
     const token = sessionStorage.getItem('authToken');
@@ -177,9 +164,6 @@ const User = () => {
 
   return (
     <div>
-      {showPaymentSuccess && <div style={styles.popup_success}>Płatność zakończona sukcesem!</div>}
-      {showPaymentFail && <div style={styles.popup_fail}>Płatność nie powiodła się!</div>}
-
       <Notifications token={sessionStorage.getItem('authToken')} userRole={'client'} />
       <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Panel użytkownika</h3>
 
@@ -215,32 +199,6 @@ const User = () => {
       </button>
     </div>
   );
-};
-
-const styles = {
-  popup_success: {
-    position: 'fixed',
-    top: '20px',
-    right: '20px',
-    backgroundColor: '#4caf50',
-    color: 'white',
-    padding: '10px',
-    borderRadius: '5px',
-    boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-    zIndex: 1000,
-  },
-
-  popup_fail: {
-    position: 'fixed',
-    top: '20px',
-    right: '20px',
-    backgroundColor: '#ed4337',
-    color: 'white',
-    padding: '10px',
-    borderRadius: '5px',
-    boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-    zIndex: 1000,
-  }
 };
 
 export default User;
