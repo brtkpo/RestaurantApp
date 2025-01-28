@@ -93,7 +93,7 @@ class DeleteUserView(APIView):
             user = request.user
 
             # Sprawdzenie, czy użytkownik istnieje
-            if not user:
+            if not AppUser.objects.filter(id=user.id).exists():
                 return Response(
                     {"message": "Nie znaleziono użytkownika."},
                     status=status.HTTP_404_NOT_FOUND
@@ -256,6 +256,10 @@ class RestaurantUpdateView(UpdateAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        
+        if instance.owner != request.user:
+            return Response({"detail": "Nie masz uprawnień do aktualizacji tej restauracji."}, status=status.HTTP_403_FORBIDDEN)
+        
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
@@ -473,13 +477,10 @@ class ProductCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Dodajemy restaurację do produktu podczas zapisywania
         restaurant_id = self.request.data.get('restaurant')
-        try:
-            restaurant = Restaurant.objects.get(id=restaurant_id)
-        except Restaurant.DoesNotExist:
-            raise serializers.ValidationError('Restaurant not found')
-
+        if not Restaurant.objects.filter(id=restaurant_id).exists():
+            raise serializers.ValidationError({'restaurant': 'Restaurant not found'})
+        restaurant = Restaurant.objects.get(id=restaurant_id)
         serializer.save(restaurant=restaurant)
     
     def create(self, request, *args, **kwargs):
@@ -626,6 +627,7 @@ class CartItemListCreateView(ListCreateAPIView):
             cart_item.quantity = quantity
         cart_item.save()
         cart.update_total_price()
+        return Response(CartItemSerializer(cart_item).data, status=status.HTTP_201_CREATED)
 
 class CartItemRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = CartItem.objects.all()

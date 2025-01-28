@@ -30,7 +30,7 @@ urlpatterns = [
     path('api/delete-user/', DeleteUserView.as_view(), name='delete-user'),
     path('api/user/details/', UserDetailsView.as_view(), name='user-details'),
     
-    #Adress
+    #Address
     path('api/addresses/', AddressListView.as_view(), name='address_list'),
     path('api/add-address/', AddAddressView.as_view(), name='add_address'),
     path('api/delete-address/<int:pk>/', DeleteAddressView.as_view(), name='delete_address'),

@@ -42,6 +42,17 @@ class AddressSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Numer mieszkania musi być liczbą od 1 do 999 lub pusty.")
         return value
 
+    def validate(self, data):
+        errors = {}
+        if data['owner_role'] == 'client':
+            if not data.get('first_name'):
+                errors['first_name'] = "First name is required for client addresses."
+            if not data.get('last_name'):
+                errors['last_name'] = "Last name is required for client addresses."
+        if errors:
+            raise serializers.ValidationError(errors)
+        return data
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
