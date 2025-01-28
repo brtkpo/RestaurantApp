@@ -589,15 +589,17 @@ class CartItemListCreateView(ListCreateAPIView):
 
     def get_queryset(self):
         session_id = self.kwargs['session_id']
-        cart = Cart.objects.get(session_id=session_id)
+        ##cart = Cart.objects.get(session_id=session_id)
         
         # Sprawdzenie i czyszczenie wszystkich koszyków, które nie były aktualizowane w ciągu ostatnich 24 godzin
         stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24), order_id__isnull=True)
+        print(f"Stale carts to delete: {stale_carts}")
         for stale_cart in stale_carts:
             CartItem.objects.filter(cart=stale_cart).delete()
             stale_cart.delete()
             #stale_cart.update_timestamp()  # Zaktualizuj timestamp koszyka
         
+        cart = Cart.objects.get(session_id=session_id)
         return CartItem.objects.filter(cart=cart)
     
     #def perform_create(self, serializer):

@@ -1491,7 +1491,63 @@ def test_remove_stale_carts(self):
         self.assertEqual(len(response.data), 0)
         self.assertFalse(Cart.objects.filter(session_id='stalesession123').exists())
 
-class CartItemListCreateTest(TestCase):
+class CartItemListCreateViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.session_id = 'testsession123'
+        
+        # Tworzenie użytkownika
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        
+        # Tworzenie restauracji
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        
+        # Tworzenie produktu
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        
+        # Tworzenie koszyka
+        self.cart = Cart.objects.create(session_id=self.session_id)
+        self.cart_item = CartItem.objects.create(
+            cart=self.cart,
+            product=self.product,
+            quantity=2
+        )
+    
+    def test_get_cart_items(self):
+        url = reverse('cartitem-list-create', args=[self.session_id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['product']['name'], 'Test Product')
+        self.assertEqual(response.data[0]['quantity'], 2)
+    
+    def test_create_cart_item_with_invalid_product(self):
+        url = reverse('cartitem-list-create', args=[self.session_id])
+        data = {
+            'product': 9999,  # Nieistniejący produkt
+            'quantity': 1
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Product not found', str(response.data))
+        
+class CartItemRetrieveUpdateDestroyViewTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = AppUser.objects.create_user(
@@ -1499,7 +1555,7 @@ class CartItemListCreateTest(TestCase):
             password='testpass',
             first_name='User',
             last_name='Test',
-            role='customer'
+            role='client'
         )
         self.restaurant = Restaurant.objects.create(
             owner=self.user,
@@ -1507,9 +1563,9 @@ class CartItemListCreateTest(TestCase):
             phone_number='123456789'
         )
         self.product = Product.objects.create(
-            name='Product 1',
-            description='Description 1',
-            price=10.99,
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
             restaurant=self.restaurant,
             is_available=True
         )
@@ -1517,33 +1573,140 @@ class CartItemListCreateTest(TestCase):
         self.cart = Cart.objects.create(session_id=self.session_id)
         self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
 
-    def test_create_cart_item(self):
-        url = reverse('cartitem-list-create', args=[self.session_id])
+    def test_retrieve_cart_item(self):
+        url = reverse('cartitem-detail', args=[self.session_id, self.cart_item.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['product']['name'], 'Test Product')
+        self.assertEqual(response.data['quantity'], 2)
+
+    def test_update_cart_item(self):
+        url = reverse('cartitem-detail', args=[self.session_id, self.cart_item.id])
         data = {
-            'product': self.product.id,
             'quantity': 3
         }
-        response = self.client.post(url, data, format='json')
-        print(response.data) 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['product']['id'], self.product.id)
-        self.assertEqual(response.data['quantity'], 3)
-
-    def test_get_cart_items(self):
-        url = reverse('cartitem-list-create', args=[self.session_id])
-        response = self.client.get(url)
-        print(response.data) 
+        response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['product']['id'], self.product.id)
-        self.assertEqual(response.data[0]['quantity'], 2)
+        self.cart_item.refresh_from_db()
+        self.assertEqual(self.cart_item.quantity, 3)
 
-    def test_remove_stale_carts(self):
-        stale_date = timezone.now() - timedelta(days=2)
-        stale_cart = Cart.objects.create(session_id='stalesession123', created_at=stale_date)
-        url = reverse('cartitem-list-create', args=['stalesession123'])
-        response = self.client.get(url)
-        print(response.data)  # Dodanie printa
+    def test_delete_cart_item(self):
+        url = reverse('cartitem-detail', args=[self.session_id, self.cart_item.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(CartItem.objects.filter(id=self.cart_item.id).exists())
+
+    def test_update_cart_item_invalid_data(self):
+        url = reverse('cartitem-detail', args=[self.session_id, self.cart_item.id])
+        data = {
+            'quantity': -1  # Invalid quantity
+        }
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('quantity', response.data)
+        
+class ClearCartItemsFromOtherRestaurantsViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user1 = AppUser.objects.create_user(
+            email='user1@example.com',
+            password='testpass',
+            first_name='User1',
+            last_name='Test1',
+            role='client'
+        )
+        self.user2 = AppUser.objects.create_user(
+            email='user2@example.com',
+            password='testpass',
+            first_name='User2',
+            last_name='Test2',
+            role='client'
+        )
+        self.restaurant1 = Restaurant.objects.create(
+            owner=self.user1,
+            name='Restaurant 1',
+            phone_number='123456789'
+        )
+        self.restaurant2 = Restaurant.objects.create(
+            owner=self.user2,
+            name='Restaurant 2',
+            phone_number='987654321'
+        )
+        self.product1 = Product.objects.create(
+            name='Product 1',
+            description='Description 1',
+            price=Decimal('10.99'),
+            restaurant=self.restaurant1,
+            is_available=True
+        )
+        self.product2 = Product.objects.create(
+            name='Product 2',
+            description='Description 2',
+            price=Decimal('15.99'),
+            restaurant=self.restaurant2,
+            is_available=True
+        )
+        self.session_id = 'testsession123'
+        self.cart = Cart.objects.create(session_id=self.session_id)
+        self.cart_item1 = CartItem.objects.create(cart=self.cart, product=self.product1, quantity=2)
+        self.cart_item2 = CartItem.objects.create(cart=self.cart, product=self.product2, quantity=1)
+
+    def test_clear_cart_items_from_other_restaurants(self):
+        url = reverse('clear-cart-items', args=[self.session_id, self.restaurant1.id])
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 0)
-        self.assertFalse(Cart.objects.filter(session_id='stalesession123').exists())
+        self.assertTrue(CartItem.objects.filter(cart=self.cart, product=self.product1).exists())
+        self.assertFalse(CartItem.objects.filter(cart=self.cart, product=self.product2).exists())
+
+    def test_clear_cart_items_cart_not_found(self):
+        url = reverse('clear-cart-items', args=['invalidsession', self.restaurant1.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn('Cart not found', str(response.data))
+
+class CartRestaurantInfoViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)  # Authenticate the client
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+
+    def test_get_restaurant_info(self):
+        url = reverse('cart-restaurant-info', args=[self.cart.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'Test Restaurant')
+
+    def test_get_restaurant_info_empty_cart(self):
+        empty_cart = Cart.objects.create(session_id='emptysession123')
+        url = reverse('cart-restaurant-info', args=[empty_cart.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn('Koszyk jest pusty.', str(response.data))
+
+    def test_get_restaurant_info_cart_not_found(self):
+        url = reverse('cart-restaurant-info', args=[9999])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn('Koszyk nie istnieje.', str(response.data))
+        
+#Order
