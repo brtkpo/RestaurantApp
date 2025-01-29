@@ -1,3 +1,4 @@
+from unittest.mock import patch, call
 from decimal import Decimal
 import hashlib
 import time
@@ -1710,3 +1711,882 @@ class CartRestaurantInfoViewTest(TestCase):
         self.assertIn('Koszyk nie istnieje.', str(response.data))
         
 #Order
+class OrderListCreateViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789',
+            minimum_order_amount=Decimal('20.00')
+        )
+        self.restaurant.delivery_cities.add(self.city)
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=3) 
+
+    def test_create_order_with_valid_cart_and_address(self):
+        url = reverse('order-list-create')
+        data = {
+            'cart': self.cart.id,
+            'address': self.address.id,
+            'delivery_type': 'delivery',
+            'restaurant': self.restaurant.id,
+            'user': self.user.id,
+            'payment_type': 'card'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('order_id', response.data)
+
+    def test_create_order_with_invalid_address(self):
+        url = reverse('order-list-create')
+        data = {
+            'cart': self.cart.id,
+            'address': 9999,  
+            'delivery_type': 'delivery',
+            'restaurant': self.restaurant.id,
+            'user': self.user.id,
+            'payment_type': 'card'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Invalid pk "9999" - object does not exist', str(response.data))
+
+    def test_create_order_with_invalid_cart(self):
+        url = reverse('order-list-create')
+        data = {
+            'cart': 9999,  
+            'address': self.address.id,
+            'delivery_type': 'delivery',
+            'restaurant': self.restaurant.id,
+            'user': self.user.id,
+            'payment_type': 'card'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Invalid pk "9999" - object does not exist', str(response.data))
+
+    def test_create_order_below_minimum_order_amount(self):
+        self.cart_item.quantity = 1
+        self.cart_item.save()
+        url = reverse('order-list-create')
+        data = {
+            'cart': self.cart.id,
+            'address': self.address.id,
+            'delivery_type': 'delivery',
+            'restaurant': self.restaurant.id,
+            'user': self.user.id,
+            'payment_type': 'card'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Minimalna kwota zamówienia', str(response.data))
+
+    def test_create_order_delivery_outside_delivery_cities(self):
+        other_city = City.objects.create(name='Other City')
+        self.address.city = other_city.name
+        self.address.save()
+        url = reverse('order-list-create')
+        data = {
+            'cart': self.cart.id,
+            'address': self.address.id,
+            'delivery_type': 'delivery',
+            'restaurant': self.restaurant.id,
+            'user': self.user.id,
+            'payment_type': 'card'
+        }
+        self.cart_item.quantity = 3  
+        self.cart_item.save()
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('nie dostarcza do miasta', str(response.data))
+        
+class OrderDetailViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery'
+        )
+
+    def test_retrieve_order_with_valid_permissions(self):
+        url = reverse('order-detail', args=[self.order.order_id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['order_id'], self.order.order_id)
+
+    def test_retrieve_order_with_invalid_permissions(self):
+        other_user = AppUser.objects.create_user(
+            email='otheruser@example.com',
+            password='testpass',
+            first_name='Other',
+            last_name='User',
+            role='client'
+        )
+        self.client.force_authenticate(user=other_user)
+        url = reverse('order-detail', args=[self.order.order_id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('Nie masz uprawnień do przeglądania tego zamówienia.', str(response.data))
+
+    def test_update_order_with_valid_permissions(self):
+        url = reverse('order-detail', args=[self.order.order_id])
+        data = {
+            'status': 'confirmed'  
+        }
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'confirmed')
+
+    def test_update_order_with_invalid_permissions(self):
+        other_user = AppUser.objects.create_user(
+            email='otheruser@example.com',
+            password='testpass',
+            first_name='Other',
+            last_name='User',
+            role='client'
+        )
+        self.client.force_authenticate(user=other_user)
+        url = reverse('order-detail', args=[self.order.order_id])
+        data = {
+            'status': 'confirmed'  
+        }
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('Nie masz uprawnień do modyfikacji tego zamówienia.', str(response.data))
+
+    def test_update_archived_order(self):
+        self.order.archived = True
+        self.order.save()
+        url = reverse('order-detail', args=[self.order.order_id])
+        data = {
+            'status': 'confirmed'  
+        }
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('Nie można modyfikować zarchiwizowanego zamówienia.', str(response.data))
+        
+class UserOrderListViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery'
+        )
+
+    def test_retrieve_user_orders_with_orders(self):
+        url = reverse('user-order-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['order_id'], self.order.order_id)
+
+    def test_retrieve_user_orders_with_no_orders(self):
+        self.order.delete()
+        url = reverse('user-order-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+        
+class RestaurantOrdersViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery'
+        )
+
+    def test_retrieve_restaurant_orders_with_orders(self):
+        url = reverse('restaurant-orders', args=[self.restaurant.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['order_id'], self.order.order_id)
+
+    def test_retrieve_restaurant_orders_with_no_orders(self):
+        self.order.delete()
+        url = reverse('restaurant-orders', args=[self.restaurant.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+        
+class UserOrderDetailViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery'
+        )
+
+    def test_retrieve_user_order_with_valid_permissions(self):
+        url = reverse('user-order-detail', args=[self.order.order_id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['order_id'], self.order.order_id)
+
+    def test_retrieve_user_order_with_invalid_permissions(self):
+        other_user = AppUser.objects.create_user(
+            email='otheruser@example.com',
+            password='testpass',
+            first_name='Other',
+            last_name='User',
+            role='client'
+        )
+        self.client.force_authenticate(user=other_user)
+        url = reverse('user-order-detail', args=[self.order.order_id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)  
+        self.assertIn('No Order matches the given query.', str(response.data))  
+        
+#ArchivedOrder
+class ArchivedUserOrderListViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery',
+            archived=True
+        )
+
+    def test_retrieve_archived_user_orders_with_orders(self):
+        url = reverse('archived-user-orders')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['order_id'], self.order.order_id)
+
+    def test_retrieve_archived_user_orders_with_no_orders(self):
+        self.order.delete()
+        url = reverse('archived-user-orders')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+        
+class ArchivedRestaurantOrdersViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery',
+            archived=True
+        )
+
+    def test_retrieve_archived_restaurant_orders_with_orders(self):
+        url = reverse('archived-restaurant-orders', args=[self.restaurant.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['order_id'], self.order.order_id)
+
+    def test_retrieve_archived_restaurant_orders_with_no_orders(self):
+        self.order.delete()
+        url = reverse('archived-restaurant-orders', args=[self.restaurant.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+#Stripe
+class CreateCheckoutSessionViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery'
+        )
+
+    @patch('stripe.checkout.Session.create')
+    def test_create_checkout_session(self, mock_stripe_session_create):
+        mock_stripe_session_create.return_value.id = 'test_session_id'
+        
+        url = reverse('create-checkout-session')
+        data = {
+            'email': self.user.email,
+            'orderId': self.order.order_id,
+            'restaurant': self.restaurant.name,
+            'totalAmount': '19.98'
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('id', response.data)
+        self.assertEqual(response.data['id'], 'test_session_id')
+        mock_stripe_session_create.assert_called_once_with(
+            customer_email=self.user.email,
+            payment_method_types=['card', 'blik', 'p24'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'pln',
+                    'product_data': {'name': f'{self.restaurant.name} - zamówienie nr. {self.order.order_id}'},
+                    'unit_amount': 1998,  # Kwota w groszach, 1000 to 10 PLN
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f'http://localhost:8000/api/success?session_id={{CHECKOUT_SESSION_ID}}&order_id={self.order.order_id}',
+            cancel_url=f'http://localhost:3000/user/orders/{self.order.order_id}?payment=fail',
+            metadata={'order_id': self.order.order_id},
+        )
+
+class SuccessPaymentViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Description',
+            price=Decimal('9.99'),
+            restaurant=self.restaurant,
+            is_available=True
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery'
+        )
+
+    @patch('core.views.get_channel_layer')
+    @patch('core.views.async_to_sync')
+    def test_success_payment(self, mock_async_to_sync, mock_get_channel_layer):
+        url = reverse('success')
+        data = {
+            'session_id': 'test_session_id',
+            'order_id': self.order.order_id
+        }
+        response = self.client.get(url, data)
+        
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.url, f'http://localhost:3000/user/orders/{self.order.order_id}?payment=success')
+        
+        self.order.refresh_from_db()
+        self.assertTrue(self.order.is_paid)
+
+#Chat
+class ChatMessageListViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.room_name = 'test_room'
+        self.message = ChatMessage.objects.create(
+            room=self.room_name,
+            user=self.user,
+            message='Test message'
+        )
+
+    def test_retrieve_chat_messages_with_messages(self):
+        url = reverse('chat-messages', args=[self.room_name])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['message'], self.message.message)
+
+    def test_retrieve_chat_messages_with_no_messages(self):
+        ChatMessage.objects.all().delete()
+        url = reverse('chat-messages', args=[self.room_name])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+        
+#Notification
+class UnreadNotificationsListViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery'
+        )
+        Notification.objects.all().delete()  # Clear all notifications before each test
+        self.notification = Notification.objects.create(
+            user=self.user,
+            order=self.order,
+            message='Test notification',
+            is_read=False
+        )
+
+    def test_retrieve_unread_notifications_with_notifications(self):
+        url = reverse('unread-notifications')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['message'], self.notification.message)
+
+    def test_retrieve_unread_notifications_with_no_notifications(self):
+        self.notification.is_read = True
+        self.notification.save()
+        url = reverse('unread-notifications')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+        
+class MarkNotificationAsReadViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery'
+        )
+        Notification.objects.all().delete()  # Clear all notifications before each test
+        self.notification = Notification.objects.create(
+            user=self.user,
+            order=self.order,
+            message='Test notification',
+            is_read=False
+        )
+
+    def test_mark_notification_as_read_with_valid_permissions(self):
+        url = reverse('mark-notification-as-read', args=[self.notification.id])
+        response = self.client.patch(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.notification.refresh_from_db()
+        self.assertTrue(self.notification.is_read)
+
+    def test_mark_notification_as_read_with_invalid_permissions(self):
+        other_user = AppUser.objects.create_user(
+            email='otheruser@example.com',
+            password='testpass',
+            first_name='Other',
+            last_name='User',
+            role='client'
+        )
+        self.client.force_authenticate(user=other_user)
+        url = reverse('mark-notification-as-read', args=[self.notification.id])
+        response = self.client.patch(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+class MarkNotificationsAsReadByOrderViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = AppUser.objects.create_user(
+            email='user@example.com',
+            password='testpass',
+            first_name='User',
+            last_name='Test',
+            role='client'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.city = City.objects.create(name='Test City')
+        self.address = Address.objects.create(
+            user=self.user,
+            street='Test Street',
+            building_number=1,
+            apartment_number=1,
+            postal_code='00-000',
+            city=self.city.name,
+            phone_number='123456789'
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.user,
+            name='Test Restaurant',
+            phone_number='123456789'
+        )
+        self.cart = Cart.objects.create(session_id='testsession123')
+        self.order = Order.objects.create(
+            user=self.user,
+            restaurant=self.restaurant,
+            address=self.address,
+            cart=self.cart,
+            payment_type='card',
+            delivery_type='delivery'
+        )
+        Notification.objects.all().delete() 
+        self.notification1 = Notification.objects.create(
+            user=self.user,
+            order=self.order,
+            message='Test notification 1',
+            is_read=False
+        )
+        self.notification2 = Notification.objects.create(
+            user=self.user,
+            order=self.order,
+            message='Test notification 2',
+            is_read=False
+        )
+        
+    def test_mark_notifications_as_read_by_order_with_valid_permissions(self):
+        url = reverse('mark-notifications-as-read-by-order', args=[self.order.order_id])
+        response = self.client.patch(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.notification1.refresh_from_db()
+        self.notification2.refresh_from_db()
+        self.assertTrue(self.notification1.is_read)
+        self.assertTrue(self.notification2.is_read)
+
+    def test_mark_notifications_as_read_by_order_with_invalid_permissions(self):
+        other_user = AppUser.objects.create_user(
+            email='otheruser@example.com',
+            password='testpass',
+            first_name='Other',
+            last_name='User',
+            role='client'
+        )
+        self.client.force_authenticate(user=other_user)
+        url = reverse('mark-notifications-as-read-by-order', args=[self.order.order_id])
+        response = self.client.patch(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

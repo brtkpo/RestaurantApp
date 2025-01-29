@@ -79,7 +79,7 @@ urlpatterns = [
     path('api/restaurant/<int:restaurant_id>/orders/', RestaurantOrdersView.as_view(), name='restaurant-orders'),
     path('api/user/orders/<int:pk>/', UserOrderDetailView.as_view(), name='user-order-detail'),
     
-    #Archived Order
+    #ArchivedOrder
     path('api/user/archived-orders/', ArchivedUserOrderListView.as_view(), name='archived-user-orders'),
     path('api/restaurant/<int:restaurant_id>/archived-orders/', ArchivedRestaurantOrdersView.as_view(), name='archived-restaurant-orders'),
     

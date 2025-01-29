@@ -753,7 +753,7 @@ class OrderDetailView(RetrieveUpdateAPIView):
     
     def get(self, request, *args, **kwargs):
         order = self.get_object()
-        if request.user.restaurant.id != order.restaurant.id:
+        if not hasattr(request.user, 'restaurant') or request.user.restaurant.id != order.restaurant.id:
             return Response({'error': 'Nie masz uprawnień do przeglądania tego zamówienia.'}, status=status.HTTP_403_FORBIDDEN)
         
         serializer = self.get_serializer(order)
@@ -769,7 +769,7 @@ class OrderDetailView(RetrieveUpdateAPIView):
         #logger.warning(f"restaurant User {request.user.restaurant.id} order {order.order_id}")
         #logger.warning(order.restaurant.id)
 
-        if request.user.restaurant.id != order.restaurant.id:
+        if not hasattr(request.user, 'restaurant') or request.user.restaurant.id != order.restaurant.id:
             #logger.warning(f"User {request.user.restaurant.id} does not have permission to update order {order.order_id}")
             return Response({'error': 'Nie masz uprawnień do modyfikacji tego zamówienia.'}, status=status.HTTP_403_FORBIDDEN)
         # Update order status and history
@@ -833,7 +833,7 @@ class RestaurantOrdersView(ListAPIView):
             order.archive_if_needed()
         return orders
     
-#Archived Order
+#ArchivedOrder
 class ArchivedUserOrderListView(ListAPIView):
     serializer_class = OrderViewSerializer
     permission_classes = [IsAuthenticated]
@@ -967,6 +967,8 @@ class MarkNotificationsAsReadByOrderView(UpdateAPIView):
         return Notification.objects.filter(order__order_id=order_id, user=self.request.user)
 
     def update(self, request, *args, **kwargs):
-        notifications = self.get_queryset()
-        notifications.update(is_read=True)
-        return Response({'status': 'notifications marked as read'}, status=status.HTTP_200_OK)
+            notifications = self.get_queryset()
+            if not notifications.exists():
+                return Response({'error': 'No notifications found or you do not have permission to mark them as read.'}, status=status.HTTP_404_NOT_FOUND)
+            notifications.update(is_read=True)
+            return Response({'status': 'notifications marked as read'}, status=status.HTTP_200_OK)
