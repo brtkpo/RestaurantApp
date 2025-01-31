@@ -39,25 +39,24 @@ class OrderHistoryInline(admin.TabularInline):
 
 class ChatMessageInline(admin.TabularInline):
     model = ChatMessage
-    extra = 0
+    extra = 1
 
     def get_queryset(self, request):
-        # Filtruj wiadomości czatu na podstawie room_name (np. order_id)
-        order_id = self.parent_object.order_id  # Przypuśćmy, że order_id jest dostępne w obiekcie zamówienia
-        return super().get_queryset(request).filter(room=order_id)
-    
+        qs = super().get_queryset(request)
+        if hasattr(self, 'parent_object') and self.parent_object:
+            return qs.filter(room=self.parent_object.order_id)
+        return qs.none()
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['order_id', 'user', 'restaurant', 'status', 'created_at', 'updated_at']
-    list_filter = ['status', 'created_at', 'updated_at']
+    list_display = ['order_id', 'user', 'restaurant', 'status', 'created_at', 'updated_at', 'archived', 'restaurant']
+    list_filter = ['status', 'created_at', 'updated_at', 'archived', 'restaurant'] 
     search_fields = ['order_id', 'user__email', 'restaurant__name']
     inlines = [OrderHistoryInline, ChatMessageInline]
 
-    readonly_fields = ['chat_messages_link']
-
-    def chat_messages_link(self, obj):
-        # Link do API zamiast admina
-        url = reverse("chat-messages", kwargs={"room_name": obj.order_id})  # Używaj order_id jako room_name
-        return format_html('<a href="{}" target="_blank">Zobacz wiadomości</a>', url)
-
-    chat_messages_link.short_description = "Wiadomości na czacie"
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+        for inline in inline_instances:
+            if isinstance(inline, ChatMessageInline):
+                inline.parent_object = obj
+        return inline_instances

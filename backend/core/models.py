@@ -297,13 +297,20 @@ class OrderHistory(models.Model):
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"Order {self.order.id} - {self.status} at {self.timestamp}"
+        return f"Order {self.order.order_id} - {self.status} at {self.timestamp}"
 
 class ChatMessage(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='chat_messages', null=True, blank=True)
     room = models.CharField(max_length=255)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        # Jeśli order_id jest dostępne, ustaw room na order_id
+        #if self.room:
+        #    self.order.order_id = self.room  # Możesz użyć order_id lub innej wartości
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user} in {self.room} at {self.timestamp}"

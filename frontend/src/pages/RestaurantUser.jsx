@@ -283,7 +283,7 @@ const RestaurantProfile = () => {
 
   return (
     <div>
-      <Notifications token={sessionStorage.getItem('authToken')} userRole={'restaurateur'} />
+      {/*<Notifications token={sessionStorage.getItem('authToken')} userRole={'restaurateur'} />*/}
       <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Panel restauratora</h3>
       <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
         <h3 className="mt-10 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Restaurator</h3>

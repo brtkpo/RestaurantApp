@@ -97,7 +97,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Funkcja zapisująca wiadomość do bazy danych
     @database_sync_to_async
     def save_message(self, message, user, order):
-        chat_message = ChatMessage.objects.create(room=self.room_name, user=user, message=message)
+        chat_message = ChatMessage.objects.create(room=self.room_name, user=user, message=message, order=order)
         
         if user.role == 'client':
             recipient = order.restaurant.owner
