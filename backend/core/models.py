@@ -166,7 +166,7 @@ class Cart(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Dodajemy pole total_price
 
     def __str__(self):
-        return self.session_id
+        return self.session_id if self.session_id else f"Order {self.order_id}" if self.order_id else "Cart"
     
     def update_timestamp(self):
         self.created_at = timezone.now()
@@ -232,8 +232,11 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     archived = models.BooleanField(default=False)
 
+    #def __str__(self):
+    #    return f"Order {self.order_id} - {self.status}"
+    
     def __str__(self):
-        return f"Order {self.order_id} - {self.status}"
+        return f"Order {self.order_id} - {self.status}" if self.order_id and self.status else "Order"
     
     def save(self, *args, **kwargs):
         is_new = self.pk is None
