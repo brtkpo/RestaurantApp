@@ -700,6 +700,10 @@ class OrderListCreateView(ListCreateAPIView):
     
     def perform_create(self, serializer):
         user = self.request.user
+        
+        if user.role != 'client':
+            raise serializers.ValidationError({"error": "Nie jesteś klientem i nie możesz złożyć zamówienia."})
+        
         address_id = self.request.data.get('address')
         delivery_type = self.request.data.get('delivery_type')
         if address_id:

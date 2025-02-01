@@ -11,7 +11,7 @@ export const CartProvider = ({ children }) => {
 
   const fetchCart = async () => {
     const sessionId = sessionStorage.getItem('session_id');
-    console.log('session Id:', sessionId); // Debugging
+    //console.log('session Id:', sessionId); // Debugging
     if (sessionId) {
       try {
         const response = await axios.get(`http://localhost:8000/api/cart/${sessionId}/`);

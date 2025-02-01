@@ -9,8 +9,10 @@ import DeleteProductFromCart from './DeleteProductFromCart';
 const Navbar = () => {
   const token = useSelector((state) => state.token);  // Pobieramy token z Redux
   const { cartItems, restaurant, isCartOpen, setIsCartOpen, refreshCart } = useContext(CartContext);
-  const { notifications, markAsRead, handleGoToOrder } = useContext(NotificationContext);
+  const { notifications, markAsRead, handleGoToOrder, userRole } = useContext(NotificationContext);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); 
+
+  console.log("user role:", userRole);
 
   const toggleNotifications = () => {
     setIsNotificationsOpen(!isNotificationsOpen);
@@ -33,23 +35,32 @@ const Navbar = () => {
     <>
       <nav style={styles.navbar}>
         <ul style={styles.ul}>
+          {userRole !== 'restaurateur'  && (
+            <li style={styles.li}>
+              <Link to="/" style={styles.link}>Restauracje</Link>
+            </li>
+          )}
           <li style={styles.li}>
-            <Link to="/" style={styles.link}>Home</Link>
+            {userRole === null  && (
+              <Link to="/login" style={styles.link}>Zaloguj</Link>  
+            )} 
+            {userRole === 'client'  && (
+              <Link to="/user" style={styles.link}>Konto</Link>  
+            )} 
+            {userRole === 'restaurateur'  && (
+              <Link to="/restaurant/user" style={styles.link}>Konto</Link>  
+            )}            
           </li>
-          <li style={styles.li}>
-            {token  ? (
-              <Link to="/user" style={styles.link}>User</Link>  // Jeśli zalogowany, pokazujemy "User"
-            ) : (
-              <Link to="/login" style={styles.link}>Login</Link>  // Jeśli nie, pokazujemy "Login"
-            )}
-          </li>
-          <li style={styles.li}>
-            <button onClick={toggleCart} style={styles.link}>Koszyk</button>
-          </li>
-
-          <li style={styles.li}>
-            <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} style={styles.link}>Powiadomienia</button>
-          </li>
+          {userRole !== 'restaurateur'  && (
+            <li style={styles.li}>
+              <button onClick={toggleCart} style={styles.link}>Koszyk</button>
+            </li>
+          )} 
+          {userRole !== null  && (
+            <li style={styles.li}>
+              <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} style={styles.link}>Powiadomienia</button>
+            </li>
+          )} 
         </ul>
         {isCartOpen && (
           <div style={styles.cartDropdown}>

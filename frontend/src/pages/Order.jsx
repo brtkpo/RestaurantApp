@@ -9,6 +9,7 @@ import placeholderImage from '../assets/Placeholder.png';
 import axios from 'axios';
 import loadingGif from '../assets/200w.gif'; 
 import Modal from 'react-modal';
+import { NotificationContext } from '../components/NotificationContext';  
 
 const Order = () => {
   const token = useSelector((state) => state.token); // Pobieramy token z Redux
@@ -33,6 +34,16 @@ const Order = () => {
   const [isOrdered, setIsOrdered] = useState(false);
 
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
+
+  const {userRole } = useContext(NotificationContext);
+
+  if(userRole === 'restaurateur') {
+    navigate('/restaurant/user'); 
+  }
+
+  if(userRole === null) {
+    navigate('/login'); 
+  }
 
   useEffect(() => {
     if (!token) {

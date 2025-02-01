@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import UserListProducts from "../components/UserListProducts.jsx";
 import placeholderImage from '../assets/Placeholder.png';
 import loadingGif from '../assets/200w.gif'; 
-
+import { NotificationContext } from '../components/NotificationContext';  
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -17,6 +18,13 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [cities, setCities] = useState([]);
   const [selectedCity, setSelectedCity] = useState('');
+
+  const {userRole } = useContext(NotificationContext);
+  const navigate = useNavigate();
+
+  if(userRole === 'restaurateur') {
+    navigate('/restaurant/user'); 
+  }
 
   const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
