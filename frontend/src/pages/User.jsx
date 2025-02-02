@@ -194,9 +194,14 @@ const User = () => {
       </div> 
       <AddAddressForm isOpen={isAddAddressModalOpen} onRequestClose={closeAddAddressModal} onAddAddress={refreshAddresses} />
       <br />
-      <button onClick={handleDeleteAccount} style={{ color: 'red', marginTop: '30px' }}>
+      <div className="mt-2 text-center font-[sans-serif]">
+        <button onClick={handleDeleteAccount} className="mb-10 px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-red-800 rounded-lg hover:bg-red-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+          Usuń konto
+        </button>
+      </div>
+      {/*<button onClick={handleDeleteAccount} style={{ color: 'red', marginTop: '30px' }}>
         Usuń konto
-      </button>
+      </button>*/}
     </div>
   );
 };

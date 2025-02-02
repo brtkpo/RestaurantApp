@@ -15,7 +15,7 @@ const DeleteProductFromCart = ({ productId, cartItemId, quantity, refreshCart })
         try {
         await axios.delete(`http://localhost:8000/api/cart/${sessionId}/items/${cartItemId}/`);
         refreshCart();  // Odświeżenie koszyka po usunięciu produktu
-        alert('Produkt został usunięty z koszyka');
+        //alert('Produkt został usunięty z koszyka');
         } catch (error) {
         console.error('Error deleting product from cart:', error);
         }
@@ -53,11 +53,11 @@ const DeleteProductFromCart = ({ productId, cartItemId, quantity, refreshCart })
     };
 
     return (
-        <div className="ml-2 flex items-center space-x-2">
+        <div className="ml-2 mr-2">
             <button onClick={handleDecrease} disabled={quantity === 1} className="w-8 px-2 py-1.5 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">-</button>
             <span className="px-1">{quantity}</span>
             <button onClick={handleIncrease} disabled={quantity === 99} className="w-8 px-2 py-1.5 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">+</button>
-            <button onClick={handleDelete} className="w-16 px-2 py-1.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40">Usuń</button>
+            <button onClick={handleDelete} className="ml-2 w-16 px-2 py-1.5 text-sm font-medium dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 tracking-wide text-gray-700 capitalize transition-colors duration-300 transform border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-40">Usuń</button>
         </div>
     );
 };
