@@ -124,8 +124,8 @@ const User = () => {
   };
 
   const handleDeleteAddress = async (addressId) => {
-    const confirmDelete = window.confirm('Czy na pewno chcesz usunąć ten adres?');
-    if (confirmDelete) {
+    //const confirmDelete = window.confirm('Czy na pewno chcesz usunąć ten adres?');
+    //if (confirmDelete) {
       try {
         const response = await axios.delete(`http://localhost:8000/api/addresses/${addressId}/`, {
           headers: {
@@ -139,7 +139,7 @@ const User = () => {
       } catch (error) {
         //alert('Błąd podczas usuwania adresu');
       }
-    }
+    //}
   };
 
   const openAddAddressModal = () => {

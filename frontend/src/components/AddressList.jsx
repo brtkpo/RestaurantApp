@@ -31,8 +31,8 @@ const AddressList = ({ onAddAddress }) => {
   }, [onAddAddress]);
 
   const handleDelete = async (addressId) => {
-    const confirmDelete = window.confirm('Czy na pewno chcesz usunąć ten adres?');
-    if (confirmDelete) {
+    //const confirmDelete = window.confirm('Czy na pewno chcesz usunąć ten adres?');
+    //if (confirmDelete) {
       try {
         const token = sessionStorage.getItem('authToken');
         await axios.delete(`http://localhost:8000/api/delete-address/${addressId}/`, {
@@ -44,7 +44,7 @@ const AddressList = ({ onAddAddress }) => {
       } catch (err) {
         setError('Błąd podczas usuwania adresu');
       }
-    }
+    //}
   };
 
   if (isLoading) {
