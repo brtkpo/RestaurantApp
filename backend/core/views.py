@@ -167,7 +167,7 @@ class AddressListView(APIView):
     permission_classes = [IsAuthenticated]  # Użytkownik musi być zalogowany
 
     def get(self, request):
-        addresses = Address.objects.filter(user=request.user)
+        addresses = Address.objects.filter(user=request.user, archived=False)
         serializer = AddressSerializer(addresses, many=True)
         return Response(serializer.data)
     
@@ -177,7 +177,8 @@ class DeleteAddressView(APIView):
     def delete(self, request, pk):
         try:
             address = Address.objects.get(pk=pk, user=request.user)  # Pobieramy adres na podstawie id i użytkownika
-            address.delete()  # Usuwamy adres
+            address.archived = True  # Oznaczamy adres jako zarchiwizowany
+            address.save()  # Usuwamy adres
             return Response({"message": "Adres usunięty pomyślnie!"}, status=status.HTTP_204_NO_CONTENT)
         except Address.DoesNotExist:
             return Response({"error": "Adres nie znaleziony."}, status=status.HTTP_404_NOT_FOUND)
@@ -735,6 +736,8 @@ class OrderListCreateView(ListCreateAPIView):
         if address_id:
             try:
                 address = Address.objects.get(id=address_id)
+                if address.archived:
+                    raise serializers.ValidationError({"error": "Adres jest zarchiwizowany i nie może być użyty do zamówienia."})
                 user = address.user  # Uzyskujemy użytkownika z adresu
             except Address.DoesNotExist:
                 raise serializers.ValidationError({"error": "Address not found"})

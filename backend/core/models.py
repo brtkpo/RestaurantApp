@@ -127,6 +127,7 @@ class Address(models.Model):
     apartment_number = models.PositiveIntegerField(null=True, blank=True)
     postal_code = models.CharField(max_length=6)
     city = models.CharField(max_length=100)
+    archived = models.BooleanField(default=False)
     
     def clean(self):
         # Sprawdzenie wymaganych pól w zależności od roli

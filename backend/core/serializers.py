@@ -31,7 +31,7 @@ class AddressSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email', read_only=True)
     class Meta:
         model = Address
-        fields = ['id', 'first_name', 'last_name', 'phone_number', 'street', 'building_number', 'apartment_number', 'postal_code', 'city', 'user', 'email', 'owner_role', 'restaurant']
+        fields = ['id', 'first_name', 'last_name', 'phone_number', 'street', 'building_number', 'apartment_number', 'postal_code', 'city', 'user', 'email', 'owner_role', 'restaurant', 'archived']
 
     extra_kwargs = {
             'apartment_number': {'required': False, 'allow_null': True},
