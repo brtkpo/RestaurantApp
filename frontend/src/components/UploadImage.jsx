@@ -7,6 +7,7 @@ const UploadImage = ({ onUploadSuccess, metadata, isLoaded, setIsLoaded }) => {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const cropperRef = useRef(null);
+  const [showCropper, setShowCropper] = useState(true); 
   const fileInputRef = useRef(null); // Referencja do pola input typu file
 
   // Obsługa wczytywania pliku
@@ -16,6 +17,7 @@ const UploadImage = ({ onUploadSuccess, metadata, isLoaded, setIsLoaded }) => {
       const reader = new FileReader();
       reader.onload = () => {
         setFile(file);
+        setShowCropper(true);
         setImageUrl(reader.result);
         if (setIsLoaded) {
           setIsLoaded(true); // Ustaw isLoaded na true, jeśli setIsLoaded jest przekazane
@@ -74,6 +76,7 @@ const UploadImage = ({ onUploadSuccess, metadata, isLoaded, setIsLoaded }) => {
 
               const imagePath = `image/upload/v${data.version}/${data.public_id}`;
               setImageUrl(data.secure_url);
+              setShowCropper(false);
 
               // Wywołanie callbacku z danymi obrazu
               if (onUploadSuccess) {
@@ -118,7 +121,7 @@ const UploadImage = ({ onUploadSuccess, metadata, isLoaded, setIsLoaded }) => {
         <input type="file" onChange={handleFileChange} ref={fileInputRef} class="block w-full px-3 py-2 mt-2 mb-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg file:bg-gray-200 file:text-gray-700 file:text-sm file:px-4 file:py-1 file:border-none file:rounded-full dark:file:bg-gray-800 dark:file:text-gray-200 dark:text-gray-300 placeholder-gray-400/70 dark:placeholder-gray-500 focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40 dark:border-gray-600 dark:bg-gray-900 dark:focus:border-blue-300" />
       </div>
 
-      {imageUrl && (
+      {imageUrl && showCropper && (
         <div>
           <Cropper
             src={imageUrl}

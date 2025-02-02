@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import UploadImage from './UploadImage';
 import Modal from 'react-modal';
+import placeholderImage from '../assets/Placeholder.png';
 
 const EditProduct = ({ isOpen, restaurantId, productId, onClose, onUpdate, onRequestClose }) => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,8 @@ const EditProduct = ({ isOpen, restaurantId, productId, onClose, onUpdate, onReq
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+
+  const cloudinaryBaseUrl = "https://res.cloudinary.com/dljau5sfr/";
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -174,7 +177,15 @@ const EditProduct = ({ isOpen, restaurantId, productId, onClose, onUpdate, onReq
                 class="accent-gray-500"
                 onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
               />
+              {!isLoaded && (
+                <img
+                  src={formData.image ? `${cloudinaryBaseUrl}${formData.image}` : placeholderImage}
+                  alt={formData.name}
+                  style={{ width: "300px", height: "auto" }}
+                  className="h-auto rounded-lg mt-2 mx-auto"
+                />)}
             </div>
+
             <div className="flex justify-center items-center">
               <label>Zdjęcie</label>
             </div>

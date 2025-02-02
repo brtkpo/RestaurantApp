@@ -75,6 +75,7 @@ const RestaurantProfile = () => {
       } catch (error) {
         setError('Błąd podczas ładowania danych.');
         console.error(error);
+        navigate('/login');
       }
     };
     fetchProfileData();
@@ -214,7 +215,6 @@ const RestaurantProfile = () => {
       if (error.response && error.response.data && error.response.data.message) {
         setFormError(true);
         setModalMessage(error.response.data.message);
-        //alert(error.response.data.message);
       } else {
         setFormError(true);
         setModalMessage('Nie udało się zaktualizować danych restauracji.');
