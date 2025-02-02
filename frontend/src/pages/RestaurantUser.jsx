@@ -18,6 +18,7 @@ import { NotificationContext } from '../components/NotificationContext';
 import Notifications from '../components/Notifications';
 
 const RestaurantProfile = () => {
+  const token = sessionStorage.getItem('authToken');
   const dispatch = useDispatch();
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
@@ -45,7 +46,7 @@ const RestaurantProfile = () => {
 
   // Ładowanie danych restauratora z backendu
   useEffect(() => {
-    const token = sessionStorage.getItem('authToken');
+    //const token = sessionStorage.getItem('authToken');
     if (!token) {
       navigate('/login');
       return;
@@ -112,7 +113,7 @@ const RestaurantProfile = () => {
   };
 
   const handleAddCity = async () => {
-    const token = sessionStorage.getItem('authToken');
+    //const token = sessionStorage.getItem('authToken');
     let cityName = formData.delivery_city.trim();
     //console.log("1",cityName);
 
@@ -143,7 +144,7 @@ const RestaurantProfile = () => {
   };
 
   const handleRemoveCity = async (cityId) => {
-    const token = sessionStorage.getItem('authToken');
+    //const token = sessionStorage.getItem('authToken');
     try {
       await axios.delete(
         `http://localhost:8000/api/restaurant/${profileData.restaurant.id}/remove-delivery-city/`,
@@ -190,7 +191,7 @@ const RestaurantProfile = () => {
       return;
     }
 
-    const token = sessionStorage.getItem('authToken');
+    //const token = sessionStorage.getItem('authToken');
     try {
       const response = await axios.patch(
         `http://localhost:8000/api/restaurant/update/${profileData.restaurant.id}/`,
@@ -251,7 +252,7 @@ const RestaurantProfile = () => {
   // Funkcja po zakończeniu wgrywania obrazu na Cloudinary
   const handleUploadSuccess = async (uploadedImageData) => {
     try {
-      const token = sessionStorage.getItem('authToken');
+      //const token = sessionStorage.getItem('authToken');
       
       // Przesyłamy żądanie PATCH do zaktualizowania obrazu restauracji
       const response = await axios.patch(
@@ -271,7 +272,29 @@ const RestaurantProfile = () => {
       }));
     } catch (error) {
       console.error('Error updating restaurant image:', error);
-      alert('Nie udało się zaktualizować zdjęcia.');
+      //alert('Nie udało się zaktualizować zdjęcia.');
+      setFormError(true);
+      setModalMessage('Nie udało się zaktualizować zdjęcia.');
+      setModalIsOpen(true);
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    try {
+      await axios.delete(`http://localhost:8000/api/restaurant/${profileData.restaurant.id}/delete-image/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setProfileData((prevData) => ({
+        ...prevData,
+        restaurant: { ...prevData.restaurant, image: null },
+      }));
+    } catch (error) {
+      //console.error('Error deleting restaurant image:', error);
+      setFormError(true);
+      setModalMessage(error);
+      setModalIsOpen(true);
     }
   };
 
@@ -452,6 +475,9 @@ const RestaurantProfile = () => {
               onUploadSuccess={handleUploadSuccess}
               metadata={{ id: restaurant.id, name: 'main' }}
             />
+            <div className="mt-2 text-center font-[sans-serif]">
+              <button onClick={handleDeleteImage} className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-red-800 rounded-lg hover:bg-red-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">Usuń zdjęcie</button>
+            </div>
           </div>
         ) : (
           // Jeśli nie ma zdjęcia, umożliwiamy załadowanie nowego

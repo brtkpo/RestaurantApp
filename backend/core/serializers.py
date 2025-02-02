@@ -151,7 +151,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'product', 'quantity', 'price', 'created_at']#,'product_id'
     
     def validate(self, data):
-        print('Validating data:', data)  # Logowanie danych podczas walidacji
+        #print('Validating data:', data)  # Logowanie danych podczas walidacji
         return data
 
 class CartSerializer(serializers.ModelSerializer):

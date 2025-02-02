@@ -50,8 +50,8 @@ const EditProduct = ({ isOpen, restaurantId, productId, onClose, onUpdate, onReq
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e, closeModal = true) => {
+    if (e) e.preventDefault();
     try {
       const token = localStorage.getItem("access_token") || sessionStorage.getItem("authToken");
       if (!token) {
@@ -64,13 +64,44 @@ const EditProduct = ({ isOpen, restaurantId, productId, onClose, onUpdate, onReq
           "Content-Type": "application/json",
         },
       });
-      onUpdate();
-      onClose();
+      //onUpdate();
+      if (closeModal) {
+        onClose();
+        onUpdate();
+      }
     } catch (err) {
       setError(err.message || "Nieoczekiwany błąd.");
       setModalIsOpen(true);
       setModalMessage(err.message || "Nieoczekiwany błąd.");
     }
+  };
+
+  const handleDeleteImage = async (e) => {
+    e.preventDefault(); 
+    //await handleSubmit(null, false);
+    try {
+      const token = localStorage.getItem("access_token") || sessionStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("Brak tokena uwierzytelniającego");
+      }
+
+      await axios.delete(`http://localhost:8000/api/product/${productId}/delete-image/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setFormData((prevData) => ({
+        ...prevData,
+        image: null,
+      }));
+
+      handleSubmit(null, false);
+    } catch (err) {
+      console.log(err);
+      setError(err.message || "Nieoczekiwany błąd.");
+    }
+    //await handleSubmit(null, false);
   };
 
   const handleUploadSuccess = (uploadedImageData) => {
@@ -178,15 +209,22 @@ const EditProduct = ({ isOpen, restaurantId, productId, onClose, onUpdate, onReq
                 onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
               />
               {!isLoaded && (
-                <img
-                  src={formData.image ? `${cloudinaryBaseUrl}${formData.image}` : placeholderImage}
-                  alt={formData.name}
-                  style={{ width: "300px", height: "auto" }}
-                  className="h-auto rounded-lg mt-2 mx-auto"
-                />)}
+                <div>
+                  <img
+                    src={formData.image ? `${cloudinaryBaseUrl}${formData.image}` : placeholderImage}
+                    alt={formData.name}
+                    style={{ width: "300px", height: "auto" }}
+                    className="h-auto rounded-lg mt-2 mx-auto"
+                  />
+                  {formData.image &&(
+                    <div className="mt-2 text-center font-[sans-serif]">
+                      <button onClick={handleDeleteImage} className="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-red-800 rounded-lg hover:bg-red-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">Usuń zdjęcie</button>
+                    </div>
+                  )}
+                </div>)}
             </div>
 
-            <div className="flex justify-center items-center">
+            <div className="mt-2 flex justify-center items-center">
               <label>Zdjęcie</label>
             </div>
             <UploadImage

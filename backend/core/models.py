@@ -7,6 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from cloudinary.models import CloudinaryField
 from django.utils.crypto import get_random_string
+from cloudinary.uploader import destroy
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -91,6 +92,12 @@ class Restaurant(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def delete_image(self):
+        if self.image:
+            destroy(self.image.public_id)
+            self.image = None
+            self.save()
 
 class Address(models.Model):
     ROLE_CHOICES = [
@@ -157,6 +164,12 @@ class Product(models.Model):
         self.archived = True
         self.is_available = False
         self.save()
+        
+    def delete_image(self):
+        if self.image:
+            destroy(self.image.public_id)
+            self.image = None
+            self.save()
     
 #Cart
 class Cart(models.Model):

@@ -379,6 +379,32 @@ def generateUploadSignature(request):
 
     return JsonResponse(response_data)
 
+class DeleteRestaurantImageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            restaurant = Restaurant.objects.get(pk=pk)
+            if restaurant.owner != request.user:
+                return Response({"error": "Nie masz uprawnień do usunięcia zdjęcia tej restauracji."}, status=status.HTTP_403_FORBIDDEN)
+            restaurant.delete_image()
+            return Response({"message": "Zdjęcie profilowe restauracji zostało usunięte."}, status=status.HTTP_200_OK)
+        except Restaurant.DoesNotExist:
+            return Response({"error": "Restauracja nie została znaleziona."}, status=status.HTTP_404_NOT_FOUND)
+
+class DeleteProductImageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            product = Product.objects.get(pk=pk)
+            if product.restaurant.owner != request.user:
+                return Response({"error": "Nie masz uprawnień do usunięcia zdjęcia tego produktu."}, status=status.HTTP_403_FORBIDDEN)
+            product.delete_image()
+            return Response({"message": "Zdjęcie produktu zostało usunięte."}, status=status.HTTP_200_OK)
+        except Product.DoesNotExist:
+            return Response({"error": "Produkt nie został znaleziony."}, status=status.HTTP_404_NOT_FOUND)
+
 #Tags
 class TagListView(APIView):
     """

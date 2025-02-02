@@ -49,6 +49,8 @@ urlpatterns = [
     
     #Cloudinary
     path('api/generate-signature/', generateUploadSignature, name='generate_upload_signature'),
+    path('api/restaurant/<int:pk>/delete-image/', DeleteRestaurantImageView.as_view(), name='delete-restaurant-image'),
+    path('api/product/<int:pk>/delete-image/', DeleteProductImageView.as_view(), name='delete-product-image'),
     
     # Tag
     path('api/tags/', TagListView.as_view(), name='tag-list'),
