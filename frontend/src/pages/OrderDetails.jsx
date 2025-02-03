@@ -65,6 +65,8 @@ const OrderDetails = () => {
     cancelled: 'Anulowane',
     ready_for_pickup: 'Gotowe do odbioru',
     picked_up: 'Odebrane',
+    suspended: 'Wstrzymane',
+    resumed: 'Wznowione',
   };
   
   const fetchOrderDetails = async () => {
@@ -171,6 +173,7 @@ const OrderDetails = () => {
       {order && (
         <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
           <ul className=" text-gray-800 list-disc list-inside dark:text-gray-700">
+            <li>Status: {statusLabels[order.status]}</li>
             <li>Data: {new Date(order.created_at).toLocaleString()}</li>
             <li>Typ płatności: {order.payment_type}</li>
             <li>Typ dostawy: {order.delivery_type}</li>
@@ -213,19 +216,24 @@ const OrderDetails = () => {
       ) : (
         <>
         <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Aktualizuj status:</h3>
-        <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Status:
-              <select value={status} onChange={(e) => setStatus(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-800 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500">
-                {getStatusOptions().map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+        {order.status === 'suspended' ? (
+          <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+            <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Zamówienie wstrzymane</h3>
           </div>
-          <div>
+        ) : (
+          <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                Status:
+                <select value={status} onChange={(e) => setStatus(e.target.value)}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-800 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500">
+                  {getStatusOptions().map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div>
             <label>
               <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Opis:</h3>
               
@@ -240,6 +248,7 @@ const OrderDetails = () => {
             </button>
           </div>
         </div>
+        )}
         <Chat roomName={order.order_id} mainUserId={userId} restaurant={true}/>
         </>
       )}
@@ -295,6 +304,12 @@ const OrderDetails = () => {
           </div>
         </div>
       </Modal>
+      {!order.archived && (
+      <footer class="bg-white dark:bg-gray-900">
+        <div class="container flex flex-col items-center justify-center p-6 mx-auto space-y-4 sm:space-y-0 sm:flex-row">
+          <p class="text-base text-gray-600 dark:text-gray-300 text-center">Masz problemy z zamówieniem? Skontaktuj się z Administratorem: admin@admin.com</p>
+        </div>
+      </footer>)}
     </div>
   );
 };

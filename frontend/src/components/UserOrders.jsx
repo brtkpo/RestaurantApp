@@ -19,6 +19,8 @@ const UserOrders = () => {
     cancelled: 'Anulowane',
     ready_for_pickup: 'Gotowe do odbioru',
     picked_up: 'Odebrane',
+    suspended: 'Wstrzymane',
+    resumed: 'Wznowione',
   };
 
   const orderLabels = {

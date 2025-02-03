@@ -230,8 +230,10 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
         ('ready_for_pickup', 'Ready for Pickup'),
         ('picked_up', 'Picked Up'),
+        ('suspended', 'Suspended'),  # Only Admin
+        ('resumed', 'Resumed'),  # Only Admin
     ]
-
+    
     order_id = models.AutoField(primary_key=True)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
@@ -277,15 +279,20 @@ class Order(models.Model):
                 }
             )
     
-    def update_status(self, new_status, description=""):
+    def update_status(self, new_status, description="", is_admin=False):
         self.status = new_status
         OrderHistory.objects.create(order=self, status=new_status, description=description)
         self.save()
         
+        if is_admin:
+            notification_message = f"Administrator zmienił status zamówienia nr.{self.order_id} na {new_status}."
+        else:
+            notification_message = f"Status zamówienia nr.{self.order_id} został zmieniony na {new_status}."
+        
         notification = Notification.objects.create(
             user=self.user,
             order=self,
-            message=f"Status zamówienia nr.{self.order_id} został zmieniony na {new_status}.",
+            message=notification_message,
         )
         
         channel_layer = get_channel_layer()
@@ -298,6 +305,23 @@ class Order(models.Model):
                 'order': self.order_id,
             }
         )
+        
+        if is_admin:
+            Notification.objects.create(
+                user=self.restaurant.owner,
+                order=self,
+                message=notification_message,
+            )
+            
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{self.restaurant.owner.id}',
+                {
+                    'type': 'send_notification',
+                    'message': notification.message,
+                    'timestamp': timezone.now().isoformat(),
+                    'order': self.order_id,
+                }
+            )
     
     def archive_if_needed(self):
         if self.status in ['cancelled', 'delivered', 'picked_up'] and self.updated_at <= timezone.now() - timedelta(hours=24):

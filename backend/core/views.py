@@ -798,6 +798,9 @@ class OrderDetailView(RetrieveUpdateAPIView):
         if order.archived:
             return Response({'error': 'Nie można modyfikować zarchiwizowanego zamówienia.'}, status=status.HTTP_403_FORBIDDEN)
         
+        if order.status == 'suspended':
+            return Response({'error': 'Nie można modyfikować zamówienia wstrzymanego.'}, status=status.HTTP_403_FORBIDDEN)
+        
         data = request.data
         #logger.warning(f"restaurant User {request.user.restaurant.id} order {order.order_id}")
         #logger.warning(order.restaurant.id)

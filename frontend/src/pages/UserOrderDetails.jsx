@@ -76,6 +76,8 @@ const UserOrderDetails = () => {
     cancelled: 'Anulowane',
     ready_for_pickup: 'Gotowe do odbioru',
     picked_up: 'Odebrane',
+    suspended: 'Wstrzymane',
+    resumed: 'Wznowione',
   };
 
   const fetchOrderDetails = async () => {
@@ -131,6 +133,7 @@ const UserOrderDetails = () => {
       {order && (
         <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
           <ul className=" text-gray-800 list-disc list-inside dark:text-gray-700">
+            <li>Status: {statusLabels[order.status]}</li>
             <li>Data: {new Date(order.created_at).toLocaleString()}</li>
             <li>Typ płatności: {order.payment_type}</li>
             <li>Typ dostawy: {order.delivery_type}</li>
@@ -226,6 +229,12 @@ const UserOrderDetails = () => {
           </div>
         </Modal>
       )}
+      {!order.archived && (
+      <footer class="bg-white dark:bg-gray-900">
+        <div class="container flex flex-col items-center justify-center p-6 mx-auto space-y-4 sm:space-y-0 sm:flex-row">
+          <p class="text-base text-gray-600 dark:text-gray-300 text-center">Masz problemy z zamówieniem? Skontaktuj się z Administratorem: admin@admin.com</p>
+        </div>
+      </footer>)}
     </div>
   );
 };

@@ -53,6 +53,11 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ['status', 'created_at', 'updated_at', 'archived', 'restaurant'] 
     search_fields = ['order_id', 'user__email', 'restaurant__name']
     inlines = [OrderHistoryInline, ChatMessageInline]
+    
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return ['status'] if obj and obj.status == 'suspended' else []
+        return []
 
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
@@ -60,3 +65,24 @@ class OrderAdmin(admin.ModelAdmin):
             if isinstance(inline, ChatMessageInline):
                 inline.parent_object = obj
         return inline_instances
+    
+    def save_model(self, request, obj, form, change):
+        if change and 'status' in form.changed_data and obj.status == 'suspended':
+            default_description = "Zamówienie zostało wstrzymane przez administratora"
+            additional_description = form.cleaned_data.get('description', '')
+            full_description = f"{default_description}. {additional_description}" if additional_description else default_description
+            obj.update_status('suspended', description=full_description, is_admin=request.user.is_superuser)
+        elif obj.status == 'resumed':
+            default_description = "Zamówienie zostało wznowione przez administratora"
+            additional_description = form.cleaned_data.get('description', '')
+            full_description = f"{default_description}. {additional_description}" if additional_description else default_description
+            obj.update_status('resumed', description=full_description, is_admin=request.user.is_superuser)
+        elif change and 'status' in form.changed_data and obj.status == 'cancelled':
+            default_description = "Zamówienie zostało anulowane przez administratora"
+            additional_description = form.cleaned_data.get('description', '')
+            full_description = f"{default_description}. {additional_description}" if additional_description else default_description
+            obj.update_status('cancelled', description=full_description, is_admin=request.user.is_superuser)
+            obj.archived = True  
+            obj.save()
+        else:
+            super().save_model(request, obj, form, change)
