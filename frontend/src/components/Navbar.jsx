@@ -82,8 +82,12 @@ const Navbar = () => {
             )} 
             {userRole !== null  && (
               <li style={styles.li}>
-                <button onClick={() => toggleNotifications()} class="border-b-2 border-transparent hover:text-gray-800 transition-colors duration-300 transform dark:hover:text-gray-200 hover:border-gray-500 mx-1.5 sm:mx-6">
-                  Powiadomienia</button>
+                <div className="flex items-center">
+                  <button onClick={() => toggleNotifications()} class="border-b-2 border-transparent hover:text-gray-800 transition-colors duration-300 transform dark:hover:text-gray-200 hover:border-gray-500 mx-1.5 sm:mx-6">
+                    Powiadomienia
+                  </button>
+                  {notifications.length> 0  && (<p>{notifications.length}</p>)}
+                </div>
               </li>
             )} 
           </ul>
