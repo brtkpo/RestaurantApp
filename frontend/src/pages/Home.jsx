@@ -223,7 +223,7 @@ const Home = () => {
           <img src={loadingGif} alt="Loading..." />
         </div>
       )}
-      {error && <p>{error}</p>}
+      {error && <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">{error}</h3>}
       {!loading && !error && restaurants.length > 0 && (
         <>
           <div>
