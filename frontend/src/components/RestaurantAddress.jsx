@@ -47,7 +47,7 @@ const RestaurantAddress = ({ profileData }) => {
   const validateField = (name, value) => {
     switch (name) {
       case 'street':
-        if (!/^[a-zA-Z\s]+$/.test(value)) {
+        if (!/^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s-]+$/.test(value) && value.length > 0) {
           return 'Ulica powinna zawierać tylko litery.';
         }
         break;
@@ -62,12 +62,12 @@ const RestaurantAddress = ({ profileData }) => {
         }
         break;
       case 'postal_code':
-        if (!/^\d{2}-\d{3}$/.test(value)) {
+        if (!/^\d{2}-\d{3}$/.test(value) && value.length > 0) {
           return 'Kod pocztowy powinien mieć format XX-XXX.';
         }
         break;
       case 'city':
-        if (!/^[a-zA-Z\s]+$/.test(value)) {
+        if (!/^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s-]+$/.test(value) && value.length > 0) {
           return 'Miasto powinno zawierać tylko litery.';
         }
         break;
@@ -145,27 +145,37 @@ const RestaurantAddress = ({ profileData }) => {
         </ul>
       ) : (
         <form onSubmit={handleSubmit}>
+          <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Adres restauracji</h3>
           <div>
             <label>Ulica:</label>
-            <input type="text" name="street" value={formData.street} onChange={handleChange} required />
+            <input type="text" name="street" value={formData.street} onChange={handleChange} required 
+            className="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-gray-400 dark:focus:border-gray-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-gray-300"/>
           </div>
           <div>
             <label>Numer budynku:</label>
-            <input type="text" name="building_number" value={formData.building_number} onChange={handleChange} required />
+            <input type="text" name="building_number" value={formData.building_number} onChange={handleChange} required 
+            className="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-gray-400 dark:focus:border-gray-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-gray-300"/>
           </div>
           <div>
             <label>Numer mieszkania/lokalu:</label>
-            <input type="text" name="apartment_number" value={formData.apartment_number} onChange={handleChange} />
+            <input type="text" name="apartment_number" value={formData.apartment_number} onChange={handleChange} 
+            className="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-gray-400 dark:focus:border-gray-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-gray-300"/>
           </div>
           <div>
             <label>Kod pocztowy:</label>
-            <input type="text" name="postal_code" value={formData.postal_code} onChange={handleChange} required />
+            <input type="text" name="postal_code" value={formData.postal_code} onChange={handleChange} required 
+            className="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-gray-400 dark:focus:border-gray-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-gray-300"/>
           </div>
           <div>
             <label>Miasto:</label>
-            <input type="text" name="city" value={formData.city} onChange={handleChange} required />
+            <input type="text" name="city" value={formData.city} onChange={handleChange} required 
+            className="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-gray-400 dark:focus:border-gray-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-gray-300"/>
           </div>
-          <button type="submit">Dodaj adres</button>
+          <div className="flex items-center justify-center space-x-2 mt-2 pr-2">
+            <button type="submit" className="items-center px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50">
+              Dodaj adres
+            </button>
+          </div>
         </form>
       )}
     </div>

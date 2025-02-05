@@ -1,7 +1,7 @@
 #FROM python:3.8-alpine
 FROM python:3.12-alpine
 
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash graphviz graphviz-dev
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
