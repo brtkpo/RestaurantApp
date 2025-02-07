@@ -68,6 +68,17 @@ const OrderDetails = () => {
     suspended: 'Wstrzymane',
     resumed: 'Wznowione',
   };
+
+  const paymentTypeLabels = {
+    card: 'Karta',
+    cash: 'Gotówka',
+    online: 'Online',
+  };
+
+  const deliveryTypeLabels = {
+    pickup: 'Odbiór osobisty',
+    delivery: 'Dostawa',
+  };
   
   const fetchOrderDetails = async () => {
     try {
@@ -175,8 +186,8 @@ const OrderDetails = () => {
           <ul className=" text-gray-800 list-disc list-inside dark:text-gray-700">
             <li>Status: {statusLabels[order.status]}</li>
             <li>Data: {new Date(order.created_at).toLocaleString()}</li>
-            <li>Typ płatności: {order.payment_type}</li>
-            <li>Typ dostawy: {order.delivery_type}</li>
+            <li>Typ płatności: {paymentTypeLabels[order.payment_type]}</li>
+            <li>Typ dostawy: {deliveryTypeLabels[order.delivery_type]}</li>
             <li>Notatki: {order.order_notes ? order.order_notes : 'brak'}</li>
             <li>Adres: {order.address.first_name} {order.address.last_name}, {order.address.street} {order.address.building_number} {order.address.apartment_number}, {order.address.postal_code} {order.address.city}</li>
             <li>Restauracja: {order.restaurant.name}</li>
