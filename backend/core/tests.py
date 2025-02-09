@@ -397,7 +397,8 @@ class DeleteAddressTest(TestCase):
         url = reverse('delete_address', args=[self.address.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Address.objects.filter(id=self.address.id).exists())
+        self.address.refresh_from_db()
+        self.assertTrue(self.address.archived)
 
     def test_delete_address_unauthenticated(self):
         self.client.force_authenticate(user=None)  
