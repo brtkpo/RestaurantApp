@@ -11,11 +11,10 @@ class ClientSerializer(serializers.ModelSerializer):
         model = AppUser
         fields = ['email', 'password', 'first_name', 'last_name', 'phone_number', 'role']
         extra_kwargs = {
-            'password': {'write_only': True}  # Hasło będzie tylko do zapisu, nie do odczytu
+            'password': {'write_only': True} 
         }
 
     def create(self, validated_data):
-        # Tworzenie nowego użytkownika
         user = AppUser.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
@@ -23,7 +22,7 @@ class ClientSerializer(serializers.ModelSerializer):
             last_name=validated_data['last_name'],
             phone_number=validated_data.get('phone_number')
         )
-        user.role = validated_data.get('role', 'client')  # Domyślnie ustawiamy rolę na `client`
+        user.role = validated_data.get('role', 'client')   
         user.save()
         return user
 
@@ -74,14 +73,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Restaurant
         fields = ['id', 'name', 'phone_number', 'description', 'image', 'tags', 'tag_ids','allows_online_payment', 'allows_cash_payment', 'allows_delivery', 'allows_pickup', 'minimum_order_amount', 'delivery_cities']
-        #fields = ['name', 'address', 'phone_number', 'description']
-        
-    #def get_image_url(self, obj):
-    #    # Jeśli obrazek jest obecny, zwróć pełny URL, w przeciwnym razie zwróć None
-    #    if obj.image:
-    #        return f'https://res.cloudinary.com/dljau5sfr/{obj.image}'
-    #        #return f'{obj.image}'
-    #    return None
+        #fields = ['name', 'address', 'phone_number', 'description']        
 
 class RestaurantWithAddressSerializer(serializers.ModelSerializer):
     address = AddressSerializer(source='address_set', many=True, read_only=True)
@@ -104,11 +96,10 @@ class RestaurateurRegistrationSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        # Wyciągamy dane restauracji
         restaurant_data = validated_data.pop('restaurant')
         tags = restaurant_data.pop('tags', [])
-        validated_data['role'] = 'restaurateur'  # Ustawiamy rolę na restaurator
-        # Tworzymy użytkownika
+        validated_data['role'] = 'restaurateur'  
+
         user = AppUser.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
@@ -117,14 +108,14 @@ class RestaurateurRegistrationSerializer(serializers.ModelSerializer):
             phone_number=validated_data.get('phone_number'),
             role='restaurateur'
         )
-        # Tworzymy restaurację
+
         restaurant = Restaurant.objects.create(owner=user, **restaurant_data)
         if tags:
             restaurant.tags.set(tags)
         return user
 
 class RestaurantProfileSerializer(serializers.ModelSerializer):
-    restaurant = RestaurantSerializer(read_only=True)  # Dodajemy dane restauracji
+    restaurant = RestaurantSerializer(read_only=True)  
 
     class Meta:
         model = AppUser
@@ -142,8 +133,8 @@ class CartItemSerializer(serializers.ModelSerializer):
     #product = ProductSerializer()
     #product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), source='product', write_only=True)
     product = ProductSerializer(read_only=True)
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)  # Ustawiamy pole price jako read_only
-    #restaurant = RestaurantSerializer(source='product.restaurant', read_only=True)  # Dodajemy pole restaurant
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)  
+    #restaurant = RestaurantSerializer(source='product.restaurant', read_only=True)  
     created_at = serializers.DateTimeField(read_only=True) 
 
     class Meta:
@@ -151,7 +142,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'product', 'quantity', 'price', 'created_at']#,'product_id'
     
     def validate(self, data):
-        #print('Validating data:', data)  # Logowanie danych podczas walidacji
+        #print('Validating data:', data)  
         return data
 
 class CartSerializer(serializers.ModelSerializer):
@@ -187,7 +178,7 @@ class OrderViewSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True, source='cart.items')
     address = AddressSerializer(read_only=True)
     restaurant = RestaurantSerializer(read_only=True)  
-    total_price = serializers.DecimalField(source='cart.total_price', max_digits=10, decimal_places=2, read_only=True)  # Dodajemy pole total_price
+    total_price = serializers.DecimalField(source='cart.total_price', max_digits=10, decimal_places=2, read_only=True)  
 
     class Meta:
         model = Order

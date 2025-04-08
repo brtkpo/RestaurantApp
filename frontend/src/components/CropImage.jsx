@@ -51,7 +51,7 @@ const CropImage = ({ onCropSuccess }) => {
             initialAspectRatio={4 / 3}
             aspectRatio={4 / 3}
             guides={false}
-            viewMode={1} // Ustawienie viewMode na 1, aby nie można było wyjść poza obszar obrazu
+            viewMode={1} 
             ref={cropperRef}
           />
           <div>

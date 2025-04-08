@@ -14,9 +14,9 @@ const AddAddressForm = ({ isOpen, onRequestClose, onAddAddress }) => {
     city: '',
   });
 
-  const [error, setError] = useState(''); // Jeden błąd do wyświetlenia
+  const [error, setError] = useState('');
   const [globalError, setGlobalError] = useState(null); 
-  const [typingTimeout, setTypingTimeout] = useState(null); // Timeout dla debouncingu
+  const [typingTimeout, setTypingTimeout] = useState(null); 
 
   const [firstNameError, setFirstNameError] = useState(false);
   const [lastNameError, setLastNameError] = useState(false);
@@ -33,7 +33,6 @@ const AddAddressForm = ({ isOpen, onRequestClose, onAddAddress }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Aktualizuj dane formularza
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -78,18 +77,6 @@ const AddAddressForm = ({ isOpen, onRequestClose, onAddAddress }) => {
       const apatmentNumberRegex = /^\d+$/;
       setApartmentNumberError(!apatmentNumberRegex.test(value) && value.length > 0);
     }
-
-    // Anuluj poprzedni timeout i ustaw nowy
-    //if (typingTimeout) {
-    //  clearTimeout(typingTimeout);
-    //}
-
-    //const newTimeout = setTimeout(() => {
-    //  const validationError = validateField(name, value);
-    //  setError(validationError); // Wyświetl tylko jeden błąd
-    //}, 500); // Wywołaj walidację po 500ms od zakończenia pisania
-
-    //setTypingTimeout(newTimeout);
   };
 
   const handleSubmit = async (e) => {
@@ -104,7 +91,6 @@ const AddAddressForm = ({ isOpen, onRequestClose, onAddAddress }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      //alert('Adres dodany pomyślnie!');
       setFormData({
         first_name: '',
         last_name: '',

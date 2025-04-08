@@ -24,7 +24,7 @@ const User = () => {
   const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
   const { clearNotifications } = useContext(NotificationContext); 
 
-  const [isLoading, setIsLoading] = useState(true); // Dodano flagę isLoading
+  const [isLoading, setIsLoading] = useState(true);
 
 
   const fetchAddresses = async () => {
@@ -86,7 +86,7 @@ const User = () => {
     const fetchAllData = async () => {
       await fetchUserData();
       await fetchAddresses();
-      setIsLoading(false); // Dane załadowane
+      setIsLoading(false); 
     };
 
     fetchAllData();

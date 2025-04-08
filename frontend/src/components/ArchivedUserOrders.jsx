@@ -17,7 +17,6 @@ const ArchivedUserOrders = () => {
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
   const currentOrders = sortedOrders.slice(indexOfFirstOrder, indexOfLastOrder);
 
-  // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const statusLabels = {

@@ -3,8 +3,6 @@ from .models import AppUser, Restaurant, Tag, City, Order, Address, Cart, CartIt
 from django.urls import reverse
 from django.utils.html import format_html
 
-# Register your models here.
-
 admin.site.register(AppUser)
 
 @admin.register(Tag)
@@ -16,7 +14,7 @@ admin.site.register(City)
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
     list_display = ['name', 'owner', 'phone_number']
-    filter_horizontal = ['tags']  # Lepsze UI do wyboru tagów
+    filter_horizontal = ['tags']  
     
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):

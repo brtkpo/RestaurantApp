@@ -6,8 +6,8 @@ import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async, async_to_sync 
-from rest_framework_simplejwt.tokens import AccessToken  # Jeśli używasz JWT
-from core.models import ChatMessage, AppUser, Notification, Order  # Użyj AppUser, jeśli to Twój model użytkownika
+from rest_framework_simplejwt.tokens import AccessToken  
+from core.models import ChatMessage, AppUser, Notification, Order  
 from django.contrib.auth import get_user_model
 from channels.layers import get_channel_layer
 
@@ -18,14 +18,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'chat_{self.room_name}'
 
-        # Pobieranie tokena z query string
         token = self.scope['query_string'].decode().split('=')[1]
         try:
-            # Weryfikacja tokena
             access_token = AccessToken(token)
             self.user = await sync_to_async(AppUser.objects.get)(id=access_token['user_id'])
             
-            user_role = self.user.role # todo
+            user_role = self.user.role 
             if user_role == 'restaurateur':
                 logger.info(f"User {self.user.email} is a restaurateur.")
             elif user_role == 'client':
@@ -37,7 +35,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        # Dodajemy do grupy WebSocket
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -46,20 +43,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Usuwamy z grupy WebSocket
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
     async def receive(self, text_data):
-        # Odbieramy wiadomość z WebSocket
         try:
             text_data_json = json.loads(text_data)
             message = text_data_json['message']
-            user = await self.get_user(id=self.user.id) # todo
-            # Wywołanie funkcji zapisu w bazie danych
-            order_id = self.room_group_name.split('_')[1]  # Assuming order_id is passed in the message
+            user = await self.get_user(id=self.user.id) 
+
+            order_id = self.room_group_name.split('_')[1]  
             order = await self.get_order(order_id)
             
             if order.archived:
@@ -70,7 +65,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             
             logger.info(f"chat_message: {chat_message}") 
 
-            # Wysyłamy wiadomość do wszystkich użytkowników w grupie
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -94,7 +88,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_order(self, order_id):
         return Order.objects.get(order_id=order_id)
 
-    # Funkcja zapisująca wiadomość do bazy danych
     @database_sync_to_async
     def save_message(self, message, user, order):
         chat_message = ChatMessage.objects.create(room=self.room_name, user=user, message=message, order=order)
@@ -154,7 +147,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     async def disconnect(self, close_code):
-        if hasattr(self, 'room_group_name'): ## ta linijka dodana Dodano sprawdzenie if hasattr(self, 'room_group_name') w metodzie disconnect, aby upewnić się, że room_group_name istnieje przed próbą jego użycia.
+        if hasattr(self, 'room_group_name'): 
             await self.channel_layer.group_discard(
                 self.room_group_name,
                 self.channel_name

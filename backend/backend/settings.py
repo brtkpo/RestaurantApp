@@ -113,22 +113,10 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB', 'postgres'),
         'USER': os.getenv('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
-        'HOST': 'db',  # Powinno pasować do nazwy kontenera w Dockerze
+        'HOST': 'db',  
         'PORT': '5432',
     }
 }
-
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#        'NAME': 'postgres',
-#        'USER': 'postgres',
-#        'PASSWORD': 'postgres',
-#        'HOST': 'db',
-#        'PORT': '5432',
-#    }
-#}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -180,14 +168,12 @@ REST_FRAMEWORK = {
     ),
 }
 
-# Cloudinary jako backend dla plików statycznych i mediów
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# Ustawienia Cloudinary (zastąp poniższymi wartościami swoimi kluczami)
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dljau5sfr',#'twoj_cloud_name',
-    'API_KEY': '821576891229945',#'twoj_api_key',
-    'API_SECRET': '6O7xkl8CZXlz9qSff0LS5ynAy78',#'twoj_api_secret',
+    'CLOUD_NAME': 'dljau5sfr',
+    'API_KEY': '821576891229945',
+    'API_SECRET': '6O7xkl8CZXlz9qSff0LS5ynAy78',
 }
 
 cloudinary.config(
@@ -197,8 +183,8 @@ cloudinary.config(
 )
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Token dostępu ważny przez 1 godzinę
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Token odświeżania ważny przez 7 dni
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': False,
@@ -229,8 +215,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-#STRIPE_SECRET_KEY = os.getenv('sk_test_51QXLuJGugFGFgbLMIVz1Z6yKA2KNvcxtwcsEeZvbX9f4H923aY8XmQY9SdMrH09Cygzm2bAOqmLsYm9pGJi1L1fR00g1mklHwk')
-#STRIPE_PUBLISHABLE_KEY = os.getenv('pk_test_51QXLuJGugFGFgbLMyn8AWC8qBVTPEqJLfVP6UaVzBoo5A4JEaX0fkMOtXPUxtO5oXgrYffico8r3eBZ8ZWHZ2FA000UeHqshND')
 STRIPE_SECRET_KEY = 'sk_test_51QXLuJGugFGFgbLMIVz1Z6yKA2KNvcxtwcsEeZvbX9f4H923aY8XmQY9SdMrH09Cygzm2bAOqmLsYm9pGJi1L1fR00g1mklHwk'
 STRIPE_PUBLISHABLE_KEY = 'pk_test_51QXLuJGugFGFgbLMyn8AWC8qBVTPEqJLfVP6UaVzBoo5A4JEaX0fkMOtXPUxtO5oXgrYffico8r3eBZ8ZWHZ2FA000UeHqshND'
 
@@ -246,16 +230,16 @@ STATIC_URL = '/static/rest_framework/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",  # Adres Twojej aplikacji React
+    "http://localhost:3000", 
 ]
 
-CSRF_COOKIE_SECURE = False  # Jeśli używasz HTTPS, upewnij się, że jest to ustawione na True
+CSRF_COOKIE_SECURE = False  
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [("redis", 6379)],  # Zakładając, że Redis działa w kontenerze Dockera.
+            "hosts": [("redis", 6379)],  
         },
     },
 }

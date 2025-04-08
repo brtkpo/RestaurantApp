@@ -37,7 +37,7 @@ const RestaurantAddress = ({ profileData }) => {
         console.error('Błąd podczas pobierania adresu:', error);
         setGlobalError('Błąd podczas pobierania adresu. Spróbuj ponownie później.');
       } finally {
-        setIsLoading(false); // Ustaw isLoading na false po zakończeniu ładowania
+        setIsLoading(false); 
       }
     };
 
@@ -74,7 +74,7 @@ const RestaurantAddress = ({ profileData }) => {
       default:
         break;
     }
-    return ''; // Brak błędów
+    return ''; 
   };
 
   const handleChange = (e) => {

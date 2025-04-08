@@ -7,13 +7,13 @@ const AuthProvider = ({ children }) => {
   const token = useSelector((state) => state.token);
 
   useEffect(() => {
-    const tokenFromSession = sessionStorage.getItem('authToken'); // Pobierz token z sessionStorage
+    const tokenFromSession = sessionStorage.getItem('authToken'); 
     if (!token && tokenFromSession) {
-      dispatch(setUserToken(tokenFromSession)); // Zsynchronizuj Redux
+      dispatch(setUserToken(tokenFromSession)); 
     }
   }, [token, dispatch]);
 
-  return children; // Renderuj dzieci w drzewie komponentów
+  return children; 
 };
 
 export default AuthProvider;

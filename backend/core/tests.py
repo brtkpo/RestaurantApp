@@ -700,7 +700,7 @@ class CityListTest(TestCase):
             owner=self.user,
             name='Test Restaurant',
             phone_number='123456789',
-            allows_delivery=True  # Upewniamy się, że dostawa jest dostępna
+            allows_delivery=True  
         )
         self.address1 = Address.objects.create(
             user=self.user,
@@ -714,7 +714,7 @@ class CityListTest(TestCase):
         )
         self.city1 = City.objects.create(name='Sample City')
         self.city2 = City.objects.create(name='Another City')
-        self.restaurant.delivery_cities.add(self.city1)  # Dodajemy miasto dostawy do restauracji
+        self.restaurant.delivery_cities.add(self.city1)  
 
     def test_get_city_list(self):
         url = reverse('city-list')
@@ -764,7 +764,7 @@ class AddDeliveryCityTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_add_delivery_city_nonexistent_restaurant(self):
-        url = reverse('add-delivery-city', args=[9999])  # Nieistniejąca restauracja
+        url = reverse('add-delivery-city', args=[9999])  
         data = {'name': 'New City'}
         self.client.force_authenticate(user=self.user)
         response = self.client.post(url, data, format='json')
@@ -821,7 +821,7 @@ class RemoveDeliveryCityTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_remove_delivery_city_nonexistent_restaurant(self):
-        url = reverse('remove-delivery-city', args=[9999])  # Nieistniejąca restauracja
+        url = reverse('remove-delivery-city', args=[9999])   
         data = {'id': self.city1.id}
         self.client.force_authenticate(user=self.user)
         response = self.client.delete(url, data, format='json')
@@ -859,11 +859,9 @@ class GenerateUploadSignatureTest(TestCase):
         self.assertEqual(data['public_id'], public_id)
 
     def test_generate_upload_signature_missing_api_key_or_secret(self):
-        # Backup original configuration
         original_api_key = cloudinary.config().api_key
         original_api_secret = cloudinary.config().api_secret
 
-        # Set configuration to None
         cloudinary.config().api_key = None
         cloudinary.config().api_secret = None
 
@@ -872,7 +870,6 @@ class GenerateUploadSignatureTest(TestCase):
         data = response.json()
         self.assertEqual(data['error'], 'Cloudinary API key or secret not found in configuration.')
 
-        # Restore original configuration
         cloudinary.config().api_key = original_api_key
         cloudinary.config().api_secret = original_api_secret
 
@@ -1112,7 +1109,7 @@ class RestaurantTagUpdateTest(TestCase):
 
     def test_update_tags_nonexistent_restaurant(self):
         self.client.force_authenticate(user=self.user)
-        url = reverse('restaurant-tag-update', args=[9999])  # Nieistniejąca restauracja
+        url = reverse('restaurant-tag-update', args=[9999])  
         data = {'tag_ids': [self.tag1.id, self.tag2.id]}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -1172,9 +1169,6 @@ class ProductCreateTest(TestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['restaurant'][0], 'Invalid pk "999" - object does not exist.')
-        #print(response.data)
-        #'restaurant': [ErrorDetail(string='Invalid pk "999" - object does not exist.', code='does_not_exist')] przed blokiem z bledem w widoku
-        #self.assertEqual(response.data['restaurant'][0], 'Restaurant not found')
         
 class ProductListTest(TestCase):
     def setUp(self):
@@ -1205,7 +1199,7 @@ class ProductListTest(TestCase):
             restaurant=self.restaurant,
             is_available=True
         )
-        self.client.force_authenticate(user=self.user)  # Dodanie uwierzytelnienia
+        self.client.force_authenticate(user=self.user)  
 
     def test_get_products(self):
         url = reverse('product-list', args=[self.restaurant.id])
@@ -1224,7 +1218,7 @@ class ProductListTest(TestCase):
         self.assertEqual(len(response.data), 0)
 
     def test_get_products_nonexistent_restaurant(self):
-        url = reverse('product-list', args=[9999])  # Nieistniejąca restauracja
+        url = reverse('product-list', args=[9999]) 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['detail'], 'Restauracja nie została znaleziona.')
@@ -1258,7 +1252,7 @@ class AllProductListTest(TestCase):
             restaurant=self.restaurant,
             archived=False
         )
-        self.client.force_authenticate(user=self.user)  # Dodanie uwierzytelnienia
+        self.client.force_authenticate(user=self.user)  
 
     def test_get_all_products(self):
         url = reverse('product-list', args=[self.restaurant.id])
@@ -1277,7 +1271,7 @@ class AllProductListTest(TestCase):
         self.assertEqual(len(response.data), 0)
 
     def test_get_all_products_nonexistent_restaurant(self):
-        url = reverse('product-list', args=[9999])  # Nieistniejąca restauracja
+        url = reverse('product-list', args=[9999])  
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['detail'], 'Restauracja nie została znaleziona.')
@@ -1304,7 +1298,7 @@ class ProductDeleteTest(TestCase):
             restaurant=self.restaurant,
             archived=False
         )
-        self.client.force_authenticate(user=self.user)  # Dodanie uwierzytelnienia
+        self.client.force_authenticate(user=self.user)  
 
     def test_delete_product(self):
         url = reverse('product-delete', args=[self.product.id])
@@ -1319,7 +1313,7 @@ class ProductDeleteTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_delete_nonexistent_product(self):
-        url = reverse('product-delete', args=[9999])  # Nieistniejący produkt
+        url = reverse('product-delete', args=[9999])  
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['detail'], 'Produkt nie został znaleziony.')
@@ -1346,7 +1340,7 @@ class ProductUpdateTest(TestCase):
             restaurant=self.restaurant,
             archived=False
         )
-        self.client.force_authenticate(user=self.user)  # Dodanie uwierzytelnienia
+        self.client.force_authenticate(user=self.user)  
 
     def test_update_product(self):
         url = reverse('update-product', args=[self.product.id])
@@ -1354,7 +1348,7 @@ class ProductUpdateTest(TestCase):
             'name': 'Updated Product',
             'description': 'Updated Description',
             'price': '12.99',
-            'restaurant': self.restaurant.id  # Dodanie pola restaurant
+            'restaurant': self.restaurant.id  
         }
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1370,18 +1364,18 @@ class ProductUpdateTest(TestCase):
             'name': 'Updated Product',
             'description': 'Updated Description',
             'price': '12.99',
-            'restaurant': self.restaurant.id  # Dodanie pola restaurant
+            'restaurant': self.restaurant.id 
         }
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_update_nonexistent_product(self):
-        url = reverse('update-product', args=[9999])  # Nieistniejący produkt
+        url = reverse('update-product', args=[9999]) 
         data = {
             'name': 'Updated Product',
             'description': 'Updated Description',
             'price': '12.99',
-            'restaurant': self.restaurant.id  # Dodanie pola restaurant
+            'restaurant': self.restaurant.id   
         }
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -1409,7 +1403,7 @@ class ProductDetailTest(TestCase):
             restaurant=self.restaurant,
             archived=False
         )
-        self.client.force_authenticate(user=self.user)  # Dodanie uwierzytelnienia
+        self.client.force_authenticate(user=self.user)  
 
     def test_get_product_detail(self):
         url = reverse('product-detail', args=[self.product.id])
@@ -1426,7 +1420,7 @@ class ProductDetailTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_nonexistent_product_detail(self):
-        url = reverse('product-detail', args=[9999])  # Nieistniejący produkt
+        url = reverse('product-detail', args=[9999])  
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['detail'], 'Produkt nie został znaleziony.')
@@ -1481,14 +1475,14 @@ class CartListCreateTest(TestCase):
         url = reverse('cart-detail', args=[self.session_id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data[0]['items']), 0)  # Sprawdź, czy lista items jest pusta
+        self.assertEqual(len(response.data[0]['items']), 0)  
 
 def test_remove_stale_carts(self):
         stale_date = timezone.now() - timedelta(days=2)
         stale_cart = Cart.objects.create(session_id='stalesession123', created_at=stale_date)
         url = reverse('cart-detail', args=['stalesession123'])
         response = self.client.get(url)
-        print(response.data)  # Dodanie printa
+        print(response.data)   
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
         self.assertFalse(Cart.objects.filter(session_id='stalesession123').exists())
@@ -1498,7 +1492,6 @@ class CartItemListCreateViewTest(TestCase):
         self.client = APIClient()
         self.session_id = 'testsession123'
         
-        # Tworzenie użytkownika
         self.user = AppUser.objects.create_user(
             email='user@example.com',
             password='testpass',
@@ -1507,14 +1500,12 @@ class CartItemListCreateViewTest(TestCase):
             role='client'
         )
         
-        # Tworzenie restauracji
         self.restaurant = Restaurant.objects.create(
             owner=self.user,
             name='Test Restaurant',
             phone_number='123456789'
         )
         
-        # Tworzenie produktu
         self.product = Product.objects.create(
             name='Test Product',
             description='Description',
@@ -1523,7 +1514,6 @@ class CartItemListCreateViewTest(TestCase):
             is_available=True
         )
         
-        # Tworzenie koszyka
         self.cart = Cart.objects.create(session_id=self.session_id)
         self.cart_item = CartItem.objects.create(
             cart=self.cart,
@@ -1542,7 +1532,7 @@ class CartItemListCreateViewTest(TestCase):
     def test_create_cart_item_with_invalid_product(self):
         url = reverse('cartitem-list-create', args=[self.session_id])
         data = {
-            'product': 9999,  # Nieistniejący produkt
+            'product': 9999,  
             'quantity': 1
         }
         response = self.client.post(url, data, format='json')
@@ -1601,7 +1591,7 @@ class CartItemRetrieveUpdateDestroyViewTest(TestCase):
     def test_update_cart_item_invalid_data(self):
         url = reverse('cartitem-detail', args=[self.session_id, self.cart_item.id])
         data = {
-            'quantity': -1  # Invalid quantity
+            'quantity': -1  
         }
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1676,7 +1666,7 @@ class CartRestaurantInfoViewTest(TestCase):
             last_name='Test',
             role='client'
         )
-        self.client.force_authenticate(user=self.user)  # Authenticate the client
+        self.client.force_authenticate(user=self.user) 
         self.restaurant = Restaurant.objects.create(
             owner=self.user,
             name='Test Restaurant',
@@ -2296,7 +2286,7 @@ class CreateCheckoutSessionViewTest(TestCase):
                 'price_data': {
                     'currency': 'pln',
                     'product_data': {'name': f'{self.restaurant.name} - zamówienie nr. {self.order.order_id}'},
-                    'unit_amount': 1998,  # Kwota w groszach, 1000 to 10 PLN
+                    'unit_amount': 1998,  
                 },
                 'quantity': 1,
             }],
@@ -2435,7 +2425,7 @@ class UnreadNotificationsListViewTest(TestCase):
             payment_type='card',
             delivery_type='delivery'
         )
-        Notification.objects.all().delete()  # Clear all notifications before each test
+        Notification.objects.all().delete()  
         self.notification = Notification.objects.create(
             user=self.user,
             order=self.order,
@@ -2493,7 +2483,7 @@ class MarkNotificationAsReadViewTest(TestCase):
             payment_type='card',
             delivery_type='delivery'
         )
-        Notification.objects.all().delete()  # Clear all notifications before each test
+        Notification.objects.all().delete()  
         self.notification = Notification.objects.create(
             user=self.user,
             order=self.order,

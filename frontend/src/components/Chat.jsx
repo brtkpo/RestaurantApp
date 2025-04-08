@@ -5,14 +5,13 @@ const Chat = ({ roomName, archived = false , mainUserId, restaurant = false}) =>
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [socket, setSocket] = useState(null);
-  const [sentByClient, setSentByClient] = useState(false); // Flaga do śledzenia, czy wiadomość jest wysyłana przez klienta
+  const [sentByClient, setSentByClient] = useState(false); 
 
   function getCSRFToken() {
     const csrfToken = document.cookie.split(';').find(cookie => cookie.trim().startsWith('csrftoken='));
     return csrfToken ? csrfToken.split('=')[1] : '';
   }
 
-  // Funkcja do ustanowienia połączenia WebSocket
   const connectWebSocket = (url) => {
     return new Promise((resolve, reject) => {
 
@@ -27,18 +26,18 @@ const Chat = ({ roomName, archived = false , mainUserId, restaurant = false}) =>
       const wsUrl = `${url}?token=${token}`;
       const ws = new WebSocket(wsUrl, [], {
         headers: {
-          'Authorization': `Bearer ${token}`,  // Dodajemy token do nagłówka
+          'Authorization': `Bearer ${token}`,  
         }
       });
 
       ws.onopen = () => {
         console.log('WebSocket connection established');
-        resolve(ws); // Rozwiązujemy obietnicę po ustanowieniu połączenia
+        resolve(ws); 
       };
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
-        reject(error); // Odrzucamy obietnicę w przypadku błędu
+        reject(error); 
       };
 
       ws.onclose = (event) => {
@@ -54,20 +53,19 @@ const Chat = ({ roomName, archived = false , mainUserId, restaurant = false}) =>
     const setupWebSocket = async () => {
       try {
         ws = await connectWebSocket(`ws://localhost:8000/ws/chat/${roomName}/`);
-        setSocket(ws); // Przypisanie gniazda WebSocket do stanu
+        setSocket(ws); 
 
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          console.log('Received message from WebSocket:', data); // Logowanie odpowiedzi z WebSocket
+          console.log('Received message from WebSocket:', data); 
           const newMessage = {
             user: data.user,
             message: data.message,
-            timestamp: new Date(data.timestamp).toLocaleString() // Parsowanie i formatowanie daty
+            timestamp: new Date(data.timestamp).toLocaleString() 
           };
-          // Jeśli wiadomość pochodzi od klienta, nie dodawaj jej ponownie
+
           if (!sentByClient) {
             setMessages((prevMessages) => {
-              // Sprawdź, czy wiadomość już istnieje
               const lastMessage = prevMessages[prevMessages.length - 1];
               if (lastMessage && lastMessage.message === newMessage.message && lastMessage.timestamp === newMessage.timestamp) {
                 return prevMessages;
@@ -78,22 +76,20 @@ const Chat = ({ roomName, archived = false , mainUserId, restaurant = false}) =>
         };
       } catch (error) {
         console.error('Failed to establish WebSocket connection:', error);
-        setTimeout(setupWebSocket, 1000); // Automatyczne ponowne połączenie po 1 sekundzie
+        setTimeout(setupWebSocket, 1000); 
       }
     };
 
     setupWebSocket();
 
-    // Zamknięcie połączenia WebSocket przy odmontowaniu komponentu
     return () => {
       if (ws) {
         ws.close();
       }
     };
-  }, [roomName, sentByClient]); // Zależność na `sentByClient`, aby zaktualizować stan po wysłaniu wiadomości
+  }, [roomName, sentByClient]);
 
   useEffect(() => {
-    // Fetch previous messages
     const fetchMessages = async () => {
       try {
         const token = sessionStorage.getItem('authToken');
@@ -105,7 +101,7 @@ const Chat = ({ roomName, archived = false , mainUserId, restaurant = false}) =>
         console.log(response.data);
         const formattedMessages = response.data.map(msg => ({
           ...msg,
-          timestamp: new Date(msg.timestamp).toLocaleString() // Parsowanie i formatowanie daty
+          timestamp: new Date(msg.timestamp).toLocaleString() 
         }));
         setMessages(formattedMessages);
       } catch (error) {
@@ -123,9 +119,9 @@ const Chat = ({ roomName, archived = false , mainUserId, restaurant = false}) =>
     }
 
     if (socket && socket.readyState === WebSocket.OPEN) {
-      setSentByClient(true); // Ustawiamy flagę na true, że wiadomość jest wysyłana przez klienta
+      setSentByClient(true); 
       socket.send(JSON.stringify({ message }));
-      setMessage(''); // Czyszczenie pola tekstowego po wysłaniu wiadomości
+      setMessage(''); 
     } else {
       console.error('WebSocket is not open. Cannot send message.');
     }
@@ -176,7 +172,7 @@ const Chat = ({ roomName, archived = false , mainUserId, restaurant = false}) =>
             <input
               type="text"
               value={message}
-              onChange={(e) => setMessage(e.target.value)} // Zmiana tekstu w polu wejściowym
+              onChange={(e) => setMessage(e.target.value)} 
               placeholder='Napisz wiadomość'
               className="flex-grow px-4 py-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-gray-400 dark:focus:border-gray-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-gray-300"
             />

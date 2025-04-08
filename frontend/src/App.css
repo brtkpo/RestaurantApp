@@ -38,7 +38,7 @@
 }
 
 .custom-text-field {
-  width: 100%; /* Ustaw szerokość pól tekstowych na 100% wewnątrz kontenera */
+  width: 100%; 
 }
 
 .custom-text-field .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
@@ -68,36 +68,35 @@
 }
 
 .custom-button:hover {
-  background-color: #333 !important; /* Ciemniejszy odcień czerni przy najechaniu */
-  color: white !important;
+  background-color: #333 !important; 
 }
 
 .centered-container {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Wyśrodkuj poziomo */
-  justify-content: flex-start; /* Ustaw na górze pionowo */
-  min-height: 50vh; /* Ustaw wysokość na 100% widocznego obszaru */
+  align-items: center; 
+  justify-content: flex-start; 
+  min-height: 50vh; 
   text-align: center;
   overflow: hidden; 
 }
 
 .form-container {
-  width: 50%; /* Ustaw szerokość kontenera na 50% */
-  max-width: 600px; /* Ustaw maksymalną szerokość kontenera */
-  margin: 0 auto; /* Wyśrodkuj kontener */
-  box-sizing: border-box; /* Upewnij się, że padding jest wliczany do szerokości kontenera */
+  width: 50%; 
+  max-width: 600px; 
+  margin: 0 auto; 
+  box-sizing: border-box; 
 }
 
 @media (max-width: 768px) {
   .form-container {
-    width: 75%; /* Zmniejsz szerokość kontenera na mniejszych ekranach */
+    width: 75%; 
   }
 }
 
 @media (max-width: 480px) {
   .form-container {
-    width: 90%; /* Zmniejsz szerokość kontenera na bardzo małych ekranach */
+    width: 90%; 
   }
 }
 
@@ -106,13 +105,13 @@
 }
 
 .custom-link {
-  color: black; /* Dziedziczy kolor tekstu */
-  text-decoration: underline; /* Usuwa podkreślenie */
+  color: black; 
+  text-decoration: underline; 
 }
 
 .custom-link:hover {
-  color: #333; /* Ustawia kolor na czarny podczas najechania */
-  text-decoration: underline; /* Opcjonalnie dodaje podkreślenie podczas najechania */
+  color: #333; 
+  text-decoration: underline; 
 }
 
 .modal-enter {

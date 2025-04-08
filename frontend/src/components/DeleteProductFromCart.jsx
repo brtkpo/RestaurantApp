@@ -14,8 +14,7 @@ const DeleteProductFromCart = ({ productId, cartItemId, quantity, refreshCart })
 
         try {
         await axios.delete(`http://localhost:8000/api/cart/${sessionId}/items/${cartItemId}/`);
-        refreshCart();  // Odświeżenie koszyka po usunięciu produktu
-        //alert('Produkt został usunięty z koszyka');
+        refreshCart();  
         } catch (error) {
         console.error('Error deleting product from cart:', error);
         }
@@ -46,7 +45,7 @@ const DeleteProductFromCart = ({ productId, cartItemId, quantity, refreshCart })
                 quantity: newQuantity
             });
             console.log('Response:', response.data);
-            refreshCart();  // Odświeżenie koszyka po zmianie ilości produktu
+            refreshCart();  
         } catch (error) {
             console.error('Error updating product quantity in cart:', error);
         }

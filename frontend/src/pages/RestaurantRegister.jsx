@@ -37,7 +37,7 @@ function RegisterRestaurant() {
     const { name, value } = e.target;
 
     if (name.startsWith("restaurant.")) {
-      const field = name.split(".")[1]; // Pobierz nazwę pola restauracji
+      const field = name.split(".")[1]; 
       setFormData((prevData) => ({
         ...prevData,
         restaurant: {
@@ -86,7 +86,6 @@ function RegisterRestaurant() {
     formData.restaurant.phone_number =formData.phone_number; 
     try {
       const response = await axios.post("http://localhost:8000/api/restaurant/register/", formData);
-      //setSuccess("Restauracja została zarejestrowana pomyślnie!");
       setModalMessage("Restauracja została zarejestrowana pomyślnie!");
       setError(false);
       setModalIsOpen(true);
@@ -117,7 +116,7 @@ function RegisterRestaurant() {
     setIsSubmitting(false);
     setError(false);
     if (isRegistered) {
-      navigate('/restaurant/user'); // Przekierowanie po zamknięciu modala
+      navigate('/restaurant/user'); 
     }
   };
 

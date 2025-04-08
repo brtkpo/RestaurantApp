@@ -45,7 +45,7 @@ const UserListProducts = ({ products }) => {
       console.log('Products removed from cart:', response.data);
       handleAddToCart(productToAdd);
       if (modalResolve) {
-        modalResolve(true); // Ustawia wynik modala na `true`
+        modalResolve(true); 
       }
     closeModal();
     }
@@ -59,7 +59,6 @@ const UserListProducts = ({ products }) => {
     }
     setIsCartOpen(true);
 
-    // Sprawdź, czy w koszyku są produkty z innej restauracji
     if (cartItems.length > 0) {
       const cartRestaurantId = cartItems[0].product.restaurant;
       if (cartRestaurantId !== product.restaurant) {

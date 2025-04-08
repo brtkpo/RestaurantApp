@@ -6,7 +6,7 @@ import CheckoutButton from './CheckoutButton';
 import loadingGif from '../assets/200w.gif'; 
 
 const UserOrders = () => {
-  const token = useSelector((state) => state.token); // Pobieramy token z Redux
+  const token = useSelector((state) => state.token); 
   const [orders, setOrders] = useState([]);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);

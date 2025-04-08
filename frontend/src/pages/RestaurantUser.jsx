@@ -44,7 +44,6 @@ const RestaurantProfile = () => {
 
   const { clearNotifications } = useContext(NotificationContext); 
 
-  // Ładowanie danych restauratora z backendu
   useEffect(() => {
     //const token = sessionStorage.getItem('authToken');
     if (!token) {
@@ -103,29 +102,25 @@ const RestaurantProfile = () => {
   const normalizeCityName = (cityName) => {
     return cityName
       .toLowerCase()
-      .replace(/\s*-\s*/g, '-') // Usuwa dodatkowe spacje wokół myślników
-      .replace(/-+/g, '-') // Zamienia wiele myślników na jeden
-      .split(' ') // Dzieli na słowa przy spacji
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Pierwsza litera duża, reszta mała
-      .join(' ') // Łączy słowa z powrotem w string
-      .replace(/-\s/g, '-') // Usuwa spacje po myślnikach
-      .replace(/\s-/g, '-'); // Usuwa spacje przed myślnikami
+      .replace(/\s*-\s*/g, '-') 
+      .replace(/-+/g, '-') 
+      .split(' ') 
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1)) 
+      .join(' ') 
+      .replace(/-\s/g, '-') 
+      .replace(/\s-/g, '-'); 
   };
 
   const handleAddCity = async () => {
     //const token = sessionStorage.getItem('authToken');
     let cityName = formData.delivery_city.trim();
-    //console.log("1",cityName);
 
-    // Sprawdzenie, czy nazwa miasta zawiera tylko litery, spacje lub myślniki
     const cityRegex = /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s-]+$/;
     if (!cityRegex.test(cityName)) {
       alert('Nazwa miasta może zawierać tylko litery, spacje lub myślniki.');
       return;
     }
-    //console.log("2",cityName);
     cityName = await normalizeCityName(cityName);
-    //console.log("3",cityName);
     try {
       const response = await axios.post(
         `http://localhost:8000/api/restaurant/${profileData.restaurant.id}/add-delivery-city/`,
@@ -177,7 +172,6 @@ const RestaurantProfile = () => {
     e.preventDefault();
     setFormError(false);
 
-    // Walidacja: co najmniej jedna opcja płatności i jedna opcja dostawy musi być zaznaczona
     if (!formData.allows_online_payment && !formData.allows_cash_payment) {
       setFormError(true);
       setModalMessage('Musisz wybrać co najmniej jedną opcję płatności.');
@@ -207,30 +201,24 @@ const RestaurantProfile = () => {
         setModalIsOpen(true);
         //alert(response.data.message);
       } else {
-        //alert('Dane restauracji zostały zaktualizowane pomyślnie!');
         setModalMessage('Dane restauracji zostały zaktualizowane pomyślnie!');
         setModalIsOpen(true);
       }
     } catch (error) {
-      //console.error('Error updating restaurant details:', error);
       if (error.response && error.response.data && error.response.data.message) {
         setFormError(true);
         setModalMessage(error.response.data.message);
       } else {
         setFormError(true);
         setModalMessage('Nie udało się zaktualizować danych restauracji.');
-        //alert('Nie udało się zaktualizować danych restauracji.');
       }
       setModalIsOpen(true);
     }
   };
 
-  // Jeśli wystąpił błąd podczas ładowania danych
   if (error) {
     return <div>{error}</div>;
   }
-
-  // Jeśli dane restauratora nie są jeszcze dostępne
 
   if (!profileData) {
     return (
@@ -243,21 +231,17 @@ const RestaurantProfile = () => {
   const { first_name, last_name, email, phone_number, restaurant } = profileData;
 
   const handleLogout = () => {
-    dispatch(setUserToken(null)); // Usuwamy token z Redux
-    sessionStorage.removeItem('authToken'); // Usuwamy token z sessionStorage
+    dispatch(setUserToken(null)); 
+    sessionStorage.removeItem('authToken'); 
     clearNotifications();
-    navigate('/login'); // Przekierowanie na stronę logowania
+    navigate('/login'); 
   };
 
-  // Funkcja po zakończeniu wgrywania obrazu na Cloudinary
   const handleUploadSuccess = async (uploadedImageData) => {
     try {
-      //const token = sessionStorage.getItem('authToken');
-      
-      // Przesyłamy żądanie PATCH do zaktualizowania obrazu restauracji
       const response = await axios.patch(
-        `http://localhost:8000/api/restaurant/update/${restaurant.id}/`, // Endpoint do aktualizacji restauracji
-        { image: uploadedImageData.path }, // Przekazanie nowej ścieżki do zdjęcia
+        `http://localhost:8000/api/restaurant/update/${restaurant.id}/`, 
+        { image: uploadedImageData.path }, 
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -265,7 +249,6 @@ const RestaurantProfile = () => {
         }
       );
 
-      // Aktualizowanie danych restauracji po dodaniu obrazu
       setProfileData((prevData) => ({
         ...prevData,
         restaurant: { ...prevData.restaurant, image: uploadedImageData.path },
@@ -462,7 +445,6 @@ const RestaurantProfile = () => {
       <h3 className="mt-2 text-xl font-medium text-center text-gray-800 dark:text-gray-700">Zdjęcie profilowe restauracji</h3>
       <div className="font-[sans-serif] w-full max-w-xl mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 px-6 py-4">
         {restaurant.image ? (
-          // Jeśli zdjęcie istnieje, wyświetl je z Cloudinary
           <div>
             <img
               src={`${cloudinaryBaseUrl}${restaurant.image}`}
@@ -480,7 +462,6 @@ const RestaurantProfile = () => {
             </div>
           </div>
         ) : (
-          // Jeśli nie ma zdjęcia, umożliwiamy załadowanie nowego
           <div>
             <img
               src={placeholderImage}

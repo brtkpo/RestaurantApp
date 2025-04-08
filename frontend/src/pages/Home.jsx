@@ -13,7 +13,7 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const scrollPositionRef = useRef(0);
-  const [isRendered, setIsRendered] = useState(false); //userlist
+  const [isRendered, setIsRendered] = useState(false); 
   const [products, setProducts] = useState(null);
   const [error, setError] = useState(null);
   const [cities, setCities] = useState([]);
@@ -43,7 +43,6 @@ const Home = () => {
       setError(null);
       //console.log("Restaurants:", data);
 
-      // Extract unique tags from restaurants
       const uniqueTags = [];
       data.forEach(restaurant => {
         restaurant.tags.forEach(tag => {
@@ -120,7 +119,7 @@ const Home = () => {
 
   const handleRestaurantClick = (restaurant) => {
     //console.log("handleRestaurantClick");
-    scrollPositionRef.current = window.scrollY; // Zapisz aktualną pozycję scrolla do useRef
+    scrollPositionRef.current = window.scrollY; 
     //console.log("scrollPositionRef.current", scrollPositionRef.current);
     //console.log("window.scrollY", window.scrollY);
     setSelectedRestaurant(restaurant);
@@ -134,8 +133,8 @@ const Home = () => {
 
   useEffect(() => {
     if (!selectedRestaurant && scrollPositionRef.current > 0) {
-      window.scrollTo(0, scrollPositionRef.current); // Przywróć pozycję scrolla z useRef
-      scrollPositionRef.current = 0; // Resetuj pozycję scrolla
+      window.scrollTo(0, scrollPositionRef.current); 
+      scrollPositionRef.current = 0;
     }
   }, [selectedRestaurant, filteredRestaurants]);
 

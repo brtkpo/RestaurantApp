@@ -7,7 +7,7 @@ import axios from "axios";
 import DeleteProductFromCart from './DeleteProductFromCart';
 
 const Navbar = () => {
-  const token = useSelector((state) => state.token);  // Pobieramy token z Redux
+  const token = useSelector((state) => state.token);  
   const { cartItems, restaurant, isCartOpen, setIsCartOpen, refreshCart } = useContext(CartContext);
   const { notifications, markAsRead, handleGoToOrder, userRole } = useContext(NotificationContext);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); 
@@ -166,7 +166,7 @@ const Navbar = () => {
           )}
         </div>
       </nav>
-      <div class="mt-2" /> {/* Element odstępu */}
+      <div class="mt-2" /> 
     </>
   );
 };
@@ -175,13 +175,13 @@ const styles = {
   navbar: {
     backgroundColor: '#333', //#f2f2f2
     padding: '10px',
-    position: "fixed", // Navbar "przyklejony" do okna przeglądarki
-    top: 0, // Pozycja od góry
-    width: "100%", // Rozciąga się na całą szerokość
-    zIndex: 1000, // Ustawia z-index, by navbar był nad innymi elementami
+    position: "fixed", 
+    top: 0, 
+    width: "100%", 
+    zIndex: 1000, 
   },
   spacer: {
-    height: "30px", // Wysokość dopasowana do navbaru
+    height: "30px", 
   },
   ul: {
     listStyleType: 'none',

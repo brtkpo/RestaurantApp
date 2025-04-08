@@ -49,7 +49,6 @@ const ManageTags = ({ restaurantId }) => {
     
     setAssignedTags(newAssignedTags);
 
-    // Pobierz token z sessionStorage
     const token = sessionStorage.getItem('authToken');
     
     if (!token) {
@@ -59,13 +58,12 @@ const ManageTags = ({ restaurantId }) => {
       return;
     }
 
-    // Wysyłamy zapytanie do backendu, aby zaktualizować przypisane tagi
     axios.post(
       `http://localhost:8000/api/restaurant/${restaurantId}/tags/update`, 
       { tag_ids: newAssignedTags },
       {
         headers: {
-          Authorization: `Bearer ${token}`,  // Upewnij się, że token jest dodany do nagłówka
+          Authorization: `Bearer ${token}`, 
         }
       }
     )
@@ -98,22 +96,20 @@ const ManageTags = ({ restaurantId }) => {
     }
 
     try {
-      // Wyślij żądanie POST do backendu w celu dodania nowego tagu
       const response = await axios.post(
         'http://localhost:8000/api/tag/add/',
         { name: newTagName },
         {
           headers: {
-            Authorization: `Bearer ${token}`,  // Upewnij się, że token jest dodany do nagłówka
+            Authorization: `Bearer ${token}`, 
           }
         }
       );
-      
-      // Po dodaniu tagu, zaktualizuj wszystkie tagi i przypisane tagi
-      setAllTags([...allTags, response.data]);  // Dodaj nowy tag do listy tagów
+
+      setAllTags([...allTags, response.data]); 
       handleTagChange(response.data.id);
-      setAssignedTags([...assignedTags, response.data.id]);  // Dodaj nowy tag do przypisanych tagów restauracji
-      setNewTagName('');  // Wyczyść pole wejściowe
+      setAssignedTags([...assignedTags, response.data.id]);  
+      setNewTagName('');  
     } catch (error) {
       setError('Błąd podczas dodawania tagu.');
     }

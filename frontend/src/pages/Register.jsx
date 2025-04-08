@@ -96,7 +96,7 @@ function Register() {
     setModalIsOpen(false);
     setError(false);
     if (isRegistered) {
-      navigate('/user'); // Przekierowanie po zamknięciu modala
+      navigate('/user'); 
     }
   };
 

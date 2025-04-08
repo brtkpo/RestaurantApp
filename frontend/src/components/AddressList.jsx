@@ -18,7 +18,7 @@ const AddressList = ({ onAddAddress }) => {
       if (response.data.length === 0) {
           //setError('Brak adresów');
         } else {
-          setAddresses(response.data); // Ustawiamy adresy, jeśli są
+          setAddresses(response.data); 
         }
     } catch (err) {
       setError('Błąd podczas ładowania adresów');
@@ -40,7 +40,7 @@ const AddressList = ({ onAddAddress }) => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setAddresses(addresses.filter((address) => address.id !== addressId));  // Usuwamy adres z listy
+        setAddresses(addresses.filter((address) => address.id !== addressId));  
       } catch (err) {
         setError('Błąd podczas usuwania adresu');
       }

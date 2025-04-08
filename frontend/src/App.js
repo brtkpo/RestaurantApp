@@ -17,16 +17,13 @@ import UserOrderDetails from "./pages/UserOrderDetails";
 import { CartProvider } from './components/CartContext';  
 import { NotificationProvider } from './components/NotificationContext';  
 
-
-// Zmiana - Provider teraz obejmuje cały komponent App
 function App() {
   const dispatch = useDispatch();
 
-  // Sprawdzenie tokena w sessionStorage przy załadowaniu aplikacji
   useEffect(() => {
     const token = sessionStorage.getItem('authToken');
     if (token) {
-      dispatch(setUserToken(token));  // Ustawiamy token w Redux
+      dispatch(setUserToken(token));  
     }
   }, [dispatch]);
 
@@ -34,7 +31,7 @@ function App() {
     <CartProvider>
       <NotificationProvider>
         <div>
-          <Navbar />   {/* Navbar jest teraz widoczny dla wszystkich komponentów */}
+          <Navbar />  
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -52,7 +49,6 @@ function App() {
   );
 }
 
-// Cała aplikacja w Provider
 function AppWrapper() {
   return (
     <Provider store={store}>

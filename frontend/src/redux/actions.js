@@ -6,8 +6,8 @@ export const setUserToken = (token) => {
 };
 
 export const logoutUser = () => (dispatch) => {
-  dispatch(setUserToken(null)); // Usuń token z Redux
-  sessionStorage.removeItem('authToken'); // Usuń token z sessionStorage
+  dispatch(setUserToken(null)); 
+  sessionStorage.removeItem('authToken'); 
 };
   
   //export const clearUserToken = () => ({

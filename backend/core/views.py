@@ -49,7 +49,6 @@ def clientRegister(request):
     if request.method == 'POST':
         email = request.data.get('email')
         
-        # Sprawdzenie, czy email istnieje
         if AppUser.objects.filter(email=email).exists():
             return Response(
                 {'message': 'Email is already taken.'},
@@ -58,7 +57,7 @@ def clientRegister(request):
         
         serializer = ClientSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()  # Tworzymy użytkownika
+            user = serializer.save()  
             refresh = RefreshToken.for_user(user)
             return Response({
                 "access": str(refresh.access_token),
@@ -74,7 +73,6 @@ class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Pobieramy dane aktualnie zalogowanego użytkownika
         user = request.user
         user_data = {
             'first_name': user.first_name,
@@ -92,14 +90,12 @@ class DeleteUserView(APIView):
         try:
             user = request.user
 
-            # Sprawdzenie, czy użytkownik istnieje
             if not AppUser.objects.filter(id=user.id).exists():
                 return Response(
                     {"message": "Nie znaleziono użytkownika."},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            # Usuwanie użytkownika
             user.delete()
             return Response(
                 {"message": "Konto zostało usunięte."},
@@ -113,7 +109,6 @@ class DeleteUserView(APIView):
             )
 
         except Exception as e:
-            # Ogólny wyjątek dla innych błędów
             return Response(
                 {"message": "Wystąpił błąd: " + str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -129,12 +124,12 @@ class UserDetailsView(RetrieveAPIView):
 
 #Address
 class AddAddressView(APIView):
-    permission_classes = [IsAuthenticated]  # Użytkownik musi być zalogowany
+    permission_classes = [IsAuthenticated]  
 
     def post(self, request):
         data = request.data
         user = request.user
-        # Dodajemy usera automatycznie, bazując na aktualnie zalogowanym użytkowniku
+
         data['user'] = user.id  
         data['owner_role'] = user.role  
         import logging
@@ -142,11 +137,9 @@ class AddAddressView(APIView):
         logger.info(f"owner_role: {user.role}")
         
         if user.role == 'restaurateur':
-            # Sprawdzamy, czy użytkownik ma już zapisany adres
             if Address.objects.filter(user=user).exists():
                 return Response({'error': 'Adres już istnieje dla tego użytkownika.'}, status=status.HTTP_400_BAD_REQUEST)
             
-            # Przypisujemy restaurant_id na podstawie user.id
             try:
                 restaurant = Restaurant.objects.get(owner_id=user.id)
                 data['restaurant'] = restaurant.id
@@ -164,7 +157,7 @@ class AddAddressView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class AddressListView(APIView):
-    permission_classes = [IsAuthenticated]  # Użytkownik musi być zalogowany
+    permission_classes = [IsAuthenticated]  
 
     def get(self, request):
         addresses = Address.objects.filter(user=request.user, archived=False)
@@ -176,9 +169,9 @@ class DeleteAddressView(APIView):
 
     def delete(self, request, pk):
         try:
-            address = Address.objects.get(pk=pk, user=request.user)  # Pobieramy adres na podstawie id i użytkownika
-            address.archived = True  # Oznaczamy adres jako zarchiwizowany
-            address.save()  # Usuwamy adres
+            address = Address.objects.get(pk=pk, user=request.user)  
+            address.archived = True  
+            address.save()  
             return Response({"message": "Adres usunięty pomyślnie!"}, status=status.HTTP_204_NO_CONTENT)
         except Address.DoesNotExist:
             return Response({"error": "Adres nie znaleziony."}, status=status.HTTP_404_NOT_FOUND)
@@ -192,7 +185,7 @@ class RestaurantRegistrationView(CreateAPIView):
     serializer_class = RestaurateurRegistrationSerializer
 
     def perform_create(self, serializer):
-        user = serializer.save()  # Zapisujemy nowego użytkownika i restaurację
+        user = serializer.save()  
         refresh = RefreshToken.for_user(user)
         self.token_data = {
             "message": "restaurator i restauracja utworzona pomyślnie!",
@@ -202,8 +195,7 @@ class RestaurantRegistrationView(CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         email = request.data.get('email')
-        
-        # Sprawdzenie, czy email istnieje
+
         if AppUser.objects.filter(email=email).exists():
             return Response(
                 {'message': 'Email jest już zajęty.'},
@@ -245,7 +237,6 @@ class RestaurantProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Używamy serializera do zebrania danych użytkownika i jego restauracji
         serializer = RestaurantProfileSerializer(request.user)
         return Response(serializer.data)
 
@@ -264,7 +255,6 @@ class RestaurantUpdateView(UpdateAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
-        # Check if allows_delivery is True and delivery_cities is empty
         if serializer.validated_data.get('allows_delivery') and not instance.delivery_cities.exists():
             serializer.validated_data['allows_delivery'] = False
             return Response({"message": "Musisz dodać miasta dostawy, aby umożliwić dostawę."}, status=status.HTTP_400_BAD_REQUEST)
@@ -277,24 +267,17 @@ class RestaurantUpdateView(UpdateAPIView):
         return Response(serializer.data)
     
 class CityListView(ListAPIView):
-    """
-    GET: Zwraca listę wszystkich unikalnych nazw miast dla adresów restauracji
-    """
     def get(self, request, *args, **kwargs):
-        # Miasta z adresów restauracji
         address_cities = Address.objects.filter(owner_role='restaurateur').values('city').annotate(count=Count('city')).order_by('city')
         address_city_names = {city['city'] for city in address_cities}
 
-        # Miasta dostawy
         delivery_cities = City.objects.all().values('name').annotate(count=Count('name')).order_by('name')
         delivery_city_names = {city['name'] for city in delivery_cities}
 
-        # Połączenie obu zestawów miast
         all_city_names = sorted(address_city_names.union(delivery_city_names))
 
         return Response(all_city_names, status=status.HTTP_200_OK)
     
-#DeliveryCity
 class AddDeliveryCityView(CreateAPIView):
     serializer_class = CitySerializer
     permission_classes = [IsAuthenticated]
@@ -349,28 +332,22 @@ class RemoveDeliveryCityView(DestroyAPIView):
     
 #Cloudinary
 def generateUploadSignature(request):
-    # Pobranie public_id z query params lub wygenerowanie domyślnego
-    public_id = request.GET.get('public_id', get_random_string(10))  # Jeśli brak public_id, generujemy losowe
-    timestamp = str(int(time.time()))  # Timestamp w sekundach
-    upload_preset = 'ml_default'  # Twój upload preset (możesz go zmienić w zależności od konfiguracji Cloudinary)
+    public_id = request.GET.get('public_id', get_random_string(10))  
+    timestamp = str(int(time.time())) 
+    upload_preset = 'ml_default'  
 
-    # Pobieramy konfigurację Cloudinary
     api_key = cloudinary.config().api_key
     api_secret = cloudinary.config().api_secret
 
-    # Logowanie: Sprawdzamy, czy api_key i api_secret są poprawne
     print("Cloudinary Config:", api_key, api_secret)
 
     if not api_key or not api_secret:
         return JsonResponse({"error": "Cloudinary API key or secret not found in configuration."}, status=400)
 
-    # Parametry do podpisu - uwzględniamy `upload_preset`
     signature_string = f"public_id={public_id}&timestamp={timestamp}&upload_preset={upload_preset}{api_secret}"
 
-    # Tworzymy podpis
     signature = hashlib.sha1(signature_string.encode('utf-8')).hexdigest()
 
-    # Zwracamy dane do frontend (API key, timestamp, signature, public_id)
     response_data = {
         'api_key': api_key,
         'timestamp': timestamp,
@@ -420,7 +397,6 @@ class TagCreateView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        # Sprawdzenie, czy tag o takiej nazwie już istnieje
         existing_tag = Tag.objects.filter(name=request.data.get('name')).first()
         if existing_tag:
             return Response(
@@ -437,28 +413,23 @@ class TagCreateView(APIView):
 class RestaurantTagListView(APIView):
     def get(self, request, pk):
         try:
-            # Pobranie restauracji
             restaurant = Restaurant.objects.get(pk=pk)
         except Restaurant.DoesNotExist:
             return Response({"error": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Serializowanie przypisanych tagów
         tags = restaurant.tags.all()
         serializer = TagSerializer(tags, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class FilterRestaurantsByTagsView(APIView):
     def get(self, request):
-        # Pobranie tagów z parametrów zapytania
         tag_names = request.query_params.getlist('tags')
 
         if not tag_names:
             return Response({"error": "No tags provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Filtrowanie restauracji według tagów
         restaurants = Restaurant.objects.filter(tags__name__in=tag_names).distinct()
 
-        # Serializowanie wyników
         serializer = RestaurantSerializer(restaurants, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -474,11 +445,9 @@ class RestaurantTagUpdateView(APIView):
         tag_ids = request.data.get('tag_ids', [])
         tags = Tag.objects.filter(id__in=tag_ids)
         
-        # Dodanie tagów do restauracji
         restaurant.tags.set(tags)
         restaurant.save()
         
-        # Serializowanie zaktualizowanych tagów
         serializer = TagSerializer(tags, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -491,7 +460,6 @@ class RestaurantTagUpdateView(APIView):
         tag_ids = request.data.get('tag_ids', [])
         tags = Tag.objects.filter(id__in=tag_ids)
         
-        # Usunięcie tagów z restauracji
         restaurant.tags.remove(*tags)
         restaurant.save()
         
@@ -595,7 +563,6 @@ class CartListCreateView(ListCreateAPIView):
         session_id = self.kwargs['session_id']
         cart = Cart.objects.filter(session_id=session_id).first()
         if cart:
-            # Usuń produkty, które nie są dostępne
             CartItem.objects.filter(cart=cart, product__is_available=False).delete()
         
         stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24), order_id__isnull=True)
@@ -616,15 +583,14 @@ class CartItemListCreateView(ListCreateAPIView):
 
     def get_queryset(self):
         session_id = self.kwargs['session_id']
-        ##cart = Cart.objects.get(session_id=session_id)
+        #cart = Cart.objects.get(session_id=session_id)
         
-        # Sprawdzenie i czyszczenie wszystkich koszyków, które nie były aktualizowane w ciągu ostatnich 24 godzin
         stale_carts = Cart.objects.filter(created_at__lt=timezone.now() - timedelta(hours=24), order_id__isnull=True)
         print(f"Stale carts to delete: {stale_carts}")
         for stale_cart in stale_carts:
             CartItem.objects.filter(cart=stale_cart).delete()
             stale_cart.delete()
-            #stale_cart.update_timestamp()  # Zaktualizuj timestamp koszyka
+            #stale_cart.update_timestamp()  
         
         cart = Cart.objects.get(session_id=session_id)
         return CartItem.objects.filter(cart=cart)
@@ -673,12 +639,12 @@ class CartItemRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
         print('Received data:', request.data) 
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         if not serializer.is_valid():
-            print('Validation errors:', serializer.errors)  # Logowanie błędów walidacji
+            print('Validation errors:', serializer.errors) 
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
         cart = instance.cart
-        cart.update_total_price()  # Aktualizujemy wartość koszyka po zmianie ilości produktu
+        cart.update_total_price() 
 
         return Response(serializer.data)
     
@@ -689,7 +655,6 @@ class ClearCartItemsFromOtherRestaurantsView(DestroyAPIView):
         except Cart.DoesNotExist:
             return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Usuń produkty z koszyka, które nie należą do podanej restauracji
         CartItem.objects.filter(cart=cart).exclude(product__restaurant_id=restaurant_id).delete()
 
         return Response({"message": "Produkty z innych restauracji zostały usunięte z koszyka."}, status=status.HTTP_200_OK)
@@ -738,7 +703,7 @@ class OrderListCreateView(ListCreateAPIView):
                 address = Address.objects.get(id=address_id)
                 if address.archived:
                     raise serializers.ValidationError({"error": "Adres jest zarchiwizowany i nie może być użyty do zamówienia."})
-                user = address.user  # Uzyskujemy użytkownika z adresu
+                user = address.user  
             except Address.DoesNotExist:
                 raise serializers.ValidationError({"error": "Address not found"})
          
@@ -808,7 +773,7 @@ class OrderDetailView(RetrieveUpdateAPIView):
         if not hasattr(request.user, 'restaurant') or request.user.restaurant.id != order.restaurant.id:
             #logger.warning(f"User {request.user.restaurant.id} does not have permission to update order {order.order_id}")
             return Response({'error': 'Nie masz uprawnień do modyfikacji tego zamówienia.'}, status=status.HTTP_403_FORBIDDEN)
-        # Update order status and history
+
         if 'status' in data:
             order.update_status(data['status'], data.get('description', ""))
             #notification = Notification.objects.create(
@@ -897,9 +862,9 @@ class CreateCheckoutSessionView(APIView):
             restaurant = request.data.get('restaurant')
             total_amount = request.data.get('totalAmount')
             
-            print('Received data:', request.data)  # Logowanie danych odbieranych przez serwer
+            print('Received data:', request.data)  
             total_amount_cents = int(float(total_amount) * 100)
-            # Tworzenie sesji Stripe Checkout
+
             session = stripe.checkout.Session.create(
                 customer_email = email,
                 
@@ -920,7 +885,6 @@ class CreateCheckoutSessionView(APIView):
                 metadata={'order_id': order_id},# Zmienna adresu anulowania
             )
 
-            # Zwrócenie odpowiedzi z ID sesji
             return Response({'id': session.id}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
@@ -937,7 +901,6 @@ class SuccessPaymentView(APIView):
             order.is_paid = True
             order.save()
 
-            # Dodanie wpisu do OrderHistory
             OrderHistory.objects.create(
                 order=order,
                 status=order.status,
@@ -950,7 +913,6 @@ class SuccessPaymentView(APIView):
                 message=f"Zamówienie nr.{order.order_id} zostało opłacone.",
             )
 
-            # Wysyłanie powiadomienia przez WebSocket
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
                 f'notifications_{order.restaurant.owner.id}',

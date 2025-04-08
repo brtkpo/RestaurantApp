@@ -12,7 +12,7 @@ import Modal from 'react-modal';
 import { NotificationContext } from '../components/NotificationContext';  
 
 const Order = () => {
-  const token = useSelector((state) => state.token); // Pobieramy token z Redux
+  const token = useSelector((state) => state.token); 
   const navigate = useNavigate();
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [addresses, setAddresses] = useState([]);
@@ -47,12 +47,12 @@ const Order = () => {
 
   useEffect(() => {
     if (!token) {
-      navigate('/login'); // moze dodac modal z info nwm
+      navigate('/login');
     }
   }, [token, navigate]);
 
   useEffect(() => {
-    setIsCartOpen(false); // Zamknij koszyk, gdy użytkownik jest na stronie zamówienia
+    setIsCartOpen(false); 
   }, [setIsCartOpen]);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ const Order = () => {
         }
         finally {
 
-          setIsRestaurantSettingsLoaded(true); // Ustawienie flagi na true
+          setIsRestaurantSettingsLoaded(true); 
           console.log("isRestaurantSettingsLoaded:", isRestaurantSettingsLoaded);
           console.log("isAddressesLoaded:", isAddressesLoaded);
         }
@@ -113,7 +113,6 @@ const Order = () => {
   };
 
   const refreshAddresses = () => {
-    // Funkcja do odświeżenia adresów
     fetchAddresses();
   };
 
@@ -171,7 +170,7 @@ const Order = () => {
       });
       setOrderId(response.data.order_id);
 
-      await refreshCart(); // Opróżnij koszyk po złożeniu zamówienia
+      await refreshCart(); 
       setIsCartOpen(false);
       setModalMessage("Zamówienie zostało złożone pomyślnie!");
       
@@ -206,7 +205,7 @@ const Order = () => {
     setModalIsOpen(false);
     setError(false);
     if (isOrdered) {
-      navigate(`/user/orders/${orderId}`); // Przekierowanie po zamknięciu modala
+      navigate(`/user/orders/${orderId}`);
     }
   };
 

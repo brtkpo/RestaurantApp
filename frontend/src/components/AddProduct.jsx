@@ -42,7 +42,7 @@ const AddProduct = ({ restaurantId , onProductAdded}) => {
         `http://localhost:8000/api/restaurant/add-product/`,
         {
           ...formData,
-          restaurant: restaurantId, // Dodajemy ID restauracji
+          restaurant: restaurantId, 
         },
         {
           headers: {

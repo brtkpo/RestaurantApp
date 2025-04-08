@@ -35,19 +35,16 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     
-    # Rola użytkownika (klient/restaurator)
     ROLE_CHOICES = [
         ('client', 'Client'),
         ('restaurateur', 'Restaurateur'),
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='client')
 
-    # Pola do logowania
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     
-    # Dodatkowe informacje o kliencie
     phone_number = models.CharField(max_length=15, null=True, blank=True)
 
     objects = UserManager()
@@ -59,7 +56,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
         return f"{self.first_name} {self.last_name}"
     
     def has_module_perms(self, app_label):
-        return True  # Dostosuj do swoich potrzeb
+        return True  
 
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -80,7 +77,7 @@ class Restaurant(models.Model):
     phone_number = models.CharField(max_length=15)
     description = models.TextField(null=True, blank=True)
     image = CloudinaryField('image', null=True, blank=True)
-    tags = models.ManyToManyField(Tag, related_name='restaurants', blank=True)  # Dodano relację
+    tags = models.ManyToManyField(Tag, related_name='restaurants', blank=True)  
     
     allows_online_payment = models.BooleanField(default=True)
     allows_cash_payment = models.BooleanField(default=True)
@@ -130,7 +127,6 @@ class Address(models.Model):
     archived = models.BooleanField(default=False)
     
     def clean(self):
-        # Sprawdzenie wymaganych pól w zależności od roli
         if self.owner_role == 'client':
             if not self.user:
                 raise ValueError("Client address must be associated with a user.")
@@ -156,7 +152,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_available = models.BooleanField(default=True)
     image = CloudinaryField('image', null=True, blank=True)
-    archived = models.BooleanField(default=False)  # Dodajemy pole archived
+    archived = models.BooleanField(default=False)  
 
     def __str__(self):
         return f"{self.name} - {self.restaurant.name}"
@@ -177,7 +173,7 @@ class Cart(models.Model):
     session_id = models.CharField(max_length=100, unique=True, null=True ,default=get_random_string)
     created_at = models.DateTimeField(auto_now=True)
     order_id = models.PositiveIntegerField(unique=True, null=True, default=None) 
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Dodajemy pole total_price
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) 
 
     def __str__(self):
         return self.session_id if self.session_id else f"Order {self.order_id}" if self.order_id else "Cart"
@@ -195,7 +191,7 @@ class CartItem(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)  
-    created_at = models.DateTimeField(auto_now_add=True)  # Dodaj pole created_at
+    created_at = models.DateTimeField(auto_now_add=True)  
 
     class Meta:
         ordering = ['created_at']
@@ -260,14 +256,12 @@ class Order(models.Model):
         if is_new:
             OrderHistory.objects.create(order=self, status=self.status, description="Złożono zamówienie")
             
-            # Tworzenie powiadomienia dla restauracji
             notification = Notification.objects.create(
                 user=self.restaurant.owner,
                 order=self,
                 message=f"Nowe zamówienie nr.{self.order_id}.",
             )
             
-            # Wysyłanie powiadomienia przez WebSocket
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
                 f'notifications_{self.restaurant.owner.id}',
@@ -345,7 +339,6 @@ class ChatMessage(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     
     def save(self, *args, **kwargs):
-        # Jeśli order_id jest dostępne, ustaw room na order_id
         #if self.room:
         #    self.order.order_id = self.room  # Możesz użyć order_id lub innej wartości
         super().save(*args, **kwargs)

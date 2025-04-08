@@ -22,7 +22,7 @@ const AddressSelector = ({ onSelect, onAddAddress }) => {
         if (response.data.length === 0) {
           setError('Brak adresów');
         } else {
-          setAddresses(response.data); // Ustawiamy adresy, jeśli są
+          setAddresses(response.data); 
         }
       } catch (err) {
         setError('Błąd podczas ładowania adresów');
